@@ -10,6 +10,8 @@ from flask import Flask, request, render_template
 import numpy as np
 import pandas as pd
 import itertools
+import pyopencl as cl
+import time
 
 app = Flask(__name__)
 
@@ -84,6 +86,47 @@ def TSZF2(rawBetOn):
         str1 = '-'.join(str(e) for e in b)
         betOn.append("TSZF2_" + str1)
     return betOn
+
+def program_build(kernel_file = 'kernels/kernel_program.cl'): 
+     # Open program file and build
+    program_file = open(kernel_file, 'r') # Scale x Matrx
+    program_text = program_file.read()
+    program = cl.Program(context, program_text)
+    try:
+        program.build()
+    except:
+        print("Build log:")
+        print(program.get_build_info(devices[0], 
+                cl.program_build_info.LOG))
+        raise
+    return program
+
+def sum_selection_total_amount(context, program, selection, wagers, wager_length=10000):
+    queue = cl.CommandQueue(context)
+    tStart = time.time()#計時開始
+
+    # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
+    buffer_selection = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=selection)
+    buffer_wagers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=wagers)
+    buffer_result = cl.Buffer(context, cl.mem_flags.WRITE_ONLY,  size = selection.nbytes) 
+ 
+    selection_length = len(selection)
+    event = program.sum_selection_total_amount(
+                    queue, (selection_length, ), (1, ),
+                    buffer_selection, 
+                    buffer_wagers,
+                    buffer_result,
+                    np.int32(wager_length))
+    event.wait()
+
+    # Read data back from buffer
+    result = np.array(selection, dtype=np.float32)
+    cl.enqueue_copy(queue, result, buffer_result)
+    queue.flush()
+
+    tEnd = time.time()#計時結束
+    print("It cost %f sec" % (tEnd - tStart))#會自動做近位
+    return result
 # =================================================
 
 @app.route('/', methods=['GET'])
@@ -95,30 +138,25 @@ def submit():
     title = '最佳化開獎策略'
     if request.method == 'POST':
         #print('request.form', request.data)
-        rows = []
-        row_data = request.get_data().decode("utf-8")
-        logging.debug(f"row data: {row_data}")
-        jdata = json.loads(row_data)
+        betOn_rows = []
+        raw_data = request.get_data().decode("utf-8")
+        logging.debug(f"row data: {raw_data}")
+        jdata = json.loads(raw_data)
         #print(jdata["Bets"])
         for bet in jdata["Bets"]:
             betTypePlayCode = bet['BetTypePlayCode']
             unitAmount = bet["UnitAmount"]
             rawBetOn = bet["BetOn"]
             betOnCount = int(bet["BetOnCount"])
-            logging.debug(f"BetTypePlayCode={betTypePlayCode}, BetOn={rawBetOn}, UnitAmount={unitAmount}, betOnCount={betOnCount}")
+            #logging.debug(f"BetTypePlayCode={betTypePlayCode}, BetOn={rawBetOn}, UnitAmount={unitAmount}, betOnCount={betOnCount}")
             extraData = json.loads(bet["ExtraData"])
-            #print(extraData)
-            #print(extraData["ExtraBets"])
-            #for beat in extraData["ExtraBets"]:
-            #    odds = beat["Odds"]
-            #    print(odds)
             odds = []
             for i in range(betOnCount):
                 if len(extraData["ExtraBets"]) == 1:
                     odds.append(extraData["ExtraBets"][0]["Odds"])
                 else:
                     odds.append(extraData["ExtraBets"][i]["Odds"])
-            logging.debug(odds)
+            #logging.debug(odds)
 
             if betTypePlayCode == "O_12Sum":
                 betOn=SUM(rawBetOn)
@@ -194,10 +232,28 @@ def submit():
                     row.append(0)
               
             #print(row)
-            rows.append(row)
-        
-        print(rows)
-        
+            betOn_rows.append(row)
+
+        #print(betOn_rows)
+        wager_length = len(betOn_rows)
+        logging.debug(f"get {len(betOn_rows)} rows.")
+        #=========================================================
+        column_length = len(header);
+        A = np.ones(column_length).astype(np.float32)
+        #print("A=", A)
+
+        max_wager_length = 20000
+        for i in range(max_wager_length - len(betOn_rows)):
+            betOn_rows.append(np.zeros(column_length))
+
+        B = np.array(betOn_rows).flatten().astype(np.float32)
+        #print("B=", B)
+        print(f"selection_length={column_length}, wager_length={wager_length}, max_wager_length={max_wager_length}")
+        result = sum_selection_total_amount(context, program, A, B, max_wager_length)
+        logging.debug(f"result:{result}")
+        #logging.debug("result length :", len(result))
+        logging.debug(sum(result))
+
         response = { }
         response["code"] = 0
         response["msg"] = "success"
@@ -215,11 +271,22 @@ def submit():
     return render_template('bestopen.html', title=title)
 
 header = []
+program = None
+context = None
+queue = None
 if __name__ == "__main__":
 
     data = pd.read_csv("opencode_table.csv", nrows=0)
     header = data.columns[1:-1]
     print("column count : " +str(len(header)))
+
+    print(os.path.abspath(__file__))
+     # Create context and command queue
+    platform = cl.get_platforms()[0]
+    devices = platform.get_devices()
+    context = cl.Context(devices)
+    queue = cl.CommandQueue(context)
+    program = program_build()
 
     if not os.path.exists("log"):
         os.mkdir("log")
@@ -231,5 +298,5 @@ if __name__ == "__main__":
             datefmt='%m-%d %H:%M:%S',
             filename=log_fliename)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-    app.config["DEBUG"] = True
+    app.config["DEBUG"] = False
     app.run(host='0.0.0.0', port=5000)

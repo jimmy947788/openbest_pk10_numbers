@@ -167,6 +167,7 @@ def main():
 
         #for balls in ballsList[:5000]: 
         for balls in ballsList: # ALL
+            print(balls)
             if hasHeader==True:
                 str1 = '-'.join(str(e) for e in balls)
                 print(str1)
