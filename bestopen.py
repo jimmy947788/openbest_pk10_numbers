@@ -91,6 +91,7 @@ def program_build(kernel_file = 'kernels/kernel_program.cl'):
      # Open program file and build
     program_file = open(kernel_file, 'r') # Scale x Matrx
     program_text = program_file.read()
+    program_file.close()
     program = cl.Program(context, program_text)
     try:
         program.build()
@@ -101,7 +102,7 @@ def program_build(kernel_file = 'kernels/kernel_program.cl'):
         raise
     return program
 
-def sum_selection_total_amount(context, program, selection, wagers, wager_length=10000):
+def sum_selection_total_amount(selection, wagers, wager_length=10000):
     queue = cl.CommandQueue(context)
     tStart = time.time()#計時開始
 
@@ -126,6 +127,46 @@ def sum_selection_total_amount(context, program, selection, wagers, wager_length
 
     tEnd = time.time()#計時結束
     print("It cost %f sec" % (tEnd - tStart))#會自動做近位
+    return result
+
+def calc_numbers_risk(selection):
+    queue = cl.CommandQueue(context)
+    print("selection=", selection)
+    print("selection.shape=", selection.shape)
+
+    #numbers = np.random.randint(2, size=(selection_length * numbers_length)).astype(np.float32)
+    #numbers = np.array(numbers[:-1]).flatten().astype(np.float32)
+    print("numbers=", numbers)
+    print("numbers.shape=", numbers.shape)
+
+    result = np.empty(numbers_length, dtype=np.float32)
+
+    tStart = time.time() 
+    # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
+    buffer_selection = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=selection)
+    buffer_numbers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=numbers)
+    buffer_result = cl.Buffer(context, cl.mem_flags.READ_WRITE,  result.nbytes)
+
+    # Create, configure, and execute kernel (Seems too easy, doesn't it?)
+    global_work_offset = (0, )
+    global_work_size = (numbers_length, )
+    local_work_size = (1, )
+    kernel = program.calc_numbers_risk
+    kernel.set_arg(0, buffer_selection)
+    kernel.set_arg(1, buffer_numbers)
+    kernel.set_arg(2, buffer_result)
+    kernel.set_arg(3, np.int32(selection_length))
+
+    ev = cl.enqueue_nd_range_kernel(queue, kernel, global_work_size, local_work_size, global_work_offset)
+
+    # Read data back from buffer
+    result = np.empty(numbers_length, dtype=np.float32)
+    cl.enqueue_copy(queue, result, buffer_result)
+    queue.flush()
+    #print("result=", result)
+
+    tEnd = time.time( )
+    print("It cost %f sec" % (tEnd - tStart)) 
     return result
 # =================================================
 
@@ -249,10 +290,13 @@ def submit():
         B = np.array(betOn_rows).flatten().astype(np.float32)
         #print("B=", B)
         print(f"selection_length={column_length}, wager_length={wager_length}, max_wager_length={max_wager_length}")
-        result = sum_selection_total_amount(context, program, A, B, max_wager_length)
+        result = sum_selection_total_amount(A, B, max_wager_length)
         logging.debug(f"result:{result}")
         #logging.debug("result length :", len(result))
-        logging.debug(sum(result))
+        #logging.debug(sum(result))
+
+        result2 = calc_numbers_risk(result)
+        logging.debug(f"result2:{result2}")
 
         response = { }
         response["code"] = 0
@@ -270,23 +314,32 @@ def submit():
         return response
     return render_template('bestopen.html', title=title)
 
-header = []
-program = None
-context = None
-queue = None
 if __name__ == "__main__":
+    global header
+    global program
+    global context
+    global numbers
+    global numbers_length
+    global selection_length
 
     data = pd.read_csv("opencode_table.csv", nrows=0)
     header = data.columns[1:-1]
     print("column count : " +str(len(header)))
 
-    print(os.path.abspath(__file__))
+    print("current path:", os.path.abspath(__file__))
      # Create context and command queue
     platform = cl.get_platforms()[0]
     devices = platform.get_devices()
     context = cl.Context(devices)
-    queue = cl.CommandQueue(context)
     program = program_build()
+
+    print("load opencode table....")
+    row_numbers = pd.read_csv('opencode_table_1.csv')
+    row_numbers = row_numbers[row_numbers.columns[:-1]]
+    numbers_length = row_numbers.shape[0]
+    numbers = np.array(row_numbers[:-1]).flatten().astype(np.float32)
+    selection_length = 1056
+    print("selection size=", selection_length, ", numbers=",  numbers_length)
 
     if not os.path.exists("log"):
         os.mkdir("log")
