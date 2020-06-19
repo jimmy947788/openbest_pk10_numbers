@@ -2,7 +2,6 @@ import itertools
 import pandas as pd
 from argparse import ArgumentParser
 
-
 def O_DingWeiDan(balls, pos, num):
     return 1 if balls[pos -1] == num else -1
 
@@ -102,7 +101,7 @@ def main():
 
     #for balls in ballsList[:5000]: 
     for balls in ballsList: # ALL
-        print(balls)
+        
         if balls[0] == 1 or  balls[0] == 2:
             ftable = ftable1
         elif balls[0] == 3 or balls[0] == 4:
@@ -117,6 +116,11 @@ def main():
         elif balls[0] == 9 or  balls[0] == 10:
             ftable4.close
             ftable = ftable5
+
+        if hasHeader==True:
+            str1 = '-'.join(str(e) for e in balls)
+            print(str1)
+            ftable.write(str1 + ',')
 
         # 定位膽
         for pos in range(1, 11):
