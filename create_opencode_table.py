@@ -1,86 +1,86 @@
 import itertools
 import pandas as pd
 from argparse import ArgumentParser
+import re
 
-
-def O_DingWeiDan(balls, pos, num):
+def DWD(balls, pos, num):
     return 1 if balls[pos -1] == num else -1
 
-def O_ThreeStar_Zhi_Front3(balls, num):
-    return 1 if (balls[0] == num[0] and balls[1] == num[1] and balls[2] == num[2])  else -1
+def TFZ3(balls, num1, num2, num3):
+    return 1 if (balls[0] == num1 and balls[1] == num2 and balls[2] == num3)  else -1
 
-def O_ThreeStar_Zhi_Front2(balls, num):
-    return 1 if (balls[0] == num[0] and balls[1] == num[1])  else -1
+def TFZ2(balls, num1, num2):
+    return 1 if (balls[0] == num1 and balls[1] == num2)  else -1
 
-def O_ThreeStar_Zhi_Front1(balls, num):
+def TFZ1(balls, num):
     return 1 if balls[0] == num else -1
 
-def O_B(balls, pos):
+def B(balls, pos):
     return 1 if balls[pos -1] >=6  else -1
 
-def O_S(balls, pos):
+def S(balls, pos):
     return 1 if balls[pos -1] < 6  else -1
 
-def O_O(balls, pos):
+def O(balls, pos):
     return 1 if  (balls[pos -1] % 2) != 0  else -1
 
-def O_E(balls, pos):
+def E(balls, pos):
     return 1 if  (balls[pos -1] % 2) == 0  else -1
 
-def O_P(balls, pos):
-    return 1 if  (balls[pos -1] in [ 1, 2, 3, 5, 7]) == 0  else -1
+def P(balls, pos):
+    return 1 if (balls[pos -1] in [ 1, 2, 3, 5, 7]) else -1
 
-def O_C(balls, pos):
-    return 1 if  (balls[pos -1] in [ 4, 6, 8, 9, 10]) == 0  else -1
+def C(balls, pos):
+    return 1 if (balls[pos -1] in [ 4, 6, 8, 9, 10])  else -1
 
-def O_Dragon1(balls):
+def D1(balls):
     return 1 if balls[0] > balls[9]  else -1
 
-def O_Dragon2(balls):
+def D2(balls):
     return 1 if balls[1] > balls[8]  else -1
 
-def O_Dragon3(balls):
+def D3(balls):
     return 1 if balls[2] > balls[7]  else -1
 
-def O_Dragon4(balls):
+def D4(balls):
     return 1 if balls[3] > balls[6]  else -1
 
-def O_Dragon5(balls):
+def D5(balls):
     return 1 if balls[4] > balls[5]  else -1
 
-def O_Tiger1(balls):
+def T1(balls):
     return 1 if balls[0] < balls[9]  else -1
 
-def O_Tiger2(balls):
+def T2(balls):
     return 1 if balls[1] < balls[8]  else -1
 
-def O_Tiger3(balls):
+def T3(balls):
     return 1 if balls[2] < balls[7]  else -1
 
-def O_Tiger4(balls):
+def T4(balls):
     return 1 if balls[3] < balls[6]  else -1
 
-def O_Tiger5(balls):
+def T5(balls):
     return 1 if balls[4] < balls[5]  else -1
 
-def O_12Sum(balls, num):
-    return 1 if (balls[0] + balls[1])  == num else -1
+def SUM(balls, num):
+    return 1 if (balls[0] + balls[1]) == num else -1
 
-def O_12Sum_B(balls):
+def SUMB(balls):
     return 1 if (balls[0] + balls[1] ) > 11  else -1
 
-def O_12Sum_S(balls):
+def SUMS(balls):
     return 1 if (balls[0] + balls[1] ) <= 11  else -1
 
-def O_12Sum_O(balls):
+def SUMO(balls):
     return 1 if  ((balls[0] + balls[1] ) % 2) != 0  else -1
 
-def O_12Sum_E(balls):
+def SUME(balls):
     return 1 if  ((balls[0] + balls[1] ) % 2) == 0  else -1
 
-def O_TwoStar_Zu_Front2(balls, num):
-    result1 = balls[0] == num[0] and  balls[1] == num[1] 
-    result2 = balls[0] == num[1] and  balls[1] == num[0] 
+def TSZF2(balls, num1, num2):
+    result1 = balls[0] == num1 and balls[1] == num2 
+    result2 = balls[0] == num2 and balls[1] == num1 
     return 1 if ( result1 or result2 ) else -1
 
 def main():
@@ -91,169 +91,190 @@ def main():
     print("header arg:", hasHeader)
 
     all_balls = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    ballsList = list(itertools.permutations(all_balls, 10))
-    with open('opencode_table.csv', 'w+',  encoding='UTF-8') as the_file:
-        if hasHeader==True:
-            the_file.write(u"開獎號碼,")
+    ballsList = [(1, 2, 3, 4, 5, 6, 7, 8, 10, 9)]
+    #ballsList = list(itertools.permutations(all_balls, 10))
 
-            # 1-10定位
-            for pos in all_balls:
-                for ball in all_balls:
-                    the_file.write(u"DWD"+ str(pos) + "_" + str(ball)+",")
-            
-            # 前三直選
-            for balls in list(itertools.permutations(all_balls, 3)):
-                str1 = '-'.join(str(e) for e in balls)
-                the_file.write(u"TZF3_" + str1 + ",")
+    with open('opencode_table.csv', 'w+', encoding='UTF-8') as f:
+        #rows = []
+        
+        columns = [ "opencode" ]
+        for i in all_balls:
+            for j in all_balls:
+                columns.append(f"DWD{i}_{j}")
+        for (i, j, k) in list(itertools.permutations(all_balls, 3)):
+            columns.append(f"TZF3_{i}-{j}-{k}")
+        for (i, j) in list(itertools.permutations(all_balls, 2)):
+            columns.append(f"TZF2_{i}-{j}")
+        for i in all_balls:
+            columns.append(f"TZF1_{i}")
+        for i in all_balls:
+            columns.append(f"B{i}")   
+        for i in all_balls:
+            columns.append(f"S{i}") 
+        for i in all_balls:
+            columns.append(f"O{i}") 
+        for i in all_balls:
+            columns.append(f"E{i}") 
+        for i in all_balls:
+            columns.append(f"P{i}") 
+        for i in all_balls:
+            columns.append(f"C{i}") 
+        for i in range(1,6):
+            columns.append(f"D{i}") 
+        for i in range(1,6):
+            columns.append(f"T{i}")
+        for i in range(3,20):
+            columns.append(f"SUM{i}") 
+        columns.append(f"SUMB")
+        columns.append(f"SUMS")
+        columns.append(f"SUMO")
+        columns.append(f"SUME")
+        for (i, j) in list(itertools.combinations(all_balls, 2)):
+            columns.append(f"TSZF2_{i}-{j}")
 
-            # 前二直選
-            for balls in list(itertools.permutations(all_balls, 2)):
-                str1 = '-'.join(str(e) for e in balls)
-                the_file.write(u"TZF2_" + str1 + ",")
+        str3 = ','.join(str(e) for e in columns)
+        f.write(str3 + "\n")
+        print(f"columns length:{len(columns)}")
 
-            # 前一直選
-            for ball in all_balls:
-                the_file.write(u"TZF1_" + str(ball) + ",")
-
-            # 1-10大
-            for pos in range(1, 11):
-                the_file.write(u"B" + str(pos) + ",") 
-            
-            # 1-10小
-            for pos in range(1, 11):
-                the_file.write(u"S" + str(pos) + ",")
-
-            # 1-10單
-            for pos in range(1, 11):
-                the_file.write(u"O" + str(pos) + ",")
-
-            # 1-10雙
-            for pos in range(1, 11):
-                the_file.write(u"E" + str(pos) + ",")
-
-            # 1-10質
-            for pos in range(1, 11):
-                the_file.write(u"P" + str(pos) + ",")
-            
-            # 1-10合
-            for pos in range(1, 11):
-                the_file.write(u"C" + str(pos) + ",")
-
-            the_file.write(u"D1,") #冠軍龍
-            the_file.write(u"D2,") #亞軍龍
-            the_file.write(u"D3,") #季軍龍
-            the_file.write(u"D4,") #第四名龍
-            the_file.write(u"D5,") #第五名龍
-            the_file.write(u"T1,") #冠軍虎
-            the_file.write(u"T2,") #亞軍虎
-            the_file.write(u"T3,") #季軍虎
-            the_file.write(u"T4,") #第四名虎
-            the_file.write(u"T5,") #第五名虎
-
-            # 冠亞合
-            for sum in range(3, 20):
-                the_file.write(u"SUM" + str(sum) + ",")
-            the_file.write(u"SUMB,")  # 冠亞合大
-            the_file.write(u"SUMS,")  # 冠亞合小
-            the_file.write(u"SUMO,") # 冠亞合單
-            the_file.write(u"SUME,")  # 冠亞合雙
-
-            # 冠亞組合
-            for balls in list(itertools.combinations(all_balls, 2)):
-                str1 = '-'.join(str(e) for e in balls)
-                the_file.write(u"TSZF2_"+ str(str1)+",")
-                
-            the_file.write('\n')
-
-        #for balls in ballsList[:5000]: 
         for balls in ballsList: # ALL
             print(balls)
-            if hasHeader==True:
-                str1 = '-'.join(str(e) for e in balls)
-                print(str1)
-                the_file.write(str1 + ',')
+            if balls[0] >= 3:
+                break
 
-            # 定位膽
-            for pos in range(1, 11):
-                for num in range(1, 11):
-                    the_file.write(str(O_DingWeiDan(balls, pos, num))+ ',')
-           
-            # 前三直選
-            for num in list(itertools.permutations(all_balls, 3)):
-                the_file.write( str(O_ThreeStar_Zhi_Front3(balls, num)) + ',')
-
-            # 前二直選
-            for num in  list(itertools.permutations(all_balls, 2)):
-                the_file.write( str(O_ThreeStar_Zhi_Front2(balls, num)) + ',')
-
-            # 前一直選
-            for num in  all_balls:
-                the_file.write( str(O_ThreeStar_Zhi_Front1(balls, num)) + ',')
-
-            # 1-10 大
-            for pos in range(1, 11):
-                the_file.write( str(O_B(balls, pos)) + ',')
-
-            # 1-10 小
-            for pos in range(1, 11):
-                the_file.write( str(O_S(balls, pos)) + ',')
+            cols = []
+            for column in columns:
+                if re.match("^DWD([0-9]{1,2})_([0-9]{1,2})$", column):
+                    pos = int(column.split("_")[0].replace("DWD", ""))
+                    num = int(column.split("_")[1])
+                    ret = DWD(balls, pos, num) 
+                    cols.append(ret)
+                    #print(f"DWD{pos}_{num} = {ret}")
+                elif re.match("^TZF3_([0-9]{1,2})-([0-9]{1,2})-([0-9]{1,2})$", column):
+                    nums = column.replace("TZF3_", "")
+                    num1 = int(nums.split("-")[0])
+                    num2 = int(nums.split("-")[1])
+                    num3 = int(nums.split("-")[2])
+                    ret = TFZ3(balls, num1, num2, num3)
+                    cols.append(ret)
+                    #print(f"TZF3_{num1}-{num2}-{num3} = {ret}")
+                elif re.match("^TZF2_([0-9]{1,2})-([0-9]{1,2})$", column):
+                    nums = column.replace("TZF2_", "")
+                    num1 = int(nums.split("-")[0])
+                    num2 = int(nums.split("-")[1])
+                    ret = TFZ2(balls, num1, num2)
+                    cols.append(ret)
+                    #print(f"TZF2_{num1}-{num2} = {ret}")
+                elif re.match("^TZF1_([0-9]{1,2})$", column):
+                    num = int(column.replace("TZF1_", ""))
+                    ret = TFZ1(balls, num)
+                    cols.append(ret)
+                    #print(f"TZF1_{num} = {ret}")
+                elif re.match("^B([0-9]{1,2})$", column):
+                    pos = int(column.replace("B", ""))
+                    ret = B(balls, pos)
+                    cols.append(ret)
+                    #print(f"B{pos} = {ret}")
+                elif re.match("^S([0-9]{1,2})$", column):
+                    pos = int(column.replace("S", ""))
+                    ret = S(balls, pos)
+                    cols.append(ret)
+                    #print(f"S{pos} = {ret}")
+                elif re.match("^O([0-9]{1,2})$", column):
+                    pos = int(column.replace("O", ""))
+                    ret = O(balls, pos)
+                    cols.append(ret)
+                    #print(f"O{pos} = {ret}")
+                elif re.match("^E([0-9]{1,2})$", column):
+                    pos = int(column.replace("E", ""))
+                    ret = E(balls, pos)
+                    cols.append(ret)
+                    #print(f"E{pos} = {ret}")
+                elif re.match("^P([0-9]{1,2})$", column):
+                    pos = int(column.replace("P", ""))
+                    ret = P(balls, pos)
+                    cols.append(ret)
+                    #print(f"P{pos} = {ret}")
+                elif re.match("^C([0-9]{1,2})$", column):
+                    pos = int(column.replace("C", ""))
+                    ret = C(balls, pos)
+                    cols.append(ret)
+                    #print(f"C{pos} = {ret}")
+                elif column == "D1":
+                    ret = D1(balls)
+                    cols.append(ret)
+                    #print(f"D1 = {ret}")
+                elif column == "D2":
+                    ret = D2(balls)
+                    cols.append(ret)
+                    #print(f"D2 = {ret}")
+                elif column == "D3":
+                    ret = D3(balls)
+                    cols.append(ret)
+                    #print(f"D3 = {ret}")
+                elif column == "D4":
+                    ret = D4(balls)
+                    cols.append(ret)
+                    #print(f"D4 = {ret}")
+                elif column == "D5":
+                    ret = D5(balls)
+                    cols.append(ret)
+                    #print(f"D5 = {ret}")
+                elif column == "T1":
+                    ret = T1(balls)
+                    cols.append(ret)
+                    #print(f"T1 = {ret}")
+                elif column == "T2":
+                    ret = T2(balls)
+                    cols.append(ret)
+                    #print(f"T2 = {ret}")
+                elif column == "T3":
+                    ret = T3(balls)
+                    cols.append(ret)
+                    #print(f"T3 = {ret}")
+                elif column == "T4":
+                    ret = T4(balls)
+                    cols.append(ret)
+                    #print(f"T4 = {ret}")
+                elif column == "T5":
+                    ret = T5(balls)
+                    cols.append(ret)
+                    #print(f"T5 = {ret}")
+                elif re.match("^SUM([0-9]{1,2})$", column):
+                    num = int(column.replace("SUM", ""))
+                    ret = SUM(balls, num)
+                    cols.append(ret)
+                    #print(f"SUM{num} = {ret}")
+                elif column == "SUMB":
+                    ret = SUMB(balls)
+                    cols.append(ret)
+                    #print(f"SUMB = {ret}")
+                elif column == "SUMS":
+                    ret = SUMS(balls)
+                    cols.append(ret)
+                    #print(f"SUMS = {ret}")
+                elif column == "SUMO":
+                    ret = SUMO(balls)
+                    cols.append(ret)
+                    #print(f"SUMO = {ret}")
+                elif column == "SUME":
+                    ret = SUME(balls)
+                    cols.append(ret)
+                    #print(f"SUME = {ret}")
+                elif re.match("^TSZF2_([0-9]{1,2})-([0-9]{1,2})$", column):
+                    nums = column.replace("TSZF2_", "")
+                    num1 = int(nums.split("-")[0])
+                    num2 = int(nums.split("-")[1])
+                    ret = TSZF2(balls, num1, num2)
+                    cols.append(ret)
+                    #print(f"TSZF2_{num1}-{num2} = {ret}")
             
-            # 1-10 單
-            for pos in range(1, 11):
-                the_file.write( str(O_E(balls, pos)) + ',')
-    
-            # 1-10 雙
-            for pos in range(1, 11):
-                the_file.write( str(O_O(balls, pos)) + ',')
+            print(f"cols length:{len(cols)}")
+            #rows.append(cols)
+            str1 = '-'.join(str(e) for e in balls)
+            str2 = ','.join(str(e) for e in cols)
+            f.write(str1 + "," + str2 + "\n")
 
-            # 1-10 質
-            for pos in range(1, 11):
-                the_file.write( str(O_P(balls, pos)) + ',')
-
-            # 1-10 合
-            for pos in range(1, 11):
-                the_file.write( str(O_C(balls, pos)) + ',')
-
-            # 冠军龙
-            the_file.write(str(O_Dragon1(balls))+ ',')
-            # 亚军龙
-            the_file.write(str(O_Dragon2(balls))+ ',')
-            # 季军龙
-            the_file.write(str(O_Dragon3(balls))+ ',')
-            # 第四名龙
-            the_file.write(str(O_Dragon4(balls))+ ',')
-            # 第五名龙
-            the_file.write(str(O_Dragon5(balls))+ ',')
-            # 冠军虎
-            the_file.write(str(O_Tiger1(balls))+ ',')
-            # 亚军虎
-            the_file.write(str(O_Tiger2(balls))+ ',')
-            # 季军虎
-            the_file.write(str(O_Tiger3(balls))+ ',')
-            # 第四名虎
-            the_file.write(str(O_Tiger4(balls))+ ',')
-            # 第五名虎
-            the_file.write(str(O_Tiger5(balls))+ ',')
-
-            # 冠亚和
-            for sum in range(3, 20):
-                the_file.write( str(O_12Sum(balls, sum))+ ',')
-
-            # 冠亚和大
-            the_file.write(str(O_12Sum_B(balls))+ ',')
-            # 冠亚和小
-            the_file.write(str(O_12Sum_S(balls))+ ',')
-            # 冠亚和單
-            the_file.write(str(O_12Sum_O(balls))+ ',')
-            # 冠亚和雙
-            the_file.write(str(O_12Sum_E(balls))+ ',')
-
-            # 冠亞組合
-            for num in  list(itertools.combinations(all_balls, 2)):
-                the_file.write(str(O_TwoStar_Zu_Front2(balls, num))+ ',')
-
-            the_file.write('\n')
-
+    #print(rows)
 if __name__ == '__main__':
     main()
     
