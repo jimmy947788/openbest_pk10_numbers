@@ -143,7 +143,7 @@ def main():
         for balls in ballsList: # ALL
             print(balls)
 
-            if row_count == row_max_length:
+            if balls[0] >= 3:
                 break
 
             columns = []
