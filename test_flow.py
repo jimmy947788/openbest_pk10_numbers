@@ -281,7 +281,7 @@ def transferWager(raw_data):
     #fb.close()
     #fo.close()
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
-    return (amount_table, amount_odds_table)
+    return (amount_table, amount_odds_table, total_bet_count)
 
 def process():
     title = '最佳化開獎策略'
@@ -293,7 +293,7 @@ def process():
 
     logging.debug(f"row data: {raw_data}")
 
-    (amount_table, amount_odds_table) = transferWager(raw_data)
+    (amount_table, amount_odds_table, total_bet_count) = transferWager(raw_data)
     wager_length = len(amount_table)
     logging.info(f"wager_length={wager_length}")
     #logging.info(f"amount_table={amount_table}")
