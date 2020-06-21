@@ -1,26 +1,3 @@
-/*
-__kernel void calc_numbers_risk(__global float* settle_vector,
-                                 __global float* numbers_matrix,
-                                 __global float* result,
-                                 int selection_length)
-{
-
-   int numbers_index = get_global_id(0);
-   int numbers_size = get_global_size(0);
-
-   float sum = 0;
-   for(int i=0; i<= selection_length -1; i++)
-   {
-      int index = (numbers_index * 10) + i;
-      //printf("numbers_index=%d, snumbers_matrix[%d]=%f, settle_vector[%d]=%f, sum=%f\n", numbers_index, index, numbers_matrix[index], i, settle_vector[i], sum);
-      sum += numbers_matrix[index] * settle_vector[i];
-   }
-   //printf("\n");
-   //printf("numbers_index=%d, numbers_size=%d, sum=%f\n", numbers_index, numbers_size, sum);
-   result[numbers_index] = sum;
-}
-*/
-
 __kernel void beton_total_amount(
          __global const float* one_vector_mask,
          __global const float* amount_matrix,
@@ -53,8 +30,8 @@ __kernel void beton_total_amount(
 }
 
 __kernel void calc_numbers_risk(
-         __global const float* total_amount_vector,
-         __global const float* total_amount_odds_vector,
+         __global const float* total_amount_vector,      /* 各beton加總陣列（本金）*/
+         __global const float* total_amount_odds_vector, /* 各beton加總陣列（本金*賠率 - 本金）*/
          __global const float* answers_matrix,
          __global float* result,
          const int beton_length)
@@ -72,9 +49,9 @@ __kernel void calc_numbers_risk(
       total_amount = total_amount_vector[i];
       total_amount_odds = total_amount_odds_vector[i];
       if(answers_matrix[index]>0)
-         sum += total_amount_odds;
+         sum += total_amount_odds; //有中獎就用乘上賠率的金額
       else
-         sum += total_amount * -1;
+         sum += total_amount * -1; //沒中獎就用本金
       //printf("answers_matrix[%d]=%f, total_amount=%f, total_amount_odds=%f, sum=%f\n", index, answers_matrix[index], total_amount, total_amount_odds, sum);
    }
    //printf("\n");
