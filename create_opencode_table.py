@@ -133,7 +133,7 @@ def main():
 
     row_max_length = 20
     row_count = 0
-    with open('opencode_table.csv', 'w+', encoding='UTF-8') as f:
+    with open('data/opencode_table.csv', 'w+', encoding='UTF-8') as f:
         headers = createHeader()
         if hasHeader:
             strHeaderWithComma = ','.join(str(e) for e in headers)
