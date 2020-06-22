@@ -43,9 +43,10 @@ __kernel void calc_numbers_risk(
    float sum = 0;
    float total_amount = 0;
    float total_amount_odds = 0;
+   int step = beton_length;
    for(int i=0; i<= beton_length -1; i++)
    {
-      int index = (numbers_index * 10) + i;
+      int index = (numbers_index * step) + i; 
       total_amount = total_amount_vector[i];
       total_amount_odds = total_amount_odds_vector[i];
       if(answers_matrix[index]>0)
