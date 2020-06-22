@@ -104,7 +104,7 @@ def program_build(kernel_file = 'kernels/kernel_program.cl'):
         raise
     return program
 
-def beton_total_amount(one_vector_mask, amount_matrix, wager_length=10000):
+def beton_total_amount(amount_matrix, wager_length=10000):
     tStart = time.time()#計時開始
     queue = cl.CommandQueue(context)
     # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
@@ -140,7 +140,7 @@ def calc_numbers_risk(total_amount_vector, total_amount_odds_vector):
     # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
     buffer_total_amount = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_vector)
     buffer_total_amount_odds = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_odds_vector)
-    buffer_answers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=answers)
+    buffer_answers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=opencode_answer)
     buffer_result = cl.Buffer(context, cl.mem_flags.READ_WRITE,  result.nbytes)
 
     # Create, configure, and execute kernel (Seems too easy, doesn't it?)
@@ -302,10 +302,6 @@ def process():
     #=========================================================
     column_length = len(headers);
 
-    # 建立A= [ 1, 1, 1, 1, 1, ... ,1 ,1 ,1 ]
-    one_vector_mask = np.ones(column_length).astype(np.float32)
-    logging.debug(f"one_vector_mask={one_vector_mask}, length={len(one_vector_mask)}")
-
     # 降維
     amount_matrix = np.array(amount_table).flatten().astype(np.float32)
     logging.debug(f"amount_matrix={amount_matrix}, length={len(amount_matrix)}")
@@ -313,24 +309,29 @@ def process():
     amount_odds_matrix = np.array(amount_odds_table).flatten().astype(np.float32)
     logging.debug(f"amount_odds_matrix={amount_odds_matrix}, length={len(amount_odds_matrix)}")
     
-    total_amount_result = beton_total_amount(one_vector_mask, amount_matrix, wager_length)
+    total_amount_result = beton_total_amount(amount_matrix, wager_length)
     logging.debug(f"total_amount_result:{total_amount_result}")
+    """
     with open('data/beton_total_amount.csv', 'w+', encoding='UTF-8') as f:
         strHeaderWithComma = ','.join(str(e) for e in headers)
         f.write(strHeaderWithComma + "\n")
 
         strTotalAmountWithComma = ','.join(str(e) for e in total_amount_result)
         f.write(strTotalAmountWithComma + "\n")
-    
-    total_amount_odds_result = beton_total_amount(one_vector_mask, amount_odds_matrix, wager_length)
+    """
+
+    total_amount_odds_result = beton_total_amount(amount_odds_matrix, wager_length)
     logging.debug(f"total_amount_odds_result:{total_amount_odds_result}")
+    """
     with open('data/beton_total_odds.csv', 'w+', encoding='UTF-8') as f:
         strHeaderWithComma = ','.join(str(e) for e in headers)
         f.write(strHeaderWithComma + "\n")
 
         strTotalAmountWithComma = ','.join(str(e) for e in total_amount_odds_result)
         f.write(strTotalAmountWithComma + "\n")
-    
+    """
+
+    nb = input("計算輸贏...")
     # 計算輸贏
     #=========================================================
     risk_result = calc_numbers_risk(total_amount_result, total_amount_odds_result)
@@ -366,41 +367,51 @@ if __name__ == "__main__":
     global program
     global context
     global opencodes
-    global answers
+    global currentPath
+    global opencode_answer
+    global one_vector_mask
 
-    if not os.path.exists("log"):
-        os.mkdir("log")
+    currentPath =  os.path.dirname(os.path.abspath(__file__))
+    
+    if not os.path.exists(f"{currentPath}/log"):
+        os.mkdir(f"{currentPath}/log")
     home_path = str(Path.home())
-    log_fliename = datetime.datetime.now().strftime(f"log/opencode-%Y-%m-%d.log")
+    log_fliename = datetime.datetime.now().strftime(f"{currentPath}/log/opencode-%Y-%m-%d.log")
     print(f"log filename formate = {log_fliename}")
     logging.basicConfig(level=logging.DEBUG,
             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
             datefmt='%m-%d %H:%M:%S',
             filename=log_fliename)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-
-    logging.debug("current path : " + os.path.abspath(__file__))
+    logging.debug("current path : " + currentPath)
 
     # Create context and command queue
     platform = cl.get_platforms()[0]
     devices = platform.get_devices()
     context = cl.Context(devices)
     program = program_build()
-
-    logging.info("load opencode table....")
-    opencode_table = pd.read_csv('data/opencode_table.csv')
+    
+    logging.info("load opencode table from csv...")
+    opencode_table = pd.read_csv(f"{currentPath}/data/opencode_table.csv")
     headers = opencode_table.columns[1:].tolist()
-    logging.debug(f"headers = {headers}")
+    #logging.debug(f"headers = {headers}")
     logging.info(f"headers count : {len(headers)}")
 
     opencodes = opencode_table["opencode"].tolist()
-    logging.debug(f"opencodes:{opencodes}")
+    logging.debug(f"opencodes length:{ len(opencodes) }")
     
-    answer_table = opencode_table[opencode_table.columns[1:]]
-    logging.debug(f"answer_table:{answer_table}")
-   
-    answers = np.array(answer_table).flatten().astype(np.float32)
-    logging.info(f"answer_table.shape={answer_table.shape}")
+    opencode_answer_table = opencode_table[opencode_table.columns[1:]]
+    #logging.debug(f"answer_table:{answer_table}")
     
+    # 建立A= [ 1, 1, 1, 1, 1, ... ,1 ,1 ,1 ]
+    one_vector_mask = np.ones(len(headers)).astype(np.float32)
+    logging.debug(f"one_vector_mask={one_vector_mask}, length={len(one_vector_mask)}")
+
+    # opencode_table 降維
+    opencode_answer = np.array(opencode_answer_table).flatten().astype(np.float32)
+    logging.info(f"answer_table.shape={opencode_answer.shape}")
+
+    opencode_answer_table = None
+    nb = input('init...')
     process()
     

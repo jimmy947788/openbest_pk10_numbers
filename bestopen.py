@@ -146,11 +146,15 @@ def calc_numbers_risk(total_amount_vector, total_amount_odds_vector):
     beton_length = len(headers);
     result = np.empty(numbers_length, dtype=np.float32)
 
+    # opencode_table 降維
+    opencode_answer = np.array(opencode_answer_table).flatten().astype(np.float32)
+    logging.info(f"answer_table.shape={opencode_answer.shape}")
+
     tStart = time.time() 
     # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
     buffer_total_amount = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_vector)
     buffer_total_amount_odds = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_odds_vector)
-    buffer_answers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=answers)
+    buffer_answers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=opencode_answer)
     buffer_result = cl.Buffer(context, cl.mem_flags.READ_WRITE,  result.nbytes)
 
     # Create, configure, and execute kernel (Seems too easy, doesn't it?)
@@ -361,10 +365,11 @@ if __name__ == "__main__":
     global program
     global context
     global opencodes
-    global answers
     global currentPath
+    global opencode_answer_table
 
     currentPath =  os.path.dirname(os.path.abspath(__file__))
+    
     if not os.path.exists(f"{currentPath}/log"):
         os.mkdir(f"{currentPath}/log")
     home_path = str(Path.home())
@@ -382,7 +387,7 @@ if __name__ == "__main__":
     devices = platform.get_devices()
     context = cl.Context(devices)
     program = program_build()
-
+    
     logging.info("load opencode table....")
     opencode_table = pd.read_csv(f"{currentPath}/data/opencode_table.csv")
     headers = opencode_table.columns[1:].tolist()
@@ -392,11 +397,8 @@ if __name__ == "__main__":
     opencodes = opencode_table["opencode"].tolist()
     #logging.debug(f"opencodes:{opencodes}")
     
-    answer_table = opencode_table[opencode_table.columns[1:]]
+    opencode_answer_table = opencode_table[opencode_table.columns[1:]]
     #logging.debug(f"answer_table:{answer_table}")
-   
-    answers = np.array(answer_table).flatten().astype(np.float32)
-    logging.info(f"answer_table.shape={answer_table.shape}")
 
     app.config["DEBUG"] = True
     app.run(host='0.0.0.0', port=5000)
