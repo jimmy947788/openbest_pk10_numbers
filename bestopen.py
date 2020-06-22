@@ -293,10 +293,7 @@ def submit():
     if request.method == 'POST':
         #print('request.form', request.data)
         betOn_rows = []
-        # raw_data = request.get_data().decode("utf-8")
-        with open("data/test_data.txt", 'r') as f:
-            raw_data = f.read() # 讀取檔案內容
-
+        raw_data = request.get_data().decode("utf-8")
         logging.debug(f"row data: {raw_data}")
         
         (amount_table, amount_odds_table, total_bet_count) = transferWager(raw_data)
@@ -333,7 +330,12 @@ def submit():
         risk_result = calc_numbers_risk(total_amount_result, total_amount_odds_result)
         logging.debug(f"risk_result:{risk_result}")
         logging.info(f"risk_result_length: { len(risk_result)}, opencodes_length:{len(opencodes)}")
-       
+
+        with open(f"{currentPath}/data/opencode_result.csv", "w+") as f:
+            f.write(f"opencode,amount\n")
+            for i in range(len(opencodes)):
+                f.write(f"{ opencodes[i] }, { risk_result[i] }\n")
+
         response = { }
         response["code"] = 0
         response["msg"] = "success"
@@ -360,19 +362,20 @@ if __name__ == "__main__":
     global context
     global opencodes
     global answers
+    global currentPath
 
-    if not os.path.exists("log"):
-        os.mkdir("log")
+    currentPath =  os.path.dirname(os.path.abspath(__file__))
+    if not os.path.exists(f"{currentPath}/log"):
+        os.mkdir(f"{currentPath}/log")
     home_path = str(Path.home())
-    log_fliename = datetime.datetime.now().strftime(f"log/opencode-%Y-%m-%d.log")
+    log_fliename = datetime.datetime.now().strftime(f"{currentPath}/log/opencode-%Y-%m-%d.log")
     print(f"log filename formate = {log_fliename}")
     logging.basicConfig(level=logging.DEBUG,
             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
             datefmt='%m-%d %H:%M:%S',
             filename=log_fliename)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-
-    logging.debug("current path : " + os.path.abspath(__file__))
+    logging.debug("current path : " + currentPath)
 
     # Create context and command queue
     platform = cl.get_platforms()[0]
@@ -381,19 +384,19 @@ if __name__ == "__main__":
     program = program_build()
 
     logging.info("load opencode table....")
-    opencode_table = pd.read_csv('data/opencode_table.csv')
+    opencode_table = pd.read_csv(f"{currentPath}/data/opencode_table.csv")
     headers = opencode_table.columns[1:].tolist()
-    logging.debug(f"headers = {headers}")
+    #logging.debug(f"headers = {headers}")
     logging.info(f"headers count : {len(headers)}")
 
     opencodes = opencode_table["opencode"].tolist()
-    logging.debug(f"opencodes:{opencodes}")
+    #logging.debug(f"opencodes:{opencodes}")
     
     answer_table = opencode_table[opencode_table.columns[1:]]
-    logging.debug(f"answer_table:{answer_table}")
+    #logging.debug(f"answer_table:{answer_table}")
    
     answers = np.array(answer_table).flatten().astype(np.float32)
     logging.info(f"answer_table.shape={answer_table.shape}")
 
-    app.config["DEBUG"] = False
+    app.config["DEBUG"] = True
     app.run(host='0.0.0.0', port=5000)
