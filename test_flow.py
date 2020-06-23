@@ -134,14 +134,13 @@ def calc_numbers_risk(total_amount_vector, total_amount_odds_vector):
     queue = cl.CommandQueue(context)
     numbers_length = len(opencodes)
     beton_length = len(headers);
-    result = np.empty(numbers_length, dtype=np.float32)
 
     tStart = time.time() 
     # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
     buffer_total_amount = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_vector)
     buffer_total_amount_odds = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_odds_vector)
     buffer_answers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=opencode_answer)
-    buffer_result = cl.Buffer(context, cl.mem_flags.READ_WRITE,  result.nbytes)
+    buffer_result = cl.Buffer(context, cl.mem_flags.READ_WRITE, opencode_result.nbytes)
 
     # Create, configure, and execute kernel (Seems too easy, doesn't it?)
     global_work_offset = (0, )
@@ -157,7 +156,6 @@ def calc_numbers_risk(total_amount_vector, total_amount_odds_vector):
     ev = cl.enqueue_nd_range_kernel(queue, kernel, global_work_size, local_work_size, global_work_offset)
 
     # Read data back from buffer
-    result = np.empty(numbers_length, dtype=np.float32)
     cl.enqueue_copy(queue, result, buffer_result)
     queue.flush()
     #print("result=", result)
@@ -370,6 +368,7 @@ if __name__ == "__main__":
     global currentPath
     global opencode_answer
     global one_vector_mask
+    global opencode_result
 
     currentPath =  os.path.dirname(os.path.abspath(__file__))
     
@@ -410,7 +409,10 @@ if __name__ == "__main__":
     # opencode_table 降維
     opencode_answer = np.array(opencode_answer_table).flatten().astype(np.float32)
     logging.info(f"answer_table.shape={opencode_answer.shape}")
-
+    
+    # 結果保存先開出記憶體
+    opencode_result = np.empty(numbers_length, dtype=np.float32)
+    
     opencode_answer_table = None
     nb = input('init...')
     process()
