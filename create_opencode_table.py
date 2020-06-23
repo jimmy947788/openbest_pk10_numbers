@@ -141,10 +141,10 @@ def main():
             print(f"header length:{len(headers)}")
 
         for balls in ballsList: # ALL
-            #print(balls)
+            print(balls)
 
-            if balls[0] >= 6:
-                break
+            #if balls[0] >= 6:
+            #    break
 
             columns = []
             for header in headers:
