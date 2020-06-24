@@ -32,7 +32,7 @@ __kernel void beton_total_amount(
 __kernel void calc_numbers_risk(
          __global const float* total_amount_vector,      /* 各beton加總陣列（本金）*/
          __global const float* total_amount_odds_vector, /* 各beton加總陣列（本金*賠率 - 本金）*/
-         __global const float* answers_matrix,
+         __global const int* answers_matrix,
          __global float* result,
          const int beton_length)
 {

@@ -137,8 +137,7 @@ def calc_numbers_risk(total_amount_vector, total_amount_odds_vector):
     result = np.empty(numbers_length, dtype=np.float32)
 
     # opencode_table 降維
-    opencode_answer = np.array(opencode_answer_table).flatten().astype(np.float32)
-    logging.info(f"answer_table.shape={opencode_answer.shape}")
+    logging.info(f"opencode_answer length={opencode_answer}")
 
     tStart = time.time() 
     # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
@@ -372,7 +371,7 @@ if __name__ == "__main__":
     global context
     global opencodes
     global currentPath
-    global opencode_answer_table
+    global opencode_answer
 
     currentPath =  os.path.dirname(os.path.abspath(__file__))
     
@@ -394,16 +393,48 @@ if __name__ == "__main__":
     context = cl.Context(devices)
     program = program_build()
     
-    logging.info("load opencode table....")
-    opencode_table = pd.read_csv(f"{currentPath}/data/opencode_table.csv")
-    headers = opencode_table.columns[1:].tolist()
-    #logging.debug(f"headers = {headers}")
-    logging.info(f"headers count : {len(headers)}")
+   
+    #i=0
+    opencodes = []
+    headers = [ ]
+    opencode_answer = np.array([]).astype(np.int32)
 
-    opencodes = opencode_table["opencode"].tolist()
-    #logging.debug(f"opencodes:{opencodes}")
-    
-    opencode_answer_table = opencode_table[opencode_table.columns[1:]]
-    #logging.debug(f"answer_table:{answer_table}")
-    
-    process()
+    logging.info("load opencode table....")
+    with open(f"{currentPath}/data/beton_list.txt", "r") as f:
+        headers = f.read().split(',')
+
+    logging.info("load opencode table....")
+    columns =[ "opencode" ]
+    for c in  headers:
+        columns.append(c)
+    opencode_table = pd.read_csv(f"{currentPath}/data/opencode_table.csv", names=columns)
+    opencode_table.set_index("opencode" , inplace=True)
+    print(f"opencode_table length = { len(opencode_table) }")
+    #print(opencode_table.loc["1-2-3-4-5-6-7-10-8-9"])
+
+    for i in range(1, len(opencode_table)):
+        data = opencode_table.iloc[i]
+        opencode = data[0]
+        print(opencode)
+        opencode_answer = np.append(opencode_answer, data[1:]).astype(np.int32)
+        opencode_table.drop(opencode, axis=0, inplace=True)
+
+    """
+        line = f.readline().replace("\n", "")
+        data = line.replace("\n", "").split(',')
+        for h in data[1:]:
+            headers.append(h)   
+        print(headers)
+        while line:
+            line = f.readline()
+            data = line.replace("\n", "").split(',')
+            opencodes.append(data[0])
+            print(data[0])
+            opencode_answer = np.append(opencode_answer, data[1:]).astype(np.int32)
+            #print(len(data[1:]))
+            #i += 1 
+            #if i==10:
+            #    nb = input('init...')
+            #    break
+    """
+    #process()
