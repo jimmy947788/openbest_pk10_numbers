@@ -1,4 +1,4 @@
-PROJ=test_flow
+PROJ=calc_opencode_amount
 
 CC=gcc
 
@@ -51,6 +51,7 @@ ifeq ($(ver), debug)
 endif
 
 $(PROJ): $(PROJ).c
+	echo $(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -Wpointer-to-int-cast
 	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -Wpointer-to-int-cast
 	cp kernels/kernel_program.cl bin/
 
