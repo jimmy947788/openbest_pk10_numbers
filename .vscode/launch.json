@@ -5,6 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "calc_opencode_amount (gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bin/calc_opencode_amount",
+            "args": [ 
+                "--kernel-program", "${workspaceFolder}/kernels/kernel_program.cl", 
+                "--opencode-answer", "${workspaceFolder}/data/opencode_table_all.csv",
+                "--log", "${workspaceFolder}/log/"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "build gcc binary",
+            "setupCommands": [
+                {
+                    "description": "啟用 gdb 的美化顯示",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "name": "Python: 目前檔案",
             "type": "python",
             "request": "launch",
