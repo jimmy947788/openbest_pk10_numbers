@@ -1,6 +1,6 @@
-__kernel void beton_total_amount(
-         __global const float* one_vector_mask,
-         __global const float* amount_matrix,
+__kernel void sum_beton_total_amount(
+         __global const int* mask,
+         __global const float* amount,
          __global float* result,
          const int row_size)
 {
@@ -8,19 +8,19 @@ __kernel void beton_total_amount(
    int col_index = get_global_id(0);
    int col_size = get_global_size(0);
 
-   int bit = (int)one_vector_mask[col_index];
-   //printf("one_vector_mask[%d]=%d\n", col_index, bit);
+   int bit = mask[col_index];
+   //printf("mask[%d]=%d\n", col_index, bit);
    if(bit > 0)
    {
       float sum = 0;
       for(int i=0; i<= row_size -1; i++)
       {
          int index = (i * col_size ) + col_index; 
-         sum += amount_matrix[index];
-         //printf("amount_matrix[%d]=%f, \n", index, amount_matrix[index]);
+         sum += amount[index];
+         //printf("amount[%d]=%f, \n", index, amount[index]);
       }
       //printf("\n");
-      result[col_index] = one_vector_mask[col_index] * sum;
+      result[col_index] = mask[col_index] * sum;
       //printf("result[%d]=%f, \n", col_index, result[col_index]);
    }
    else
