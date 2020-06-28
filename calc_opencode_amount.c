@@ -224,17 +224,29 @@ int run_kernel_sum_beton_total_amount(cl_context context, cl_device_id device, c
     checkErr(errNum, "clCreateCommandQueue");
     
     /* Create a write-only buffer to hold the output data */
-    cl_mem mask_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_int) * beton_length, mask, &errNum); 
+    cl_mem mask_buffer = clCreateBuffer(context, 
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        sizeof(cl_int) * beton_length, 
+        mask, 
+        &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a buffer");
       exit(1);   
     };
-    cl_mem bet_amount_buffer = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(cl_float) * beton_length * wgaer_length, bet_amount, &errNum);    
+    cl_mem bet_amount_buffer = clCreateBuffer(context, 
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        sizeof(cl_float) * beton_length * wgaer_length, 
+        bet_amount, 
+        &errNum);    
     if(errNum < 0) {
       perror("Couldn't create a buffer");
       exit(1);   
     };
-    cl_mem result_buffer = clCreateBuffer(context,CL_MEM_WRITE_ONLY ,sizeof(cl_float)* beton_length, NULL, &errNum);
+    cl_mem result_buffer = clCreateBuffer(context,
+        CL_MEM_WRITE_ONLY,
+        sizeof(cl_float) * beton_length, 
+        NULL, 
+        &errNum);
      if(errNum < 0) {
       perror("Couldn't create a buffer");
       exit(1);   
@@ -404,7 +416,7 @@ void readBetonAmountFromCsv(char* beton_amount_path,
         p = NULL;
         for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
         {
-            int ret = strtof(p, NULL);
+            float ret = strtof(p, NULL);
             *(*beton_amount + csv_bet_amount_index) = ret;
             csv_bet_amount_index ++;
         }
@@ -591,47 +603,42 @@ int main(int argc, char* argv[])
         beton_length, wager_length,
         mask, beton_amount, &total_beton_amount);
 
-    /* debugger
-    sum = 0;
+    float sum = 0;
     for(int i=0; i<=beton_length-1; i++)
     {
-        sum += result[i];
+        sum += total_beton_amount[i];
     }
-    printf("sum rtesult = %f\n", sum);
-    */
-
+    printf("sum total_beton_amount = %f\n", sum);
+    
     readBetonAmountFromCsv(beton_amount_with_odds_path, beton_length, wager_length, &beton_amount_with_odds);
     run_kernel_sum_beton_total_amount(context, devices[0], kernel_sum_beton_total_amount, 
         beton_length, wager_length,
         mask, beton_amount_with_odds, &total_beton_amount_with_odds);
 
-    /* debugger
     sum = 0;
     for(int i=0; i<=beton_length-1; i++)
     {
-        sum += result[i];
+        sum += total_beton_amount_with_odds[i];
     }
-    printf("sum rtesult = %f\n", sum);
-    */
-
+    printf("sum total beton amount with odds = %f\n", sum);
+    
     if(mask)
         free(mask);
     if(beton_amount)
         free(beton_amount);
     if(beton_amount_with_odds)
         free(beton_amount_with_odds);
-    
-    cl_int* opencode_answer = (cl_int *)malloc(sizeof(cl_int) * 3628800 * 1056);
-    readOpnecodeAnswerFromCsv(opencode_answer_path, 1056, 3628800, &opencode_answer);
+   
+    int opencode_length = 3628800;
+    opencode_length = 20;
+    cl_int* opencode_answer = (cl_int *)malloc(sizeof(cl_int) * opencode_length * beton_length);
+    readOpnecodeAnswerFromCsv(opencode_answer_path, beton_length, opencode_length, &opencode_answer);
     run_kernel_calc_numbers_risk(context, devices[0], kernel_calc_numbers_risk, 
-        1056, 3628800, 
+        beton_length, opencode_length, 
         total_beton_amount, 
         total_beton_amount_with_odds, 
         opencode_answer,
         &result);
-    /*
-    //printf( "Enter a value :");
-    //int c = getchar( );
-    */
+   
     exit(EXIT_SUCCESS);
 }
