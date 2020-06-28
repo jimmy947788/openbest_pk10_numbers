@@ -164,7 +164,6 @@ int run_kernel_calc_numbers_risk(cl_context context, cl_device_id device, cl_ker
     checkErr(errNum, "clEnqueueNDRangeKernel");    
     printf("pass kernel code to GPU%d\n", 0);
 
-    *result = (cl_float*)malloc(sizeof(cl_float) * opencode_length);
     /* Read and print the result */
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * opencode_length, *result, 0, NULL, NULL);
     if(errNum < 0) {
@@ -299,6 +298,7 @@ int main(int argc, char* argv[])
     if(beton_amount_with_odds)
         free(beton_amount_with_odds);
    
+    result = (cl_float*)malloc(sizeof(cl_float) * opencodeLength);
     run_kernel_calc_numbers_risk(context, devices[0], kCalcNumbersRisk, 
         betonLength, opencodeLength, 
         total_beton_amount, 
