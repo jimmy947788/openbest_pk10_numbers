@@ -87,6 +87,7 @@ cl_uint GetDevices(cl_device_id** devices)
     cl_int total_platforms = 0;
     cl_uint total_devices = 0;
     cl_int errNum;
+    int platformId = 0;
 
     errNum = clGetPlatformIDs(0, NULL, &total_platforms);
     checkErr((errNum != CL_SUCCESS)? errNum : (total_platforms <= 0 ? -1 : CL_SUCCESS), "clGetPlatformIDs for init.");
@@ -97,7 +98,9 @@ cl_uint GetDevices(cl_device_id** devices)
     checkErr((errNum != CL_SUCCESS)? errNum : (total_platforms <= 0 ? -1 : CL_SUCCESS), "clGetPlatFormIDs for get data.");
     printf("get all Platforms.\n");
 
-    errNum = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL, &total_devices);
+    GetGetPlatforms(total_platforms, &platforms);
+
+    errNum = clGetDeviceIDs(platforms[platformId], CL_DEVICE_TYPE_GPU, 0, NULL, &total_devices);
     if (errNum != CL_SUCCESS && errNum != CL_DEVICE_NOT_FOUND)
     {
         checkErr(errNum, "clGetDeviceIDs");
@@ -105,7 +108,7 @@ cl_uint GetDevices(cl_device_id** devices)
     else if (total_devices > 0)
     {
         *devices = (cl_device_id *)malloc(sizeof(cl_device_id) * total_devices);
-        errNum = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, total_devices, *devices, NULL);
+        errNum = clGetDeviceIDs(platforms[platformId], CL_DEVICE_TYPE_GPU, total_devices, *devices, NULL);
         checkErr(errNum, "clGetDeviceIDs");
         printf("found number of GPU : %d\n", total_devices);
     }
