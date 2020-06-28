@@ -76,7 +76,6 @@ int run_kernel_sum_beton_total_amount(cl_context context, cl_device_id device, c
     checkErr(errNum, "clEnqueueNDRangeKernel");    
     printf("pass kernel code to GPU%d\n", 0);
 
-    *result = (cl_float*)malloc(sizeof(cl_float) * beton_length);
     /* Read and print the result */
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * beton_length, *result, 0, NULL, NULL);
     if(errNum < 0) {
@@ -268,6 +267,7 @@ int main(int argc, char* argv[])
     cl_float* result = NULL;
     
     ReadBetonAmountFromCsv(beton_amount_path, &beton_amount);
+    total_beton_amount = (cl_float*)malloc(sizeof(cl_float) * betonLength);
     run_kernel_sum_beton_total_amount(context, devices[0], kSumBetonTotalAmount, 
         betonLength, wager_length,
         mask, beton_amount, &total_beton_amount);
@@ -280,6 +280,7 @@ int main(int argc, char* argv[])
     printf("sum total_beton_amount = %f\n", sum);
     
     ReadBetonAmountFromCsv(beton_amount_with_odds_path, &beton_amount_with_odds);
+    total_beton_amount_with_odds = (cl_float*)malloc(sizeof(cl_float) * betonLength);
     run_kernel_sum_beton_total_amount(context, devices[0], kSumBetonTotalAmount, 
         betonLength, wager_length,
         mask, beton_amount_with_odds, &total_beton_amount_with_odds);
