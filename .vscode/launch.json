@@ -12,6 +12,8 @@
             "args": [ 
                 "--kernel-program", "${workspaceFolder}/kernels/kernel_program.cl", 
                 "--opencode-answer", "${workspaceFolder}/data/opencode_table_all.csv",
+                "--beton-amount", "${workspaceFolder}/data/beton_amount_20200619062.csv",
+                "--beton-amount-with-odds", "${workspaceFolder}/data/beton_amount_with_odds_20200619062.csv",
                 "--log", "${workspaceFolder}/log/"
             ],
             "stopAtEntry": false,
