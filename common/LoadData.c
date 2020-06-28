@@ -110,7 +110,7 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_ans
         {
             if(csv_row_index >=1){
                 if(csv_column_index == 0){
-                    printf("opencode:%s\n", p);
+                    //printf("opencode:%s\n", p);
                 }
                 else
                 {
@@ -123,7 +123,7 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_ans
             {
                 //all beton
                 opencode = p;
-                printf("%s\n", opencode);
+                //printf("%s\n", opencode);
             }
             csv_column_index ++;
             
