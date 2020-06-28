@@ -50,8 +50,7 @@ ifeq ($(ver), debug)
 	CFLAGS += -g -DDEBUG
 endif
 
-$(PROJ): $(PROJ).c
-	echo $(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -Wpointer-to-int-cast
+$(PROJ): $(PROJ).c common/*.c
 	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -Wpointer-to-int-cast
 	cp kernels/kernel_program.cl bin/
 
