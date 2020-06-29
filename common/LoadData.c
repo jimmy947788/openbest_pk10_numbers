@@ -79,7 +79,7 @@ void GetDataLength(char* opencode_answer_path, int* opencodeLength, int* betonLe
         free(line);
 }
 
-void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_answer)
+void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_answer, char*** opencodeList)
 {
     FILE * fp;
     char * line = NULL;
@@ -110,7 +110,10 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_ans
         {
             if(csv_row_index >=1){
                 if(csv_column_index == 0){
-                    //printf("opencode:%s\n", p);
+                    //Load opencode list
+                    *(*opencodeList + (csv_row_index -1)) = (char*) malloc(sizeof(char) * 20);
+                    strcpy(*(*opencodeList + (csv_row_index -1)), p);
+                    printf("opencodeList[%d] = %s \n",  (csv_row_index -1),   *(*opencodeList + (csv_row_index -1))    );
                 }
                 else
                 {

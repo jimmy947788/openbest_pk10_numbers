@@ -73,7 +73,8 @@ cl_int GetGetPlatforms(cl_uint total_platforms, cl_platform_id **platforms)
         ext_data = (char*)malloc(ext_size);
         errNum = clGetPlatformInfo(*platforms[platformId], CL_PLATFORM_EXTENSIONS, ext_size, ext_data, NULL);
         checkErr(errNum, "clGetPlatformInfo for get data.");
-        printf("Platform ID: %d\nsupports extensions: \n %s\n", platformId, ext_data); 
+        printf("Platform ID: %d\n", platformId); 
+        //printf("Platform ID: %d\nsupports extensions: \n %s\n", platformId, ext_data); 
     }
 
     if(ext_data)
@@ -91,12 +92,12 @@ cl_uint GetDevices(cl_device_id** devices)
 
     errNum = clGetPlatformIDs(0, NULL, &total_platforms);
     checkErr((errNum != CL_SUCCESS)? errNum : (total_platforms <= 0 ? -1 : CL_SUCCESS), "clGetPlatformIDs for init.");
-    printf("get number of Platforms: %d\n", total_platforms);
+    printf("Get number of Platforms: %d\n", total_platforms);
 
     platforms = (cl_platform_id*) malloc(sizeof(cl_platform_id) * total_platforms);
     errNum = clGetPlatformIDs(total_platforms, platforms, NULL);
     checkErr((errNum != CL_SUCCESS)? errNum : (total_platforms <= 0 ? -1 : CL_SUCCESS), "clGetPlatFormIDs for get data.");
-    printf("get all Platforms.\n");
+    printf("Get all Platforms.\n");
 
     GetGetPlatforms(total_platforms, &platforms);
 
@@ -139,7 +140,7 @@ void BuildKernelProgram(
     *program = clCreateProgramWithSource(context, 1, 
             (const char **)&kernel_program_content, (const size_t *)&kernel_program_size, &errNum);
     checkErr(errNum, "clCreateProgramWithSource");
-    printf("create OpenCL program from %s ........... successful!!\n", kernel_program_path);
+    //printf("create OpenCL program from %s ........... successful!!\n", kernel_program_path);
     if(kernel_program_content)
         free(kernel_program_content);
 
@@ -160,6 +161,7 @@ void BuildKernelProgram(
         printf(build_log);
         if(build_log)
             free(build_log);
+        
+        exit(-1);
     }
-    printf("build OpenCL program from %s .......... successful!!\n", kernel_program_path);
 }

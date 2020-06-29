@@ -1,5 +1,6 @@
 
 #include "common/Common.h"
+#include "common/hashmap.h"
 
 int run_kernel_sum_beton_total_amount(cl_context context, cl_command_queue queue, cl_kernel kernel,
         int beton_length, int wgaer_length, 
@@ -54,7 +55,7 @@ int run_kernel_sum_beton_total_amount(cl_context context, cl_command_queue queue
         perror("Couldn't set a kernel argument");
         exit(1);   
     };
-    errNum = clSetKernelArg(kernel, 3, sizeof(int), &wgaer_length);
+    errNum = clSetKernelArg(kernel, 3, sizeof(cl_int), &wgaer_length);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument");
         exit(1);   
@@ -186,7 +187,7 @@ int run_kernel_calc_numbers_risk(cl_context context, cl_command_queue queue, cl_
         exit(1);   
     };
 
-    errNum = clSetKernelArg(kernel, 4, sizeof(int), &beton_length);
+    errNum = clSetKernelArg(kernel, 4, sizeof(cl_int), &beton_length);
     checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument");
@@ -231,16 +232,16 @@ int main(int argc, char* argv[])
     char beton_amount_with_odds_path[255] = "";
     char log_dir[255];
     strcpy(log_dir, "log/");
+    map_t mymap;
+    mymap = hashmap_new();
 
-    bool isBreak = LoadArgs(argc, argv, 
+    LoadArgs(argc, argv, 
         &kernel_program_path, 
         &opencode_answer_path, 
         &beton_amount_path,
         &beton_amount_with_odds_path,
         &log_dir);
     
-    if(isBreak)
-        exit(EXIT_SUCCESS);
     if(strlen(kernel_program_path) == 0 || strlen(opencode_answer_path) == 0)
     {
         printf("must be support argument...\n");
@@ -251,7 +252,7 @@ int main(int argc, char* argv[])
         exit(EXIT_SUCCESS);
     }
     
-#ifdef _DEBUG
+#ifdef DEBUG
     printf("kernel_program_file:%s\n", kernel_program_path);
     printf("opencode_answer_file:%s\n", opencode_answer_path);
     printf("beton_amount_path:%s\n", beton_amount_path);
@@ -261,32 +262,68 @@ int main(int argc, char* argv[])
 
     int betonLength = 0, opencodeLength = 0; 
     int wager_length = 129; 
-    cl_device_id* devices = NULL;
+    cl_device_id* deviceList = NULL;
     cl_context context = NULL;
     cl_program* program = NULL;
     cl_uint total_devices = 0;
     cl_int* opencode_answer = NULL;
-    cl_command_queue queue = NULL;
+    cl_command_queue* queueList = NULL;
+    cl_float* opencode_answer_result = NULL;
+    cl_int* one_mask = NULL;
+    cl_float* beton_amount = NULL;
+    cl_float* beton_amount_with_odds = NULL;
+    cl_float* total_beton_amount = NULL;
+    cl_float* total_beton_amount_with_odds = NULL;
+    char** opencodeList  = NULL;
 
-    printf("load opencode answer length...\n");
+    printf("load opencode answer length ");
     GetDataLength(opencode_answer_path, &opencodeLength, &betonLength);
-    printf("opencode Length:%d, beton Length:%d\n",opencodeLength, betonLength);
+    printf("...........(opencode Length:%d, beton Length:%d)\n",opencodeLength, betonLength);
 
+    printf("load opencode answer from csv ");
     opencode_answer = (cl_int *)malloc(sizeof(cl_int) * betonLength * opencodeLength);
-    ReadOpnecodeAnswerFromCsv(opencode_answer_path, &opencode_answer);
+    opencodeList =  (char**)malloc(sizeof(*opencodeList) * opencodeLength);
+    ReadOpnecodeAnswerFromCsv(opencode_answer_path, &opencode_answer, &opencodeList);
+    printf("........... successful !!\n");
  
-    total_devices = GetDevices(&devices);
+    printf("opencode[3]=%s\n", opencodeList[3]);
+    printf("opencode[%d]=%s\n", opencodeLength -1,  opencodeList[opencodeLength-1]);
+
+    printf("alloc opencode_answer_result array (length: %d)", opencodeLength);
+    opencode_answer_result = (cl_float*)malloc(sizeof(cl_float) * opencodeLength);
+    printf("........... successful !!\n");
+    
+    printf("alloc one_mask array (length: %d)", betonLength);
+    one_mask = (cl_int*)malloc(sizeof(cl_int) * betonLength);
+     // fill mask content
+    for(int i=0; i<=betonLength-1; i++) 
+    {
+        one_mask[i] = 1;
+    }
+    printf("........... successful !!\n");
+
+    total_devices = GetDevices(&deviceList);
 
     // Create an OpenCL context
-    context = clCreateContext(NULL, total_devices, devices, &contextCallback, NULL, &errNum);
+    printf("create OpenCL context for all GPU");
+    context = clCreateContext(NULL, total_devices, deviceList, &contextCallback, NULL, &errNum);
     checkErr(errNum, "clCreateContext");
-    printf("create OpenCL context for all GPU ........... successful!!\n");
+    printf(" ........... successful!!\n");
 
-    // Create an OpenCL queue
-    queue = clCreateCommandQueue(context, devices[0], 0, &errNum);
-    checkErr(errNum, "clCreateCommandQueue");
+     // Create an OpenCL queue
+    printf("create OpenCL queue for all GPU");
+    queueList = (cl_command_queue*)malloc(sizeof(cl_command_queue) * total_devices);
+    for(int i=0; i<=total_devices -1; i++ )
+    {
+        queueList[i] = clCreateCommandQueue(context, deviceList[i], 0, &errNum);
+        checkErr(errNum, "clCreateCommandQueue");
+    }
+    printf(" ........... successful!!\n");
 
-    BuildKernelProgram(kernel_program_path, context, total_devices, devices, &program);
+    printf("build OpenCL program from");
+    // Create an OpenCL program
+    BuildKernelProgram(kernel_program_path, context, total_devices, deviceList, &program);
+    printf(".......... successful!!\n");
 
     // Create OpenCL Kernel program
     cl_kernel kSumBetonTotalAmount = clCreateKernel(program, "sum_beton_total_amount", &errNum);
@@ -297,67 +334,76 @@ int main(int argc, char* argv[])
     checkErr(errNum, "clCreateKernel");
     printf("Create OpenCL Kernel program :%s\n", "calc_numbers_risk");
 
-    cl_int* mask = (cl_int*)malloc(sizeof(cl_int) * betonLength);
-    // fill mask content
-    for(int i=0; i<=betonLength-1; i++)
-    {
-        mask[i] = 1;
-    }
+    printf("release OpenCL program");
+    clReleaseProgram(program);
+    printf(".......... successful!!\n");
 
     //以下重複直行
     //===================================================================================================
-    cl_float* beton_amount = (cl_float*)malloc(sizeof(cl_float) * betonLength * wager_length);
-    cl_float* beton_amount_with_odds = (cl_float*)malloc(sizeof(cl_float) * betonLength * wager_length);
-    cl_float* total_beton_amount = NULL;
-    cl_float* total_beton_amount_with_odds = NULL;
-    cl_float* result = NULL;
-    
+    beton_amount = (cl_float*)malloc(sizeof(cl_float) * betonLength * wager_length);
     ReadBetonAmountFromCsv(beton_amount_path, &beton_amount);
     total_beton_amount = (cl_float*)malloc(sizeof(cl_float) * betonLength);
-    run_kernel_sum_beton_total_amount(context, queue, kSumBetonTotalAmount, 
+    run_kernel_sum_beton_total_amount(context, queueList[0], kSumBetonTotalAmount, 
         betonLength, wager_length,
-        mask, beton_amount, &total_beton_amount);
+        one_mask, beton_amount, &total_beton_amount);
+    if(beton_amount)
+        free(beton_amount);
 
+#ifdef DEBUG
     float sum = 0;
     for(int i=0; i<=betonLength-1; i++)
     {
         sum += total_beton_amount[i];
     }
     printf("sum total_beton_amount = %f\n", sum);
-    
+#endif
+
+    beton_amount_with_odds = (cl_float*)malloc(sizeof(cl_float) * betonLength * wager_length);
     ReadBetonAmountFromCsv(beton_amount_with_odds_path, &beton_amount_with_odds);
     total_beton_amount_with_odds = (cl_float*)malloc(sizeof(cl_float) * betonLength);
-    run_kernel_sum_beton_total_amount(context, queue, kSumBetonTotalAmount, 
+    run_kernel_sum_beton_total_amount(context, queueList[0], kSumBetonTotalAmount, 
         betonLength, wager_length,
-        mask, beton_amount_with_odds, &total_beton_amount_with_odds);
+        one_mask, beton_amount_with_odds, &total_beton_amount_with_odds);
+     if(beton_amount_with_odds)
+        free(beton_amount_with_odds);
 
+#ifdef DEBUG
     sum = 0;
     for(int i=0; i<=betonLength-1; i++)
     {
         sum += total_beton_amount_with_odds[i];
     }
     printf("sum total beton amount with odds = %f\n", sum);
-    
-    if(mask)
-        free(mask);
-    if(beton_amount)
-        free(beton_amount);
-    if(beton_amount_with_odds)
-        free(beton_amount_with_odds);
-   
-    result = (cl_float*)malloc(sizeof(cl_float) * opencodeLength);
-    //result = (cl_float*)malloc(sizeof(cl_float) * 10000);
-    run_kernel_calc_numbers_risk(context, queue, kCalcNumbersRisk, 
+#endif
+
+    memset(opencode_answer_result, 0, opencodeLength);
+    run_kernel_calc_numbers_risk(context, queueList[0], kCalcNumbersRisk, 
         betonLength, opencodeLength, 
         total_beton_amount, 
         total_beton_amount_with_odds, 
         opencode_answer,
-        &result);
+        &opencode_answer_result);
     
+    if(total_beton_amount)
+        free(total_beton_amount);
+    if(total_beton_amount_with_odds)
+        free(total_beton_amount_with_odds);
+
+    /*
+    int error;
+    data_struct_t* value;
+    for(int i=0; i<= opencodeLength -1; i++){
+        value = malloc(sizeof(data_struct_t));
+        strcpy(value->opencode, opencodeList[i]);
+        value->amount = (float)opencode_answer_result[i];
+        error = hashmap_put(mymap,  value->opencode, value);
+    }*/
+
+#ifdef DEBUG
     for(int i=0; i<=20 - 1; i++)
     {
-        printf("result[%d]=%f,", i, result[i]);
+        printf("opencode_answer_result[%d]=%f \n", i, opencode_answer_result[i]);
     }
-    printf("\n");
+#endif
     exit(EXIT_SUCCESS);
 }

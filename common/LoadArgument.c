@@ -27,7 +27,7 @@ void Help()
     printf("-s, --show-gpu-info              Show GPU info.\n");
 }
 
-bool LoadArgs(int argc, char* argv[], 
+void LoadArgs(int argc, char* argv[], 
         char kernel_program_path[], 
         char opencode_answer_path[], 
         char beton_amount_path[],
@@ -52,7 +52,7 @@ bool LoadArgs(int argc, char* argv[],
         {
         case 'V':
             printf("Version:%s\n", VERSION);
-            return true;
+            exit(EXIT_SUCCESS);
 
         case 'k':
             strcpy(kernel_program_path, optarg);
@@ -76,7 +76,7 @@ bool LoadArgs(int argc, char* argv[],
 
         case 'h':
             Help();
-            return true;
+            exit(EXIT_SUCCESS);
         
         case 's':
             total_devices = GetDevices(&devices);
@@ -89,16 +89,15 @@ bool LoadArgs(int argc, char* argv[],
             }
             if(devices)
                 free(devices);
-            return true;
+            exit(EXIT_SUCCESS);
 
         case '?':
             /* getopt_long already printed an error message. */
             Help();
-            return true;
+            exit(EXIT_SUCCESS);
 
         default:
             abort ();
         }
     } 
-    return false;
 }
