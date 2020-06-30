@@ -2,7 +2,10 @@
 #include "common/Common.h"
 #include "common/hashmap.h"
 
-int run_kernel_sum_beton_total_amount(cl_context context, cl_command_queue queue, cl_kernel kernel,
+int run_kernel_sum_beton_total_amount(
+        cl_context context, 
+        cl_command_queue queue, 
+        cl_kernel kernel,
         int beton_length, int wgaer_length, 
         cl_int* mask, 
         cl_float* bet_amount, 
@@ -275,6 +278,8 @@ int main(int argc, char* argv[])
     cl_float* total_beton_amount = NULL;
     cl_float* total_beton_amount_with_odds = NULL;
     char** opencodeList  = NULL;
+    // 儲存時間用的變數
+    clock_t timeStart, timeEnd;
 
     printf("load opencode answer length ");
     GetDataLength(opencode_answer_path, &opencodeLength, &betonLength);
@@ -340,31 +345,43 @@ int main(int argc, char* argv[])
 
     //以下重複直行
     //===================================================================================================
+#ifdef DEBUG
+    float sum = 0;
+#endif
     beton_amount = (cl_float*)malloc(sizeof(cl_float) * betonLength * wager_length);
     ReadBetonAmountFromCsv(beton_amount_path, &beton_amount);
     total_beton_amount = (cl_float*)malloc(sizeof(cl_float) * betonLength);
+    timeStart = clock();;
     run_kernel_sum_beton_total_amount(context, queueList[0], kSumBetonTotalAmount, 
         betonLength, wager_length,
         one_mask, beton_amount, &total_beton_amount);
+    timeEnd = clock();;
+    printf("run_kernel_sum_beton_total_amount... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+
     if(beton_amount)
         free(beton_amount);
 
 #ifdef DEBUG
-    float sum = 0;
+    sum = 0;
     for(int i=0; i<=betonLength-1; i++)
     {
         sum += total_beton_amount[i];
     }
-    printf("sum total_beton_amount = %f\n", sum);
+    printf("====> sum total_beton_amount = %f\n", sum);
 #endif
 
     beton_amount_with_odds = (cl_float*)malloc(sizeof(cl_float) * betonLength * wager_length);
     ReadBetonAmountFromCsv(beton_amount_with_odds_path, &beton_amount_with_odds);
     total_beton_amount_with_odds = (cl_float*)malloc(sizeof(cl_float) * betonLength);
-    run_kernel_sum_beton_total_amount(context, queueList[0], kSumBetonTotalAmount, 
+
+    timeStart = clock();;
+    run_kernel_sum_beton_total_amount(context, queueList[1], kSumBetonTotalAmount, 
         betonLength, wager_length,
         one_mask, beton_amount_with_odds, &total_beton_amount_with_odds);
-     if(beton_amount_with_odds)
+    timeEnd = clock();;
+    printf("run_kernel_sum_beton_total_amount... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+    
+    if(beton_amount_with_odds)
         free(beton_amount_with_odds);
 
 #ifdef DEBUG
@@ -373,8 +390,9 @@ int main(int argc, char* argv[])
     {
         sum += total_beton_amount_with_odds[i];
     }
-    printf("sum total beton amount with odds = %f\n", sum);
+    printf("====> sum total beton amount with odds = %f\n", sum);
 #endif
+
 
     memset(opencode_answer_result, 0, opencodeLength);
     run_kernel_calc_numbers_risk(context, queueList[0], kCalcNumbersRisk, 
@@ -399,11 +417,13 @@ int main(int argc, char* argv[])
         error = hashmap_put(mymap,  value->opencode, value);
     }*/
 
+
 #ifdef DEBUG
     for(int i=0; i<=20 - 1; i++)
     {
         printf("opencode_answer_result[%d]=%f \n", i, opencode_answer_result[i]);
     }
 #endif
+
     exit(EXIT_SUCCESS);
 }
