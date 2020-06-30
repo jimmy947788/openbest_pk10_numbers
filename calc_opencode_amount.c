@@ -90,7 +90,10 @@ int run_kernel_sum_beton_total_amount(
     return 0;
 }
 
-int run_kernel_calc_numbers_risk(cl_context context, cl_command_queue queue, cl_kernel kernel,
+int run_kernel_calc_numbers_risk(
+        cl_context context, 
+        cl_command_queue queue, 
+        cl_kernel kernel,
         int beton_length, int opencode_length, 
         cl_float* total_beton_amount, 
         cl_float* total_beton_amount_with_odds, 
@@ -393,7 +396,7 @@ int main(int argc, char* argv[])
     printf("====> sum total beton amount with odds = %f\n", sum);
 #endif
 
-
+    timeStart = clock();;
     memset(opencode_answer_result, 0, opencodeLength);
     run_kernel_calc_numbers_risk(context, queueList[0], kCalcNumbersRisk, 
         betonLength, opencodeLength, 
@@ -401,7 +404,9 @@ int main(int argc, char* argv[])
         total_beton_amount_with_odds, 
         opencode_answer,
         &opencode_answer_result);
-    
+    timeEnd = clock();;
+    printf("run_kernel_calc_numbers_risk... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+
     if(total_beton_amount)
         free(total_beton_amount);
     if(total_beton_amount_with_odds)
