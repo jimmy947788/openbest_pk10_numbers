@@ -79,7 +79,7 @@ void GetDataLength(char* opencode_answer_path, int* opencodeLength, int* betonLe
         free(line);
 }
 
-void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_answer, char*** opencodeList)
+void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_short** opencode_answer, char*** opencodeList)
 {
     FILE * fp;
     char * line = NULL;
@@ -117,7 +117,7 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_ans
                 }
                 else
                 {
-                    int ret = strtol(p, NULL, 10);
+                    short ret = strtol(p, NULL, 10);
                     *(*opencode_answer + opencode_answer_index) = ret;
                     opencode_answer_index ++;
                 }

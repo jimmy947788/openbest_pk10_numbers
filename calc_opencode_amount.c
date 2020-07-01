@@ -7,7 +7,7 @@ int run_kernel_sum_beton_total_amount(
         cl_command_queue queue, 
         cl_kernel kernel,
         int beton_length, int wgaer_length, 
-        cl_int* mask, 
+        cl_ushort* one_mask, 
         cl_float* bet_amount, 
         cl_float** result)
 {
@@ -16,8 +16,8 @@ int run_kernel_sum_beton_total_amount(
     /* Create a write-only buffer to hold the output data */
     cl_mem mask_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
-        sizeof(cl_int) * beton_length, 
-        mask, 
+        sizeof(cl_ushort) * beton_length, 
+        one_mask, 
         &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a mask_buffer");
@@ -94,7 +94,7 @@ int run_kernel_calc_numbers_risk(
         int beton_length, int opencode_length, 
         cl_float* total_beton_amount, 
         cl_float* total_beton_amount_with_odds, 
-        cl_int* opencode_answer, 
+        cl_short* opencode_answer, 
         cl_float** result)
 {
     cl_int errNum;
@@ -125,7 +125,7 @@ int run_kernel_calc_numbers_risk(
     cl_mem opencode_answer_buffer = clCreateBuffer(
         context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_int) * beton_length * opencode_length, 
+        sizeof(cl_short) * beton_length * opencode_length, 
         opencode_answer, 
         &errNum);    
     if(errNum < 0) {
@@ -248,10 +248,10 @@ int main(int argc, char* argv[])
     cl_context context = NULL;
     cl_program* program = NULL;
     cl_uint total_devices = 0;
-    cl_int* opencode_answer = NULL;
+    cl_short* opencode_answer = NULL;
     cl_command_queue* queueList = NULL;
     cl_float* opencode_answer_result = NULL;
-    cl_int* one_mask = NULL;
+    cl_ushort* one_mask = NULL;
     cl_float* beton_amount = NULL;
     cl_float* beton_amount_with_odds = NULL;
     cl_float* total_beton_amount = NULL;
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
 
     printf("load opencode answer from csv ");
     timeStart = clock();
-    opencode_answer = (cl_int *)malloc(sizeof(cl_int) * betonLength * opencodeLength);
+    opencode_answer = (cl_short *)malloc(sizeof(cl_short) * betonLength * opencodeLength);
     opencodeList =  (char**)malloc(sizeof(*opencodeList) * opencodeLength);
     ReadOpnecodeAnswerFromCsv(opencode_answer_path, &opencode_answer, &opencodeList);
     printf("........... successful !! (time:%fs)\n",  (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
     printf("........... successful !!\n");
     
     printf("alloc one_mask array (length: %d)", betonLength);
-    one_mask = (cl_int*)malloc(sizeof(cl_int) * betonLength);
+    one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * betonLength);
      // fill mask content
     for(int i=0; i<=betonLength-1; i++) 
     {
@@ -401,7 +401,7 @@ int main(int argc, char* argv[])
 
 
 #ifdef DEBUG
-    for(int i=0; i<=20 - 1; i++)
+    for(int i=0; i<=opencodeLength - 1; i++)
     {
         printf("opencode_answer_result[%d]=%f \n", i, opencode_answer_result[i]);
     }
