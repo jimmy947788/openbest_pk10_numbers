@@ -8,7 +8,7 @@ __kernel void sum_beton_total_amount(
    int col_index = get_global_id(0);
    int col_size = get_global_size(0);
 
-   int bit = mask[col_index];
+   ushort bit = mask[col_index];
    //printf("mask[%d]=%d\n", col_index, bit);
    if(bit > 0)
    {
