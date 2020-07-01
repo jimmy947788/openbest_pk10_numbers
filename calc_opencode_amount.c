@@ -91,10 +91,10 @@ int run_kernel_calc_numbers_risk(
         cl_context context, 
         cl_command_queue queue, 
         cl_kernel kernel,
-        int beton_length, int opencode_length, 
+        int beton_length, int opencode_length, int offset,
         cl_float* total_beton_amount, 
         cl_float* total_beton_amount_with_odds, 
-        cl_short* opencode_answer, 
+        cl_mem opencode_answer_buffer,
         cl_float** result)
 {
     cl_int errNum;
@@ -122,16 +122,39 @@ int run_kernel_calc_numbers_risk(
       exit(1);   
     };
 
-    cl_mem opencode_answer_buffer = clCreateBuffer(
-        context, 
-        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_short) * beton_length * opencode_length, 
-        opencode_answer, 
-        &errNum);    
-    if(errNum < 0) {
-      perror("Couldn't create a opencode_answer_buffer");
+    cl_buffer_region region;
+    region.origin = offset;
+    region.size = sizeof(cl_short) * beton_length * opencode_length;
+    cl_mem sub_opencode_answer_buffer = clCreateSubBuffer(
+        opencode_answer_buffer, 
+        CL_MEM_READ_ONLY , 
+        CL_BUFFER_CREATE_TYPE_REGION, 
+        &region, 
+        &errNum);
+   if(errNum < 0) {
+      perror("Couldn't create a sub-buffer");
       exit(1);   
-    };
+   }
+    
+#ifdef DEBUG
+    void *main_buffer_mem = NULL, *sub_buffer_mem = NULL;
+    size_t main_buffer_size, sub_buffer_size;
+   /* Obtain size information about the buffers */
+   clGetMemObjectInfo(opencode_answer_buffer, CL_MEM_SIZE, 
+         sizeof(main_buffer_size), &main_buffer_size, NULL);
+   clGetMemObjectInfo(sub_opencode_answer_buffer, CL_MEM_SIZE, 
+         sizeof(sub_buffer_size), &sub_buffer_size, NULL);
+   printf("Main buffer size: %lu\n", main_buffer_size);
+   printf("Sub-buffer size:  %lu\n", sub_buffer_size);
+   
+   /* Obtain the host pointers */
+   clGetMemObjectInfo(opencode_answer_buffer, CL_MEM_HOST_PTR, sizeof(main_buffer_mem), 
+  	      &main_buffer_mem, NULL);
+   clGetMemObjectInfo(sub_opencode_answer_buffer, CL_MEM_HOST_PTR, sizeof(sub_buffer_mem), 
+  	      &sub_buffer_mem, NULL);
+   printf("Main buffer memory address: %p\n", main_buffer_mem);
+   printf("Sub-buffer memory address:  %p\n", sub_buffer_mem);
+#endif
 
     cl_mem result_buffer = clCreateBuffer(
         context,
@@ -159,7 +182,7 @@ int run_kernel_calc_numbers_risk(
         exit(1);   
     };
 
-    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &opencode_answer_buffer);
+    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &sub_opencode_answer_buffer);
     checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (opencode_answer_buffer)");
@@ -186,12 +209,11 @@ int run_kernel_calc_numbers_risk(
     const size_t local_size[] = { 1 };
     errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL, NULL);
 
-    checkErr(errNum, "clEnqueueNDRangeKernel");    
     printf("pass kernel code to GPU%d\n", 0);
 
     /* Read and print the result */
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * opencode_length, *result, 0, NULL, NULL);
-    checkErr(errNum, "clEnqueueReadBuffer");
+    //checkErr(errNum, "clEnqueueReadBuffer");
     if(errNum < 0) {
         perror("Couldn't read the buffer");
         exit(1);   
@@ -199,7 +221,8 @@ int run_kernel_calc_numbers_risk(
 
     clReleaseMemObject(total_beton_amount_buffer);
     clReleaseMemObject(total_beton_amount_with_odds_buffer);
-    clReleaseMemObject(opencode_answer_buffer);
+    //clReleaseMemObject(opencode_answer_buffer);
+    clReleaseMemObject(sub_opencode_answer_buffer);
     clReleaseMemObject(result_buffer);
     return 0;
 }
@@ -275,8 +298,9 @@ int main(int argc, char* argv[])
     printf("opencode[3]=%s\n", opencodeList[3]);
     printf("opencode[%d]=%s\n", opencodeLength -1,  opencodeList[opencodeLength-1]);
 
-    printf("alloc opencode_answer_result array (length: %d)", opencodeLength);
-    opencode_answer_result = (cl_float*)malloc(sizeof(cl_float) * opencodeLength);
+    printf("alloc opencode_answer_result array (length: %d)", opencodeLength /2 );
+    //opencode_answer_result = (cl_float*)malloc(sizeof(cl_float) * opencodeLength);
+    opencode_answer_result = (cl_float*)malloc(sizeof(cl_float) * opencodeLength /2);
     printf("........... successful !!\n");
     
     printf("alloc one_mask array (length: %d)", betonLength);
@@ -373,14 +397,38 @@ int main(int argc, char* argv[])
     }
     printf("====> sum total beton amount with odds = %f\n", sum);
 #endif
+    cl_mem opencode_answer_buffer = clCreateBuffer(
+        context, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
+        sizeof(cl_short) * betonLength * opencodeLength, 
+        opencode_answer, 
+        &errNum);    
+    if(errNum < 0) {
+      perror("Couldn't create a opencode_answer_buffer");
+      exit(1);   
+    };
+
 
     timeStart = clock();;
-    memset(opencode_answer_result, 0, opencodeLength);
+    //memset(opencode_answer_result, 0, opencodeLength);
+    //memset(opencode_answer_result, 0, opencodeLength /2 );
+    int offset = 0;
     run_kernel_calc_numbers_risk(context, queueList[0], kCalcNumbersRisk, 
-        betonLength, opencodeLength, 
+        betonLength, opencodeLength / 2 , offset,
         total_beton_amount, 
         total_beton_amount_with_odds, 
-        opencode_answer,
+        opencode_answer_buffer,
+        &opencode_answer_result);
+    timeEnd = clock();;
+    printf("run_kernel_calc_numbers_risk... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+    //====================================================================
+    //memset(opencode_answer_result, 0, opencodeLength /2 );
+    offset = 1814400;
+    run_kernel_calc_numbers_risk(context, queueList[0], kCalcNumbersRisk, 
+        betonLength, opencodeLength / 2 , offset,
+        total_beton_amount, 
+        total_beton_amount_with_odds, 
+        opencode_answer_buffer,
         &opencode_answer_result);
     timeEnd = clock();;
     printf("run_kernel_calc_numbers_risk... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
@@ -398,10 +446,11 @@ int main(int argc, char* argv[])
         value->amount = (float)opencode_answer_result[i];
         error = hashmap_put(mymap,  value->opencode, value);
     }*/
-
+    printf( "print result :");
+    int c = getchar( );
 
 #ifdef DEBUG
-    for(int i=0; i<=opencodeLength - 1; i++)
+    for(int i=0; i<=20 - 1; i++)
     {
         printf("opencode_answer_result[%d]=%f \n", i, opencode_answer_result[i]);
     }
