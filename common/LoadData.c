@@ -113,7 +113,7 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_int** opencode_ans
                     //Load opencode list
                     *(*opencodeList + (csv_row_index -1)) = (char*) malloc(sizeof(char) * 20);
                     strcpy(*(*opencodeList + (csv_row_index -1)), p);
-                    printf("opencodeList[%d] = %s \n",  (csv_row_index -1),   *(*opencodeList + (csv_row_index -1))    );
+                    //printf("opencodeList[%d] = %s \n",  (csv_row_index -1),   *(*opencodeList + (csv_row_index -1))    );
                 }
                 else
                 {
