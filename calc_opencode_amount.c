@@ -169,35 +169,35 @@ int run_kernel_calc_numbers_risk(
 
     /* Create kernel argument */
     errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &total_beton_amount_buffer);
-    checkErr(errNum, "clSetKernelArg");
+    //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
         exit(1);   
     };
 
     errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer);
-    checkErr(errNum, "clSetKernelArg");
+    //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
         exit(1);   
     };
 
-    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), sub_opencode_answer_buffer);
-    checkErr(errNum, "clSetKernelArg");
+    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &sub_opencode_answer_buffer);
+   // checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (sub_opencode_answer_buffer)");
         exit(1);   
     };
 
     errNum = clSetKernelArg(kernel, 3, sizeof(cl_mem), &result_buffer);
-    checkErr(errNum, "clSetKernelArg");
+    //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (result_buffer)");
         exit(1);   
     };
 
     errNum = clSetKernelArg(kernel, 4, sizeof(cl_int), &beton_length);
-    checkErr(errNum, "clSetKernelArg");
+    //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (beton_length)");
         exit(1);   
@@ -221,9 +221,9 @@ int run_kernel_calc_numbers_risk(
 
     clReleaseMemObject(total_beton_amount_buffer);
     clReleaseMemObject(total_beton_amount_with_odds_buffer);
-    clReleaseMemObject(opencode_answer_buffer);
+    //clReleaseMemObject(opencode_answer_buffer);
     clReleaseMemObject(sub_opencode_answer_buffer);
-    //clReleaseMemObject(result_buffer);
+    clReleaseMemObject(result_buffer);
     return 0;
 }
 
