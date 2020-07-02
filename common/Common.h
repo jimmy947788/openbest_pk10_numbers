@@ -22,13 +22,15 @@
 #define MAX_SOURCE_SIZE (0x100000)
 #define MAX_DEVICE_SIZE 256
 
-void CL_CALLBACK contextCallback(const char * errInfo, const void * private_info, size_t cb, void * user_data);
 
-/*
-cl_command_queue queue;
-cl_program program = NULL;
-cl_kernel kernel_sum_beton_total_amount = NULL;
-cl_kernel kernel_calc_numbers_risk = NULL;
-int platformId = 0; */
+typedef unsigned char boolean; /* Boolean value type. */
+typedef unsigned long int uint32; /* Unsigned 32 bit value */
+typedef unsigned short uint16; /* Unsigned 16 bit value */
+typedef unsigned char uint8; /* Unsigned 8 bit value */
+
+typedef signed long int int32; /* Signed 32 bit value */
+typedef signed short int16; /* Signed 16 bit value */
+typedef signed char int8; /* Signed 8 bit value */
+void CL_CALLBACK contextCallback(const char * errInfo, const void * private_info, size_t cb, void * user_data);
 
 #endif

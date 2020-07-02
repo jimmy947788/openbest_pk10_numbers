@@ -263,7 +263,8 @@ int main(int argc, char* argv[])
     printf("log_dir:%s\n", log_dir);
 #endif
 
-    int betonLength = 0, opencodeLength = 0; 
+    int betonLength = 0;
+    uint32 opencodeLength = 0; 
     int wager_length = 129; 
     cl_device_id* deviceList = NULL;
     cl_context context = NULL;

@@ -31,7 +31,7 @@ void ReadBetonAmountFromCsv(char* beton_amount_path, cl_float** beton_amount)
     fclose(fp);
 }
 
-void GetDataLength(char* opencode_answer_path, int* opencodeLength, int* betonLength)
+void GetDataLength(char* opencode_answer_path, uint32* opencodeLength, int* betonLength)
 {
     FILE * fp;
     char * line = NULL;
@@ -90,7 +90,7 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_short** opencode_a
     int csv_column_index = 0;
     int csv_row_index = 0;
     int row_index = 0;
-    long long opencode_answer_index = 0;
+    uint32 opencode_answer_index = 0;
 
     fp = fopen(opencode_answer_path, "r");
     if (fp == NULL){
