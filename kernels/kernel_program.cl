@@ -97,10 +97,10 @@ __kernel void find_best_amount(
 
    while(LOCK(mutex));
    int gindex = *best_amount_count;
-   if(gindex < 3250 && amount_range1 <=amount && amount <=amount_range2 )
+   if(amount_range1 <=amount && amount <=amount_range2 )
    {
-      printf("amount_array[%d]=%f\n", numbers_index, amount_array[numbers_index]);
-      printf("best_amount_count=%d\n", gindex);
+      //printf("amount_array[%d]=%f\n", numbers_index, amount_array[numbers_index]);
+      //printf("best_amount_count=%d\n", gindex);
       result_array[gindex] = numbers_index;
       *best_amount_count +=1;
       

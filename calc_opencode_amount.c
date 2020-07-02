@@ -399,7 +399,7 @@ int run_kernel_find_best_amount(
     printf("pass kernel code to GPU%d\n", 0);
 
     /* Read and print the result */
-    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_uint) * best_amount_count , result, 0, NULL, NULL);
+    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_uint) * best_amount_count , *result, 0, NULL, NULL);
     if(errNum < 0) {
         perror("Couldn't read the buffer");
         exit(1);   
@@ -675,6 +675,8 @@ int main(int argc, char* argv[])
         printf("run_kernel_find_best_amount_count... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
         printf("result_count=%d \n", result_count);
 
+        //====================================================================
+        timeStart = clock();
         cl_uint* result = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
         run_kernel_find_best_amount(
             context,
@@ -685,12 +687,16 @@ int main(int argc, char* argv[])
             result_count,
             amountRange1, amountRange2,
             &result);
-
+        timeEnd = clock();;
+        clFinish(queueList[0]);
+        
         for(int i=0; i<=result_count-1; i++ )
         {
             int index = result[i];
             printf("%s, result[%d]=%f \n" ,opencodeList[index], index, opencode_answer_result1[index]);
         }
+        printf("run_kernel_find_best_amount... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+
         /*
         int error;
         data_struct_t* value;
