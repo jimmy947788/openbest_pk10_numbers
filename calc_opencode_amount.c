@@ -433,7 +433,7 @@ int main(int argc, char* argv[])
 #ifdef DEBUG
         for(int i=0; i<=20 - 1; i++)
         {
-            printf("%s, opencode_answer_result[%d]=%f \n", opencodeList[i], i, opencode_answer_result[i]);
+            printf("%s, result[%d]=%f \n", opencodeList[i], i, opencode_answer_result[i]);
         }
 #endif
         //====================================================================
@@ -452,7 +452,7 @@ int main(int argc, char* argv[])
 #ifdef DEBUG
         for(int i=0; i<=20 - 1; i++)
         {
-            printf("%s, opencode_answer_result[%d]=%f \n",opencodeList[i +dataSegmentOffset ], i + dataSegmentOffset, opencode_answer_result[i]);
+            printf("%s, result[%d]=%f \n",opencodeList[i +dataSegmentOffset ], i + dataSegmentOffset, opencode_answer_result[i]);
         }
 #endif
 
@@ -467,7 +467,7 @@ int main(int argc, char* argv[])
         }*/
         printf( "print result :");
         int c = getchar( );
-
+        
         //release opencode_answer Buffer
         clReleaseMemObject(opencode_answer_buffer); 
     }
