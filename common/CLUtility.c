@@ -21,7 +21,7 @@ void checkErr(cl_int err, const char* name)
 {
     if(err != CL_SUCCESS)
     {
-        printf("ERROR: %s ( %s )\n", name, err);
+        printf("ERROR: %d ( %s )\n", name, err);
         exit(EXIT_FAILURE);
     }
 }
@@ -124,8 +124,8 @@ cl_uint GetDevices(cl_device_id** devices)
     return total_devices;
 }
 
-void BuildKernelProgram(
-    char* kernel_program_path, 
+void BuildProgram(
+    char* programPath, 
     cl_context context,
     cl_uint num_devices,
     cl_device_id* device_list,
@@ -133,16 +133,16 @@ void BuildKernelProgram(
 {
     cl_int errNum;
     // Load the kernel source code into the array source_str
-    char* kernel_program_content = (char*)malloc(MAX_SOURCE_SIZE);
-    size_t kernel_program_size = ReadFileContent(kernel_program_path, kernel_program_content);
+    char* programContent = (char*)malloc(MAX_SOURCE_SIZE);
+    size_t programSize = ReadFileContent(programPath, programContent);
 
     // Create a program from the kernel source
     *program = clCreateProgramWithSource(context, 1, 
-            (const char **)&kernel_program_content, (const size_t *)&kernel_program_size, &errNum);
+            (const char **)&programContent, (const size_t *)&programSize, &errNum);
     checkErr(errNum, "clCreateProgramWithSource");
     //printf("create OpenCL program from %s ........... successful!!\n", kernel_program_path);
-    if(kernel_program_content)
-        free(kernel_program_content);
+    if(programContent)
+        free(programContent);
 
     // Build the program
     errNum = clBuildProgram(*program, num_devices, device_list, NULL, NULL, NULL);
