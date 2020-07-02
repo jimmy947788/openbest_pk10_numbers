@@ -139,14 +139,14 @@ void BuildProgram(
     // Create a program from the kernel source
     *program = clCreateProgramWithSource(context, 1, 
             (const char **)&programContent, (const size_t *)&programSize, &errNum);
-    checkErr(errNum, "clCreateProgramWithSource");
+    //checkErr(errNum, "clCreateProgramWithSource");
     //printf("create OpenCL program from %s ........... successful!!\n", kernel_program_path);
     if(programContent)
         free(programContent);
 
     // Build the program
     errNum = clBuildProgram(*program, num_devices, device_list, NULL, NULL, NULL);
-    checkErr(errNum, "clBuildProgram");
+    //checkErr(errNum, "clBuildProgram");
     // 產出Build cl檔案的log不然cl程式碼寫錯也編譯不出來
     if(errNum < 0){
         // Shows the log

@@ -1,3 +1,7 @@
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+#define LOCK(a) atomic_cmpxchg(a, 0, 1)
+#define UNLOCK(a) atomic_xchg(a, 0)
+
 __kernel void sum_beton_total_amount(
          __global const ushort* mask,
          __global const float* amount,
@@ -58,4 +62,48 @@ __kernel void calc_numbers_risk(
    //printf("\n");
    //printf("numbers_index=%d, numbers_size=%d, sum=%f\n", numbers_index, numbers_size, sum);
    result[numbers_index] = sum;
+}
+
+__kernel void find_best_amount_count(
+         __global float* amount_array,
+         __global uint* count_result,
+         const float amount_range1,
+         const float amount_range2)
+{
+
+   int numbers_index = get_global_id(0);
+   int numbers_size = get_global_size(0);
+   float amount = amount_array[numbers_index];
+
+   if(amount_range1 <=amount && amount <=amount_range2 )
+   {
+      //printf("amount_array[%d]=%f\n", numbers_index, amount_array[numbers_index]);
+      atomic_inc(count_result);
+   }
+}
+
+__kernel void find_best_amount(
+         __global float* amount_array,
+         __global int* best_amount_count,
+         __global uint* result_array,
+         __global int* mutex,
+         const float amount_range1,
+         const float amount_range2)
+{
+
+   int numbers_index = get_global_id(0);
+   int numbers_size = get_global_size(0);
+   float amount = amount_array[numbers_index];
+
+   while(LOCK(mutex));
+   int gindex = *best_amount_count;
+   if(gindex < 3250 && amount_range1 <=amount && amount <=amount_range2 )
+   {
+      printf("amount_array[%d]=%f\n", numbers_index, amount_array[numbers_index]);
+      printf("best_amount_count=%d\n", gindex);
+      result_array[gindex] = numbers_index;
+      *best_amount_count +=1;
+      
+   }
+   UNLOCK(mutex);
 }

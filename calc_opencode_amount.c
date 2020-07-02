@@ -225,6 +225,191 @@ int run_kernel_calc_numbers_risk(
     return 0;
 }
 
+int run_kernel_find_best_amount_count(
+        cl_context context, 
+        cl_command_queue queue, 
+        cl_kernel kernel,
+        cl_float** amount_array,
+        int amount_length,
+        float amount_range1, float amount_range2,
+        cl_uint* count_result)
+{
+    cl_int errNum;
+  
+    /* Create a write-only buffer to hold the output data */
+    cl_mem amount_array_buffer = clCreateBuffer(context, 
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        sizeof(cl_float) * amount_length, 
+        amount_array, 
+        &errNum); 
+    if(errNum < 0) {
+      perror("Couldn't create a amount_array_buffer");
+      exit(1);   
+    };
+
+    cl_mem result_buffer = clCreateBuffer(
+        context,
+        CL_MEM_WRITE_ONLY,
+        sizeof(cl_uint) , 
+        NULL, 
+        &errNum);
+    if(errNum < 0) {
+      perror("Couldn't create a result_buffer");
+      exit(1);   
+    };
+
+    /* Create kernel argument */
+    errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &amount_array_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(mask_buffer)");
+        exit(1);   
+    };
+    errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &result_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(result_buffer)");
+        exit(1);   
+    };
+    errNum = clSetKernelArg(kernel, 2, sizeof(float), &amount_range1);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(best_Amount1)");
+        exit(1);   
+    };
+    errNum = clSetKernelArg(kernel, 3, sizeof(float), &amount_range2);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(best_Amount2)");
+        exit(1);   
+    };
+
+    int dim = 1;
+    const size_t global_offset[] = { 0 };
+    const size_t global_size[] = { amount_length };
+    const size_t local_size[] = { 1 };
+    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL, NULL);
+
+    checkErr(errNum, "clEnqueueNDRangeKernel");    
+    printf("pass kernel code to GPU%d\n", 0);
+
+    /* Read and print the result */
+    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_uint) , count_result, 0, NULL, NULL);
+    if(errNum < 0) {
+        perror("Couldn't read the buffer");
+        exit(1);   
+    }
+
+    clReleaseMemObject(amount_array_buffer);
+    clReleaseMemObject(result_buffer);
+    return 0;
+}
+
+int run_kernel_find_best_amount(
+        cl_context context, 
+        cl_command_queue queue, 
+        cl_kernel kernel,
+        cl_float** amount_array,
+        int amount_length,
+        int best_amount_count,
+        float amount_range1, float amount_range2,
+        cl_uint** result)
+{
+    cl_int errNum;
+  
+    /* Create a write-only buffer to hold the output data */
+    cl_mem amount_array_buffer = clCreateBuffer(context, 
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        sizeof(cl_float) * amount_length, 
+        amount_array, 
+        &errNum); 
+    if(errNum < 0) {
+      perror("Couldn't create a amount_array_buffer");
+      exit(1);   
+    };
+
+    cl_mem best_amount_count_buffer = clCreateBuffer(context, 
+        CL_MEM_WRITE_ONLY, 
+        sizeof(cl_int), 
+        NULL, 
+        &errNum); 
+    if(errNum < 0) {
+      perror("Couldn't create a best_amount_count_buffer");
+      exit(1);   
+    };
+
+    cl_mem result_buffer = clCreateBuffer(
+        context,
+        CL_MEM_WRITE_ONLY,
+        sizeof(cl_uint) * best_amount_count, 
+        NULL, 
+        &errNum);
+    if(errNum < 0) {
+      perror("Couldn't create a result_buffer");
+      exit(1);   
+    };
+
+     cl_mem mutex_buffer = clCreateBuffer(context, 
+        CL_MEM_WRITE_ONLY, 
+        sizeof(cl_int), 
+        NULL, 
+        &errNum); 
+    if(errNum < 0) {
+      perror("Couldn't create a mutex_buffer");
+      exit(1);   
+    };
+
+    /* Create kernel argument */
+    errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &amount_array_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(mask_buffer)");
+        exit(1);   
+    };
+    errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &best_amount_count_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(best_amount_count_buffer)");
+        exit(1);   
+    };
+    
+    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(result_buffer)");
+        exit(1);   
+    };
+    
+    errNum = clSetKernelArg(kernel, 3, sizeof(cl_mem), &mutex_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(best_Amount1)");
+        exit(1);   
+    };
+    errNum = clSetKernelArg(kernel, 4, sizeof(float), &amount_range1);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(best_Amount1)");
+        exit(1);   
+    };
+    errNum = clSetKernelArg(kernel, 5, sizeof(float), &amount_range2);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(best_Amount2)");
+        exit(1);   
+    };
+
+    int dim = 1;
+    const size_t global_offset[] = { 0 };
+    const size_t global_size[] = { amount_length };
+    const size_t local_size[] = { 1 };
+    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL, NULL);
+
+    checkErr(errNum, "clEnqueueNDRangeKernel");    
+    printf("pass kernel code to GPU%d\n", 0);
+
+    /* Read and print the result */
+    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_uint) * best_amount_count , result, 0, NULL, NULL);
+    if(errNum < 0) {
+        perror("Couldn't read the buffer");
+        exit(1);   
+    }
+
+    clReleaseMemObject(amount_array_buffer);
+    clReleaseMemObject(result_buffer);
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     cl_int errNum;
@@ -333,7 +518,7 @@ int main(int argc, char* argv[])
     BuildProgram(kernel_program_path, context, total_devices, deviceList, &program);
     printf(".......... successful!!\n");
 
-    // Create OpenCL Kernel program
+    // Create OpenCL Kernel function
     cl_kernel kSumBetonTotalAmount = clCreateKernel(program, "sum_beton_total_amount", &errNum);
     checkErr(errNum, "clCreateKernel");
     printf("Create OpenCL Kernel program :%s\n", "sum_beton_total_amount");
@@ -342,6 +527,15 @@ int main(int argc, char* argv[])
     checkErr(errNum, "clCreateKernel");
     printf("Create OpenCL Kernel program :%s\n", "calc_numbers_risk");
 
+    cl_kernel kFindBestAmountCount = clCreateKernel(program, "find_best_amount_count", &errNum);
+    checkErr(errNum, "clCreateKernel");
+    printf("Create OpenCL Kernel program :%s\n", "find_best_amount_count");
+
+    cl_kernel kFindBestAmount = clCreateKernel(program, "find_best_amount", &errNum);
+    checkErr(errNum, "clCreateKernel");
+    printf("Create OpenCL Kernel program :%s\n", "find_best_amount");
+
+    // release OpenCL program
     printf("release OpenCL program");
     clReleaseProgram(program);
     printf(".......... successful!!\n");
@@ -462,6 +656,41 @@ int main(int argc, char* argv[])
         }
 #endif
 
+         //====================================================================
+        timeStart = clock();
+        int result_count = 0;
+        float amountRange1 = -20500;
+        float amountRange2 = -20000;
+        run_kernel_find_best_amount_count(
+            context, 
+            queueList[0],
+            kFindBestAmountCount,
+            opencode_answer_result1,
+            dataSegmentLength,
+            amountRange1, amountRange2,
+            &result_count
+        );
+        timeEnd = clock();;
+        clFinish(queueList[0]);
+        printf("run_kernel_find_best_amount_count... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("result_count=%d \n", result_count);
+
+        cl_uint* result = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
+        run_kernel_find_best_amount(
+            context,
+            queueList[0],
+            kFindBestAmount,
+            opencode_answer_result1,
+            dataSegmentLength,
+            result_count,
+            amountRange1, amountRange2,
+            &result);
+
+        for(int i=0; i<=result_count-1; i++ )
+        {
+            int index = result[i];
+            printf("%s, result[%d]=%f \n" ,opencodeList[index], index, opencode_answer_result1[index]);
+        }
         /*
         int error;
         data_struct_t* value;
