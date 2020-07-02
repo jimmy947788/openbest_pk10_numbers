@@ -329,8 +329,8 @@ int main(int argc, char* argv[])
     printf(" ........... successful!!\n");
 
     printf("build OpenCL program from");
-    // Create an OpenCL program
-    BuildKernelProgram(kernel_program_path, context, total_devices, deviceList, &program);
+    // build an OpenCL program
+    BuildProgram(kernel_program_path, context, total_devices, deviceList, &program);
     printf(".......... successful!!\n");
 
     // Create OpenCL Kernel program
