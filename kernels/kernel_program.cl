@@ -99,8 +99,7 @@ __kernel void find_best_amount(
    int gindex = *best_amount_count;
    if(amount_range1 <=amount && amount <=amount_range2 )
    {
-      //printf("amount_array[%d]=%f\n", numbers_index, amount_array[numbers_index]);
-      //printf("best_amount_count=%d\n", gindex);
+      //printf("best_amount_count=%d, amount_array[%d]=%f\n", gindex, numbers_index, amount_array[numbers_index]);
       result_array[gindex] = numbers_index;
       *best_amount_count +=1;
       
