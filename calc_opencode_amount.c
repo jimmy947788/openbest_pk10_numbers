@@ -555,8 +555,9 @@ int main(int argc, char* argv[])
         betonLength, wager_length,
         one_mask, beton_amount, &total_beton_amount);
     timeEnd = clock();;
+    printf("\033[1;36m");
     printf("run_kernel_sum_beton_total_amount... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-
+    printf("\033[0m");
     if(beton_amount)
         free(beton_amount);
 
@@ -578,8 +579,10 @@ int main(int argc, char* argv[])
         betonLength, wager_length,
         one_mask, beton_amount_with_odds, &total_beton_amount_with_odds);
     timeEnd = clock();;
+    printf("\033[1;36m");
     printf("run_kernel_sum_beton_total_amount... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-    
+    printf("\033[0m");
+
     if(beton_amount_with_odds)
         free(beton_amount_with_odds);
 
@@ -614,7 +617,9 @@ int main(int argc, char* argv[])
         exit(1);   
     };
     timeEnd = clock();
+    printf("\033[1;36m");
     printf("clCreateBuffer ... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+    printf("\033[0m");
 
     //cl_uint* result = NULL;
     float amountRange1 = -20050;
@@ -637,7 +642,9 @@ int main(int argc, char* argv[])
             &opencode_answer_result1);
         timeEnd = clock();;
         clFinish(queueList[0]);
-        printf("run_kernel_calc_numbers_risk... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("\033[1;36m");
+        printf("run_kernel_calc_numbers_risk... 1/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("\033[0m");
 #ifdef DEBUG
         for(int i=0; i<=20 - 1; i++)
         {
@@ -657,7 +664,9 @@ int main(int argc, char* argv[])
             &opencode_answer_result2);
         timeEnd = clock();;
         clFinish(queueList[0]);
-        printf("run_kernel_calc_numbers_risk... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("\033[1;36m");
+        printf("run_kernel_calc_numbers_risk... 2/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("\033[0m");
 #ifdef DEBUG
         for(int i=0; i<=20 - 1; i++)
         {
@@ -679,7 +688,9 @@ int main(int argc, char* argv[])
         );
         timeEnd = clock();;
         clFinish(queueList[0]);
+        printf("\033[1;36m");
         printf("run_kernel_find_best_amount_count... 1/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("\033[0m");
         printf("result_count=%d \n", result_count);
 
         if(result_count > 0)
@@ -703,8 +714,11 @@ int main(int argc, char* argv[])
                 int index = amountRangeResult1[i];
                 printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_result1[index]);
             }
-            printf("run_kernel_find_best_amount... 1/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
 #endif
+            printf("\033[1;36m");
+            printf("run_kernel_find_best_amount... 1/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+            printf("\033[0m");
+
             if(amountRangeResult1)
                 free(amountRangeResult1);
         }
@@ -724,7 +738,9 @@ int main(int argc, char* argv[])
         );
         timeEnd = clock();;
         clFinish(queueList[0]);
+        printf("\033[1;36m");
         printf("run_kernel_find_best_amount_count...  2/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("\033[0m");
         printf("result_count=%d \n", result_count);
 
         if(result_count > 0)
@@ -748,8 +764,10 @@ int main(int argc, char* argv[])
                 int index = amountRangeResult2[i] + dataSegmentLength;
                 printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_result2[amountRangeResult2[i]]);
             }
-            printf("run_kernel_find_best_amount... 2/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
 #endif
+            printf("\033[1;36m");
+            printf("run_kernel_find_best_amount... 2/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+            printf("\033[0m");
             if(amountRangeResult2)
                 free(amountRangeResult2);
         }
