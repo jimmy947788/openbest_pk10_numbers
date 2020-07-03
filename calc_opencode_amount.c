@@ -406,7 +406,9 @@ int run_kernel_find_best_amount(
     }
 
     clReleaseMemObject(amount_array_buffer);
+    clReleaseMemObject(best_amount_count_buffer);
     clReleaseMemObject(result_buffer);
+    clReleaseMemObject(mutex_buffer);
     return 0;
 }
 
@@ -614,6 +616,9 @@ int main(int argc, char* argv[])
     timeEnd = clock();
     printf("clCreateBuffer ... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
 
+    //cl_uint* result = NULL;
+    //while 重複直行
+    //===================================================================================================
     while(true)
     {
         //===================================================================
@@ -659,7 +664,7 @@ int main(int argc, char* argv[])
          //====================================================================
         timeStart = clock();
         int result_count = 0;
-        float amountRange1 = -20500;
+        float amountRange1 = -20050;
         float amountRange2 = -20000;
         run_kernel_find_best_amount_count(
             context, 
@@ -693,10 +698,12 @@ int main(int argc, char* argv[])
         for(int i=0; i<=result_count-1; i++ )
         {
             int index = result[i];
-            printf("%s, result[%d]=%f \n" ,opencodeList[index], index, opencode_answer_result1[index]);
+            printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_result1[index]);
         }
         printf("run_kernel_find_best_amount... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
 
+        if(result)
+            free(result);
         /*
         int error;
         data_struct_t* value;
