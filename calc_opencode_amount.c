@@ -621,6 +621,7 @@ int main(int argc, char* argv[])
     //===================================================================================================
     while(true)
     {
+        //計算獎號開出金額 1/2
         //===================================================================
         //memset(opencode_answer_result, 0, opencodeLength);
         timeStart = clock();;
@@ -641,6 +642,7 @@ int main(int argc, char* argv[])
             printf("%s, result[%d]=%f \n", opencodeList[i], i, opencode_answer_result1[i]);
         }
 #endif
+        //計算獎號開出金額 2/2
         //====================================================================
         timeStart = clock();
         dataSegmentOffset = 1814400;
@@ -660,8 +662,8 @@ int main(int argc, char* argv[])
             printf("%s, result[%d]=%f \n",opencodeList[i +dataSegmentOffset ], i + dataSegmentOffset, opencode_answer_result2[i]);
         }
 #endif
-
-         //====================================================================
+        // 過濾指定金額 1/2
+        //====================================================================
         timeStart = clock();
         int result_count = 0;
         float amountRange1 = -20050;
@@ -677,33 +679,83 @@ int main(int argc, char* argv[])
         );
         timeEnd = clock();;
         clFinish(queueList[0]);
-        printf("run_kernel_find_best_amount_count... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("run_kernel_find_best_amount_count... 1/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
         printf("result_count=%d \n", result_count);
 
+        if(result_count > 0)
+        {
+            timeStart = clock();
+            cl_uint* amountRangeResult1 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
+            run_kernel_find_best_amount(
+                context,
+                queueList[0],
+                kFindBestAmount,
+                opencode_answer_result1,
+                dataSegmentLength,
+                result_count,
+                amountRange1, amountRange2,
+                &amountRangeResult1);
+            timeEnd = clock();;
+            clFinish(queueList[0]);
+#ifdef DEBUG
+            for(int i=0; i<=result_count-1; i++ )
+            {
+                int index = amountRangeResult1[i];
+                printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_result1[index]);
+            }
+            printf("run_kernel_find_best_amount... 1/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+#endif
+            if(amountRangeResult1)
+                free(amountRangeResult1);
+        }
+
+        // 過濾指定金額 2/2
         //====================================================================
         timeStart = clock();
-        cl_uint* result = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
-        run_kernel_find_best_amount(
-            context,
+        result_count = 0;
+        //amountRange1 = 199925;
+        //amountRange2 = 200000;
+        run_kernel_find_best_amount_count(
+            context, 
             queueList[0],
-            kFindBestAmount,
-            opencode_answer_result1,
+            kFindBestAmountCount,
+            opencode_answer_result2,
             dataSegmentLength,
-            result_count,
             amountRange1, amountRange2,
-            &result);
+            &result_count
+        );
         timeEnd = clock();;
         clFinish(queueList[0]);
-        
-        for(int i=0; i<=result_count-1; i++ )
-        {
-            int index = result[i];
-            printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_result1[index]);
-        }
-        printf("run_kernel_find_best_amount... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("run_kernel_find_best_amount_count...  2/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+        printf("result_count=%d \n", result_count);
 
-        if(result)
-            free(result);
+        if(result_count > 0)
+        {
+            timeStart = clock();
+            cl_uint* amountRangeResult2 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
+            run_kernel_find_best_amount(
+                context,
+                queueList[0],
+                kFindBestAmount,
+                opencode_answer_result2,
+                dataSegmentLength,
+                result_count,
+                amountRange1, amountRange2,
+                &amountRangeResult2);
+            timeEnd = clock();;
+            clFinish(queueList[0]);
+#ifdef DEBUG
+            for(int i=0; i<=result_count-1; i++ )
+            {
+                int index = amountRangeResult2[i] + dataSegmentLength;
+                printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_result2[amountRangeResult2[i]]);
+            }
+            printf("run_kernel_find_best_amount... 2/2 time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
+#endif
+            if(amountRangeResult2)
+                free(amountRangeResult2);
+        }
+        
         /*
         int error;
         data_struct_t* value;
