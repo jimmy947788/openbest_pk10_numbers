@@ -617,6 +617,8 @@ int main(int argc, char* argv[])
     printf("clCreateBuffer ... time:%fs\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
 
     //cl_uint* result = NULL;
+    float amountRange1 = -20050;
+    float amountRange2 = -20000;
     //while 重複直行
     //===================================================================================================
     while(true)
@@ -666,8 +668,6 @@ int main(int argc, char* argv[])
         //====================================================================
         timeStart = clock();
         int result_count = 0;
-        float amountRange1 = -20050;
-        float amountRange2 = -20000;
         run_kernel_find_best_amount_count(
             context, 
             queueList[0],
@@ -713,8 +713,6 @@ int main(int argc, char* argv[])
         //====================================================================
         timeStart = clock();
         result_count = 0;
-        //amountRange1 = 199925;
-        //amountRange2 = 200000;
         run_kernel_find_best_amount_count(
             context, 
             queueList[0],
