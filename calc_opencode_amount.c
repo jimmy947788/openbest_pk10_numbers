@@ -625,6 +625,7 @@ int main(int argc, char* argv[])
         //計算獎號開出金額 1/2
         //===================================================================
         //memset(opencode_answer_table_result, 0, opencode_Length);
+        printf("calc total win/loss amount in opencode list ... 1/2\n");
         dataSegmentOffset = 0;
         memset(opencode_answer_table_result1, 0.0f, dataSegmentLength);
         run_kernel_calc_numbers_risk(context, queue_list[0], kCalcNumbersRisk, 
@@ -642,6 +643,7 @@ int main(int argc, char* argv[])
 #endif
         //計算獎號開出金額 2/2
         //====================================================================
+        printf("calc total win/loss amount in opencode list ... 2/2\n");
         dataSegmentOffset = 1814400;
         memset(opencode_answer_table_result2, 0.0f, dataSegmentLength);
         run_kernel_calc_numbers_risk(context, queue_list[0], kCalcNumbersRisk, 
@@ -659,6 +661,7 @@ int main(int argc, char* argv[])
 #endif
         // 過濾指定金額 1/2
         //====================================================================
+        printf("count opencode when win/loss amount in range ... 1/2\n");
         int result_count = 0;
         run_kernel_find_best_amount_count(
             context, 
@@ -674,6 +677,7 @@ int main(int argc, char* argv[])
 
         if(result_count > 0)
         {
+            printf("filter opencode when win/loss amount in range ... 1/2\n");
             cl_uint* amountRangeResult1 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
             run_kernel_find_best_amount(
                 context,
@@ -698,6 +702,7 @@ int main(int argc, char* argv[])
 
         // 過濾指定金額 2/2
         //====================================================================
+        printf("count opencode when win/loss amount in range ... 2/2\n");
         result_count = 0;
         run_kernel_find_best_amount_count(
             context, 
@@ -713,6 +718,7 @@ int main(int argc, char* argv[])
 
         if(result_count > 0)
         {
+            printf("filter opencode when win/loss amount in range ... 2/2\n");
             cl_uint* amountRangeResult2 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
             run_kernel_find_best_amount(
                 context,
