@@ -22,7 +22,6 @@
 #define MAX_SOURCE_SIZE (0x100000)
 #define MAX_DEVICE_SIZE 256
 
-
 typedef unsigned char boolean; /* Boolean value type. */
 typedef unsigned long int uint32; /* Unsigned 32 bit value */
 typedef unsigned short uint16; /* Unsigned 16 bit value */

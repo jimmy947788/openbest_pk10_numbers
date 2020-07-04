@@ -1,6 +1,6 @@
 #include "Common.h"
 
-void ReadBetonAmountFromCsv(char* beton_amount_path, cl_float** beton_amount)
+void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_table)
 {
     FILE * fp;
     char * line = NULL;
@@ -24,14 +24,16 @@ void ReadBetonAmountFromCsv(char* beton_amount_path, cl_float** beton_amount)
         for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
         {
             float ret = strtof(p, NULL);
-            *(*beton_amount + csv_bet_amount_index) = ret;
+            *(*beton_amount_table + csv_bet_amount_index) = ret;
             csv_bet_amount_index ++;
         }
     }
+    if (line)
+        free(line);
     fclose(fp);
 }
 
-void GetDataLength(char* opencode_answer_path, uint32* opencodeLength, int* betonLength)
+void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLength, uint32* opencodeLength)
 {
     FILE * fp;
     char * line = NULL;
@@ -73,13 +75,12 @@ void GetDataLength(char* opencode_answer_path, uint32* opencodeLength, int* beto
         }
         csv_row_index++;
     }
-
-    fclose(fp);
     if (line)
         free(line);
+    fclose(fp);
 }
 
-void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_short** opencode_answer, char*** opencodeList)
+void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_answer, char*** opencodeList)
 {
     FILE * fp;
     char * line = NULL;
@@ -89,7 +90,6 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_short** opencode_a
     char *p = NULL;
     int csv_column_index = 0;
     int csv_row_index = 0;
-    int row_index = 0;
     uint32 opencode_answer_index = 0;
 
     fp = fopen(opencode_answer_path, "r");
@@ -97,8 +97,6 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_short** opencode_a
         printf("read file failed: %ld\n", fp);
         exit(EXIT_FAILURE);
     }
-
-    char* opencode = "1-2-3-4-5-6-7-8-9-10";
     while ((read = getline(&line, &len, fp)) != -1) 
     {
         if(len <= 0)
@@ -125,8 +123,7 @@ void ReadOpnecodeAnswerFromCsv(char* opencode_answer_path, cl_short** opencode_a
             else
             {
                 //all beton
-                opencode = p;
-                //printf("%s\n", opencode);
+                //printf("%s\n", p);
             }
             csv_column_index ++;
             

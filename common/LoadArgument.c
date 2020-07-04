@@ -35,6 +35,8 @@ void LoadArgs(int argc, char* argv[],
         char log_dir[])
 {
     int cmd_opt;
+    cl_platform_id* platforms = NULL;
+    cl_uint total_platforms = 0;
     cl_device_id* devices = NULL;
     cl_uint total_devices = 0;
     while(1) {
@@ -79,7 +81,8 @@ void LoadArgs(int argc, char* argv[],
             exit(EXIT_SUCCESS);
         
         case 's':
-            total_devices = GetDevices(&devices);
+            total_platforms = get_platforms(&platforms);
+            total_devices = get_device_list(platforms[0], &devices);
             // show device info
             for(int deviceId = 0; deviceId < total_devices; deviceId++)
             {
