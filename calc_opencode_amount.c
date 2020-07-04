@@ -498,8 +498,8 @@ int main(int argc, char* argv[])
     total_platforms = get_platforms(&platforms);
     printf(" ........... successful!!(total_platforms=%d)\n", total_platforms);
 
-    printf("get OpenCL devices");
-    total_devices = get_device_list(platforms[0], &device_list);
+    printf("create OpenCL GPU devices");
+    total_devices = create_gpu_device_list(platforms[0], &device_list);
     printf(" ........... successful!!(total_devices=%d)\n", total_devices);
 
     // Create an OpenCL context

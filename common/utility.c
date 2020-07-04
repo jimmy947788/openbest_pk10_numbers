@@ -91,7 +91,7 @@ cl_uint get_platforms(cl_platform_id **platforms)
     return total_platforms;
 }
 
-cl_uint get_device_list(cl_platform_id platform, cl_device_id** device_list)
+cl_uint create_gpu_device_list(cl_platform_id platform, cl_device_id** device_list)
 {
     cl_uint total_devices = 0;
     cl_int errNum;

@@ -82,7 +82,7 @@ void LoadArgs(int argc, char* argv[],
         
         case 's':
             total_platforms = get_platforms(&platforms);
-            total_devices = get_device_list(platforms[0], &devices);
+            total_devices = create_gpu_device_list(platforms[0], &devices);
             // show device info
             for(int deviceId = 0; deviceId < total_devices; deviceId++)
             {
