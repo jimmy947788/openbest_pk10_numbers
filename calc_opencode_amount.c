@@ -239,7 +239,7 @@ int run_kernel_find_best_amount_count(
         cl_context context, 
         cl_command_queue queue, 
         cl_kernel kernel,
-        cl_float** amount_array,
+        cl_float** opencode_amount_list,
         int amount_length,
         float amount_range1, float amount_range2,
         cl_uint* count_result)
@@ -249,13 +249,13 @@ int run_kernel_find_best_amount_count(
     timeStart = clock();
 
     /* Create a write-only buffer to hold the output data */
-    cl_mem amount_array_buffer = clCreateBuffer(context, 
+    cl_mem opencode_amount_list_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
         sizeof(cl_float) * amount_length, 
-        amount_array, 
+        opencode_amount_list, 
         &errNum); 
     if(errNum < 0) {
-      perror("Couldn't create a amount_array_buffer");
+      perror("Couldn't create a opencode_amount_list_buffer");
       exit(1);   
     };
 
@@ -271,9 +271,9 @@ int run_kernel_find_best_amount_count(
     };
 
     /* Create kernel argument */
-    errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &amount_array_buffer);
+    errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &opencode_amount_list_buffer);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(mask_buffer)");
+        perror("Couldn't set a kernel argument(opencode_amount_list_buffer)");
         exit(1);   
     };
     errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &result_buffer);
@@ -283,12 +283,12 @@ int run_kernel_find_best_amount_count(
     };
     errNum = clSetKernelArg(kernel, 2, sizeof(float), &amount_range1);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(best_Amount1)");
+        perror("Couldn't set a kernel argument(amount_range1)");
         exit(1);   
     };
     errNum = clSetKernelArg(kernel, 3, sizeof(float), &amount_range2);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(best_Amount2)");
+        perror("Couldn't set a kernel argument(amount_range2)");
         exit(1);   
     };
 
@@ -308,7 +308,7 @@ int run_kernel_find_best_amount_count(
         exit(1);   
     }
 
-    clReleaseMemObject(amount_array_buffer);
+    clReleaseMemObject(opencode_amount_list_buffer);
     clReleaseMemObject(result_buffer);
 
     timeEnd = clock();
@@ -320,7 +320,7 @@ int run_kernel_find_best_amount(
         cl_context context, 
         cl_command_queue queue, 
         cl_kernel kernel,
-        cl_float** amount_array,
+        cl_float** opencode_amount_list,
         int amount_length,
         int best_amount_count,
         float amount_range1, float amount_range2,
@@ -331,17 +331,17 @@ int run_kernel_find_best_amount(
     timeStart = clock();
   
     /* Create a write-only buffer to hold the output data */
-    cl_mem amount_array_buffer = clCreateBuffer(context, 
+    cl_mem opencode_amount_list_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
         sizeof(cl_float) * amount_length, 
-        amount_array, 
+        opencode_amount_list, 
         &errNum); 
     if(errNum < 0) {
-      perror("Couldn't create a amount_array_buffer");
+      perror("Couldn't create a opencode_amount_list_buffer");
       exit(1);   
     };
 
-    cl_mem best_amount_count_buffer = clCreateBuffer(context, 
+    cl_mem result_counter_buffer = clCreateBuffer(context, 
         CL_MEM_WRITE_ONLY, 
         sizeof(cl_int), 
         NULL, 
@@ -362,7 +362,7 @@ int run_kernel_find_best_amount(
       exit(1);   
     };
 
-     cl_mem mutex_buffer = clCreateBuffer(context, 
+    cl_mem mutex_buffer = clCreateBuffer(context, 
         CL_MEM_WRITE_ONLY, 
         sizeof(cl_int), 
         NULL, 
@@ -373,14 +373,14 @@ int run_kernel_find_best_amount(
     };
 
     /* Create kernel argument */
-    errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &amount_array_buffer);
+    errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &opencode_amount_list_buffer);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(mask_buffer)");
+        perror("Couldn't set a kernel argument(opencode_amount_list_buffer)");
         exit(1);   
     };
-    errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &best_amount_count_buffer);
+    errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &result_counter_buffer);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(best_amount_count_buffer)");
+        perror("Couldn't set a kernel argument(result_counter_buffer)");
         exit(1);   
     };
     
@@ -392,17 +392,18 @@ int run_kernel_find_best_amount(
     
     errNum = clSetKernelArg(kernel, 3, sizeof(cl_mem), &mutex_buffer);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(best_Amount1)");
+        perror("Couldn't set a kernel argument(mutex_buffer)");
         exit(1);   
     };
+
     errNum = clSetKernelArg(kernel, 4, sizeof(float), &amount_range1);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(best_Amount1)");
+        perror("Couldn't set a kernel argument(amount_range1)");
         exit(1);   
     };
     errNum = clSetKernelArg(kernel, 5, sizeof(float), &amount_range2);
     if(errNum < 0) {
-        perror("Couldn't set a kernel argument(best_Amount2)");
+        perror("Couldn't set a kernel argument(amount_range2)");
         exit(1);   
     };
 
@@ -422,8 +423,8 @@ int run_kernel_find_best_amount(
         exit(1);   
     }
 
-    clReleaseMemObject(amount_array_buffer);
-    clReleaseMemObject(best_amount_count_buffer);
+    clReleaseMemObject(opencode_amount_list_buffer);
+    clReleaseMemObject(result_counter_buffer);
     clReleaseMemObject(result_buffer);
     clReleaseMemObject(mutex_buffer);
 

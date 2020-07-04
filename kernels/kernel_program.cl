@@ -65,7 +65,7 @@ __kernel void calc_numbers_risk(
 }
 
 __kernel void find_best_amount_count(
-         __global float* amount_array,
+         __global float* opencode_amount_list,
          __global uint* count_result,
          const float amount_range1,
          const float amount_range2)
@@ -73,35 +73,35 @@ __kernel void find_best_amount_count(
 
    int numbers_index = get_global_id(0);
    int numbers_size = get_global_size(0);
-   float amount = amount_array[numbers_index];
+   float amount = opencode_amount_list[numbers_index];
 
    if(amount_range1 <=amount && amount <=amount_range2 )
    {
-      //printf("amount_array[%d]=%f\n", numbers_index, amount_array[numbers_index]);
+      //printf("opencode_amount_list[%d]=%f\n", numbers_index, opencode_amount_list[numbers_index]);
       atomic_inc(count_result);
    }
 }
 
 __kernel void find_best_amount(
-         __global float* amount_array,
-         __global int* best_amount_count,
-         __global uint* result_array,
-         __global int* mutex,
+         __global float* opencode_amount_list,
+         __global int*  result_counter, /* 累記記數器 write only*/
+         __global uint* result_vector, /* 儲存結果用 write only*/
+         __global int* mutex, /*鎖定交易用 write only*/
          const float amount_range1,
          const float amount_range2)
 {
 
    int numbers_index = get_global_id(0);
    int numbers_size = get_global_size(0);
-   float amount = amount_array[numbers_index];
+   float amount = opencode_amount_list[numbers_index];
 
    while(LOCK(mutex));
-   int gindex = *best_amount_count;
+   int index = *result_counter;
    if(amount_range1 <=amount && amount <=amount_range2 )
    {
-      //printf("best_amount_count=%d, amount_array[%d]=%f\n", gindex, numbers_index, amount_array[numbers_index]);
-      result_array[gindex] = numbers_index;
-      *best_amount_count +=1;
+      //printf("result_counter=%d, opencode_amount_list[%d]=%f\n", index, numbers_index, opencode_amount_list[numbers_index]);
+      result_vector[index] = numbers_index;
+      *result_counter +=1;
       
    }
    UNLOCK(mutex);
