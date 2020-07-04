@@ -9,7 +9,9 @@ void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_ta
     char delim[] = ",";
     char *p = NULL;
     int csv_bet_amount_index = 0;
-
+    clock_t timeStart, timeEnd;
+    
+    timeStart = clock();
     fp = fopen(beton_amount_path, "r");
     if (fp == NULL){
         printf("read file failed: %ld\n", fp);
@@ -31,6 +33,9 @@ void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_ta
     if (line)
         free(line);
     fclose(fp);
+
+    timeEnd = clock();
+    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 }
 
 void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLength, uint32* opencodeLength)
@@ -43,7 +48,9 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
     char *p = NULL;
     int csv_row_index = 0;
     int csv_column_index = 0;
+    clock_t timeStart, timeEnd;
 
+    timeStart = clock();
     fp = fopen(opencode_answer_path, "r");
     if (fp == NULL){
         printf("read file failed: %ld\n", fp);
@@ -78,6 +85,9 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
     if (line)
         free(line);
     fclose(fp);
+
+    timeEnd = clock();
+    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 }
 
 void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_answer, char*** opencodeList)
@@ -91,7 +101,9 @@ void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_
     int csv_column_index = 0;
     int csv_row_index = 0;
     uint32 opencode_answer_index = 0;
+    clock_t timeStart, timeEnd;
 
+    timeStart = clock();
     fp = fopen(opencode_answer_path, "r");
     if (fp == NULL){
         printf("read file failed: %ld\n", fp);
@@ -134,4 +146,7 @@ void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_
     fclose(fp);
     if (line)
         free(line);
+
+    timeEnd = clock();
+    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 }

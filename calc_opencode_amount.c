@@ -12,6 +12,8 @@ int run_kernel_sum_beton_total_amount(
         cl_float** result)
 {
     cl_int errNum;
+    clock_t timeStart, timeEnd;
+    timeStart = clock();
   
     /* Create a write-only buffer to hold the output data */
     cl_mem mask_buffer = clCreateBuffer(context, 
@@ -83,6 +85,9 @@ int run_kernel_sum_beton_total_amount(
     clReleaseMemObject(mask_buffer);
     clReleaseMemObject(bet_amount_buffer);
     clReleaseMemObject(result_buffer);
+
+    timeEnd = clock();
+    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return 0;
 }
 
@@ -97,6 +102,8 @@ int run_kernel_calc_numbers_risk(
         cl_float** result)
 {
     cl_int errNum;
+    clock_t timeStart, timeEnd;
+    timeStart = clock();
     
     /* Create a write-only buffer to hold the output data */
     cl_mem total_beton_amount_buffer = clCreateBuffer(
@@ -222,6 +229,9 @@ int run_kernel_calc_numbers_risk(
     clReleaseMemObject(total_beton_amount_with_odds_buffer);
     clReleaseMemObject(sub_opencode_answer_table_buffer);
     clReleaseMemObject(result_buffer);
+
+    timeEnd = clock();
+    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return 0;
 }
 
@@ -235,7 +245,9 @@ int run_kernel_find_best_amount_count(
         cl_uint* count_result)
 {
     cl_int errNum;
-  
+    clock_t timeStart, timeEnd;
+    timeStart = clock();
+
     /* Create a write-only buffer to hold the output data */
     cl_mem amount_array_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
@@ -298,6 +310,9 @@ int run_kernel_find_best_amount_count(
 
     clReleaseMemObject(amount_array_buffer);
     clReleaseMemObject(result_buffer);
+
+    timeEnd = clock();
+    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return 0;
 }
 
@@ -312,6 +327,8 @@ int run_kernel_find_best_amount(
         cl_uint** result)
 {
     cl_int errNum;
+    clock_t timeStart, timeEnd;
+    timeStart = clock();
   
     /* Create a write-only buffer to hold the output data */
     cl_mem amount_array_buffer = clCreateBuffer(context, 
@@ -409,13 +426,10 @@ int run_kernel_find_best_amount(
     clReleaseMemObject(best_amount_count_buffer);
     clReleaseMemObject(result_buffer);
     clReleaseMemObject(mutex_buffer);
-    return 0;
-}
 
-void elapsedTime(clock_t timeStart, clock_t timeEnd)
-{
-    double time = (double)(timeEnd - timeStart) / CLOCKS_PER_SEC;
-    printf("........... successful!!(Elapsed time:\033[1;36m%f\033[0ms)\n", time);
+    timeEnd = clock();
+    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -473,8 +487,6 @@ int main(int argc, char* argv[])
     cl_float* total_beton_amount_vector = NULL;
     cl_float* total_beton_amount_with_odds_vector = NULL;
     char** opencodeList  = NULL;
-    // 儲存時間用的變數
-    clock_t timeStart, timeEnd;
     //資料分段數量
     int dataSegmentNum = 2;
     //分段儲存結果
@@ -525,22 +537,16 @@ int main(int argc, char* argv[])
     clReleaseProgram(program);
     printf(".......... successful!!\n");
     //============================================================================
-    printf("get opencode answer table shape...");
-    timeStart = clock();
+    printf("get opencode answer table shape...\n");
     get_opnecode_answer_table_shape(opencode_answer_table_file, &beton_Length, &opencode_Length);
-    timeEnd = clock();
-    elapsedTime(timeStart, timeEnd);
-    printf("===>opencode Length:%d, beton Length:%d\n",opencode_Length, beton_Length);
+    printf("opencode Length:%d, beton Length:%d\n",opencode_Length, beton_Length);
     
-    printf("load opencode answer table from csv...");
+    printf("load opencode answer table from csv...\n");
     fflush(stdout); //不給\n就不給輸出,flush強制輸出
-    timeStart = clock();
     opencode_answer_table = (cl_short *)malloc(sizeof(cl_short) * beton_Length * opencode_Length);
     opencodeList = (char**)malloc(sizeof(*opencodeList) * opencode_Length);
     load_opnecode_answer_table(opencode_answer_table_file, &opencode_answer_table, &opencodeList);
-    timeEnd = clock();
-    elapsedTime(timeStart, timeEnd);
-    
+
     one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * beton_Length);
     for(int i=0; i<=beton_Length-1; i++ )
     {
@@ -555,14 +561,9 @@ int main(int argc, char* argv[])
     beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
     load_beton_amount_table(beton_amount_table_file, &beton_amount_table);
     total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
-    timeStart = clock();;
     run_kernel_sum_beton_total_amount(context, queue_list[0], kSumBetonTotalAmount, 
         beton_Length, wager_length,
         one_mask, beton_amount_table, &total_beton_amount_vector);
-    timeEnd = clock();;
-    printf("\033[1;36m");
-    printf("run_kernel_sum_beton_total_amount... (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-    printf("\033[0m");
     if(beton_amount_table)
         free(beton_amount_table);
 
@@ -578,16 +579,9 @@ int main(int argc, char* argv[])
     beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
     load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
     total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
-
-    timeStart = clock();;
     run_kernel_sum_beton_total_amount(context, queue_list[0], kSumBetonTotalAmount, 
         beton_Length, wager_length,
         one_mask, beton_amount_with_odds_table, &total_beton_amount_with_odds_vector);
-    timeEnd = clock();;
-    printf("\033[1;36m");
-    printf("run_kernel_sum_beton_total_amount... (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-    printf("\033[0m");
-
     if(beton_amount_with_odds_table)
         free(beton_amount_with_odds_table);
 
@@ -610,7 +604,6 @@ int main(int argc, char* argv[])
     printf("........... successful !!\n");
     
     //create opencode_answer_table Buffer
-    timeStart = clock();;
     opencode_answer_table_buffer = clCreateBuffer(
         context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
@@ -621,10 +614,6 @@ int main(int argc, char* argv[])
         perror("Couldn't create a opencode_answer_table_buffer");
         exit(1);   
     };
-    timeEnd = clock();
-    printf("\033[1;36m");
-    printf("clCreateBuffer ... (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-    printf("\033[0m");
 
     //cl_uint* result = NULL;
     float amountRange1 = -20050;
@@ -636,7 +625,6 @@ int main(int argc, char* argv[])
         //計算獎號開出金額 1/2
         //===================================================================
         //memset(opencode_answer_table_result, 0, opencode_Length);
-        timeStart = clock();;
         dataSegmentOffset = 0;
         memset(opencode_answer_table_result1, 0.0f, dataSegmentLength);
         run_kernel_calc_numbers_risk(context, queue_list[0], kCalcNumbersRisk, 
@@ -645,11 +633,7 @@ int main(int argc, char* argv[])
             total_beton_amount_with_odds_vector,  
             &opencode_answer_table_buffer,
             &opencode_answer_table_result1);
-        timeEnd = clock();;
         clFinish(queue_list[0]);
-        printf("\033[1;36m");
-        printf("run_kernel_calc_numbers_risk... 1/2 (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-        printf("\033[0m");
 #ifdef DEBUG
         for(int i=0; i<=20 - 1; i++)
         {
@@ -658,7 +642,6 @@ int main(int argc, char* argv[])
 #endif
         //計算獎號開出金額 2/2
         //====================================================================
-        timeStart = clock();
         dataSegmentOffset = 1814400;
         memset(opencode_answer_table_result2, 0.0f, dataSegmentLength);
         run_kernel_calc_numbers_risk(context, queue_list[0], kCalcNumbersRisk, 
@@ -667,11 +650,7 @@ int main(int argc, char* argv[])
             total_beton_amount_with_odds_vector, 
             &opencode_answer_table_buffer,
             &opencode_answer_table_result2);
-        timeEnd = clock();;
         clFinish(queue_list[0]);
-        printf("\033[1;36m");
-        printf("run_kernel_calc_numbers_risk... 2/2 (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-        printf("\033[0m");
 #ifdef DEBUG
         for(int i=0; i<=20 - 1; i++)
         {
@@ -680,7 +659,6 @@ int main(int argc, char* argv[])
 #endif
         // 過濾指定金額 1/2
         //====================================================================
-        timeStart = clock();
         int result_count = 0;
         run_kernel_find_best_amount_count(
             context, 
@@ -691,16 +669,11 @@ int main(int argc, char* argv[])
             amountRange1, amountRange2,
             &result_count
         );
-        timeEnd = clock();;
         clFinish(queue_list[0]);
-        printf("\033[1;36m");
-        printf("run_kernel_find_best_amount_count... 1/2 (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-        printf("\033[0m");
         printf("result_count=%d \n", result_count);
 
         if(result_count > 0)
         {
-            timeStart = clock();
             cl_uint* amountRangeResult1 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
             run_kernel_find_best_amount(
                 context,
@@ -711,7 +684,6 @@ int main(int argc, char* argv[])
                 result_count,
                 amountRange1, amountRange2,
                 &amountRangeResult1);
-            timeEnd = clock();;
             clFinish(queue_list[0]);
 #ifdef DEBUG
             for(int i=0; i<=result_count-1; i++ )
@@ -720,17 +692,12 @@ int main(int argc, char* argv[])
                 printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_table_result1[index]);
             }
 #endif
-            printf("\033[1;36m");
-            printf("run_kernel_find_best_amount... 1/2 (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-            printf("\033[0m");
-
             if(amountRangeResult1)
                 free(amountRangeResult1);
         }
 
         // 過濾指定金額 2/2
         //====================================================================
-        timeStart = clock();
         result_count = 0;
         run_kernel_find_best_amount_count(
             context, 
@@ -741,16 +708,11 @@ int main(int argc, char* argv[])
             amountRange1, amountRange2,
             &result_count
         );
-        timeEnd = clock();;
         clFinish(queue_list[0]);
-        printf("\033[1;36m");
-        printf("run_kernel_find_best_amount_count...  2/2 (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-        printf("\033[0m");
         printf("result_count=%d \n", result_count);
 
         if(result_count > 0)
         {
-            timeStart = clock();
             cl_uint* amountRangeResult2 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
             run_kernel_find_best_amount(
                 context,
@@ -761,7 +723,6 @@ int main(int argc, char* argv[])
                 result_count,
                 amountRange1, amountRange2,
                 &amountRangeResult2);
-            timeEnd = clock();;
             clFinish(queue_list[0]);
 #ifdef DEBUG
             for(int i=0; i<=result_count-1; i++ )
@@ -770,9 +731,6 @@ int main(int argc, char* argv[])
                 printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_table_result2[amountRangeResult2[i]]);
             }
 #endif
-            printf("\033[1;36m");
-            printf("run_kernel_find_best_amount... 2/2 (time:%fs)\n", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC ); 
-            printf("\033[0m");
             if(amountRangeResult2)
                 free(amountRangeResult2);
         }
