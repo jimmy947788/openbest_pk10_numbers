@@ -2,7 +2,7 @@ PROJ=calc_opencode_amount
 
 CC=gcc
 
-CFLAGS=-std=c99 -Wall -DUNIX
+CFLAGS=-std=c99 -Wall -DUNIX -Wpointer-to-int-cast -Wimplicit-function-declaration 
 
 # Check for 32-bit vs 64-bit
 PROC_TYPE = $(strip $(shell uname -m | grep 64))
@@ -51,7 +51,7 @@ ifeq ($(ver), debug)
 endif
 
 $(PROJ): $(PROJ).c common/*.c
-	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -Wpointer-to-int-cast -Wimplicit-function-declaration 
+	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS)
 	cp kernels/kernel_program.cl bin/
 
 .PHONY: clean
