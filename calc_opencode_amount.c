@@ -17,7 +17,7 @@ int run_kernel_sum_beton_total_amount(
   
     /* Create a write-only buffer to hold the output data */
     cl_mem mask_buffer = clCreateBuffer(context, 
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_ushort) * beton_length, 
         one_mask, 
         &errNum); 
@@ -26,7 +26,7 @@ int run_kernel_sum_beton_total_amount(
       exit(1);   
     };
     cl_mem bet_amount_buffer = clCreateBuffer(context, 
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_float) * beton_length * wgaer_length, 
         bet_amount, 
         &errNum);    
@@ -108,7 +108,7 @@ int run_kernel_calc_numbers_risk(
     /* Create a write-only buffer to hold the output data */
     cl_mem total_beton_amount_buffer = clCreateBuffer(
         context, 
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_float) * beton_length, 
         total_beton_amount, 
         &errNum); 
@@ -119,7 +119,7 @@ int run_kernel_calc_numbers_risk(
     
     cl_mem total_beton_amount_with_odds_buffer = clCreateBuffer(
         context, 
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_float) * beton_length, 
         total_beton_amount_with_odds, 
         &errNum);    
@@ -250,7 +250,7 @@ int run_kernel_find_best_amount_count(
 
     /* Create a write-only buffer to hold the output data */
     cl_mem opencode_amount_list_buffer = clCreateBuffer(context, 
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_float) * amount_length, 
         opencode_amount_list, 
         &errNum); 
@@ -332,7 +332,7 @@ int run_kernel_find_best_amount(
   
     /* Create a write-only buffer to hold the output data */
     cl_mem opencode_amount_list_buffer = clCreateBuffer(context, 
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_float) * amount_length, 
         opencode_amount_list, 
         &errNum); 
@@ -617,8 +617,8 @@ int main(int argc, char* argv[])
     };
 
     //cl_uint* result = NULL;
-    float amountRange1 = -20050;
-    float amountRange2 = -20000;
+    float amountRange1 = -20000 - 25;
+    float amountRange2 = -20000 + 25;
     //while 重複直行
     //===================================================================================================
     while(true)
