@@ -21,7 +21,7 @@ void checkErr(cl_int err, const char* name)
 {
     if(err != CL_SUCCESS)
     {
-        printf("ERROR: %d ( %s )\n", name, err);
+        printf("ERROR: %s ( %d )\n", name, err);
         exit(EXIT_FAILURE);
     }
 }
@@ -117,16 +117,14 @@ cl_uint create_gpu_device_list(cl_platform_id platform, cl_device_id** device_li
 }
 
 void create_queue_list(cl_context context, 
-    cl_device_id** device_list, cl_int total_devices,
+    cl_device_id* device_list, cl_int total_devices,
     cl_command_queue** queue_list)
 {
     cl_int errNum;
     *queue_list = (cl_command_queue*)malloc(sizeof(cl_command_queue) * total_devices);
     for(cl_int i=0; i<=total_devices -1; i++ )
     {
-        cl_device_id device = &(*device_list[i]);
-        //show_device_information(device);
-        *queue_list[i] = clCreateCommandQueue(context, device, 0, &errNum);
+        *queue_list[i] = clCreateCommandQueue(context, device_list[i], 0, &errNum);
         //checkErr(errNum, "clCreateCommandQueue");
         if(errNum < 0) {
             perror("Couldn't read the buffer");
@@ -169,7 +167,7 @@ void build_program_for_all_devices(
         // Second call to get the log
         clGetProgramBuildInfo(*program, device_list[0], CL_PROGRAM_BUILD_LOG, log_size, build_log, NULL);
         build_log[log_size] = '\0';
-        printf(build_log);
+        printf("%s\n", build_log);
         if(build_log)
             free(build_log);
         

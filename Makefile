@@ -51,7 +51,7 @@ ifeq ($(ver), debug)
 endif
 
 $(PROJ): $(PROJ).c common/*.c
-	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -Wpointer-to-int-cast
+	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -Wpointer-to-int-cast -Wimplicit-function-declaration 
 	cp kernels/kernel_program.cl bin/
 
 .PHONY: clean

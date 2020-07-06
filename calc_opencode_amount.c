@@ -510,6 +510,7 @@ int main(int argc, char* argv[])
 
     printf("create OpenCL command queue for all devics");
     create_queue_list(context, device_list, total_devices, &queue_list);
+    printf(" ........... successful!!\n");
 
     printf("build OpenCL program from");
     // build an OpenCL program
@@ -540,7 +541,7 @@ int main(int argc, char* argv[])
     //============================================================================
     printf("get opencode answer table shape...\n");
     get_opnecode_answer_table_shape(opencode_answer_table_file, &beton_Length, &opencode_Length);
-    printf("opencode Length:%d, beton Length:%d\n",opencode_Length, beton_Length);
+    printf("opencode Length:%ld, beton Length:%d\n", opencode_Length, beton_Length);
     
     printf("load opencode answer table from csv...\n");
     fflush(stdout); //不給\n就不給輸出,flush強制輸出

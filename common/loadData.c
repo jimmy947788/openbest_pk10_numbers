@@ -14,7 +14,7 @@ void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_ta
     timeStart = clock();
     fp = fopen(beton_amount_path, "r");
     if (fp == NULL){
-        printf("read file failed: %ld\n", fp);
+        printf("read file failed: %ld\n", (long)fp);
         exit(EXIT_FAILURE);
     }
     while ((read = getline(&line, &len, fp)) != -1) 
@@ -53,7 +53,7 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
     timeStart = clock();
     fp = fopen(opencode_answer_path, "r");
     if (fp == NULL){
-        printf("read file failed: %ld\n", fp);
+        printf("read file failed: %ld\n", (long)fp);
         exit(EXIT_FAILURE);
     }
 
@@ -106,7 +106,7 @@ void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_
     timeStart = clock();
     fp = fopen(opencode_answer_path, "r");
     if (fp == NULL){
-        printf("read file failed: %ld\n", fp);
+        printf("read file failed: %ld\n", (long)fp);
         exit(EXIT_FAILURE);
     }
     while ((read = getline(&line, &len, fp)) != -1) 
