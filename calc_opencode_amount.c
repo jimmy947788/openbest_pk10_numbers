@@ -433,6 +433,36 @@ int run_kernel_find_best_amount(
     return 0;
 }
 
+int create_socket()
+{
+    int sockfd = 0, ret = 0;
+    sockfd = socket(AF_INET , SOCK_STREAM , 0);
+    if (sockfd == -1){
+        printf("Fail to create a socket.");
+        exit(EXIT_FAILURE); 
+    }
+    //socket的連線
+    struct sockaddr_in serverInfo;
+    bzero(&serverInfo,sizeof(serverInfo));
+
+    serverInfo.sin_family = PF_INET;
+    serverInfo.sin_addr.s_addr = INADDR_ANY;
+    serverInfo.sin_port = htons(SOCKET_PORT);
+    ret = bind(sockfd,(struct sockaddr *)&serverInfo,sizeof(serverInfo));
+    if(ret == -1)
+    {
+        printf("bind error. (%d)", ret);
+        exit(EXIT_FAILURE); 
+    }
+    ret = listen(sockfd, 5);
+    if(ret == -1)
+    {
+        printf("listen error. (%d)", ret);
+        exit(EXIT_FAILURE); 
+    }
+    return sockfd;
+}
+
 int main(int argc, char* argv[])
 {
     cl_int errNum;
@@ -557,6 +587,65 @@ int main(int argc, char* argv[])
 
     //以下重複直行
     //===================================================================================================
+    cl_mem opencode_answer_table_buffer = NULL;
+    int dataSegmentLength =  opencode_Length / dataSegmentNum;
+    int dataSegmentOffset = 0;
+
+    printf("alloc opencode_answer_table_result array (length: %d)", dataSegmentLength);
+    opencode_answer_table_result1 = (cl_float*)malloc(sizeof(cl_float) * dataSegmentLength);
+    opencode_answer_table_result2 = (cl_float*)malloc(sizeof(cl_float) * dataSegmentLength);
+    printf("........... successful !!\n");
+    
+    //create opencode_answer_table Buffer
+    opencode_answer_table_buffer = clCreateBuffer(
+        context, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
+        sizeof(cl_short) * beton_Length * opencode_Length, 
+        opencode_answer_table, 
+        &errNum);    
+    if(errNum < 0) {
+        perror("Couldn't create a opencode_answer_table_buffer");
+        exit(1);   
+    };
+
+    char recv_buffer[MAX_BUFFER_SIZE] = {};
+    char send_buffer[MAX_BUFFER_SIZE] = {};
+    int forClientSockfd = 0, sockfd = 0;
+    struct sockaddr_in clientInfo;
+    int addrlen = sizeof(clientInfo);
+    char delim[] = "\r\n";
+    char *recv_line = NULL;
+    char dateTime[_DATETIME_SIZE];
+
+    sockfd = create_socket();
+    //cl_uint* result = NULL;
+    float amountRange1 = -20000 - 25;
+    float amountRange2 = -20000 + 25;
+    //while 重複直行
+    //===================================================================================================
+    while(true)
+    {
+         
+        forClientSockfd = accept(sockfd,(struct sockaddr*) &clientInfo, &addrlen);
+        memset(recv_buffer, '\0', MAX_BUFFER_SIZE);
+        recv(forClientSockfd, recv_buffer, sizeof(recv_buffer), 0);
+        for(recv_line = strtok(recv_buffer, delim); recv_line != NULL; recv_line = strtok(NULL, delim))
+        {
+#ifdef DEBUG
+            printf("======> %s\n", recv_line);
+#endif
+        }
+      
+        memset(dateTime, 0, sizeof(dateTime));
+        /* 獲取系統當前日期時間 */
+        GetDateTime(dateTime);
+        printf("The Local date and time is %s\n", dateTime);
+
+        memset(send_buffer, '\0', MAX_BUFFER_SIZE);
+        send_buffer = "Hello world!!";
+        send(forClientSockfd, send_buffer,  sizeof(send_buffer), 0);
+
+        /*
 #ifdef DEBUG
     float sum = 0;
 #endif
@@ -596,34 +685,6 @@ int main(int argc, char* argv[])
     printf("====> sum total beton amount with odds = %f\n", sum);
 #endif
 
-    cl_mem opencode_answer_table_buffer = NULL;
-    int dataSegmentLength =  opencode_Length / dataSegmentNum;
-    int dataSegmentOffset = 0;
-
-    printf("alloc opencode_answer_table_result array (length: %d)", dataSegmentLength);
-    opencode_answer_table_result1 = (cl_float*)malloc(sizeof(cl_float) * dataSegmentLength);
-    opencode_answer_table_result2 = (cl_float*)malloc(sizeof(cl_float) * dataSegmentLength);
-    printf("........... successful !!\n");
-    
-    //create opencode_answer_table Buffer
-    opencode_answer_table_buffer = clCreateBuffer(
-        context, 
-        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_short) * beton_Length * opencode_Length, 
-        opencode_answer_table, 
-        &errNum);    
-    if(errNum < 0) {
-        perror("Couldn't create a opencode_answer_table_buffer");
-        exit(1);   
-    };
-
-    //cl_uint* result = NULL;
-    float amountRange1 = -20000 - 25;
-    float amountRange2 = -20000 + 25;
-    //while 重複直行
-    //===================================================================================================
-    while(true)
-    {
         //計算獎號開出金額 1/2
         //===================================================================
         //memset(opencode_answer_table_result, 0, opencode_Length);
@@ -743,17 +804,9 @@ int main(int argc, char* argv[])
                 free(amountRangeResult2);
         }
         
-        /*
-        int error;
-        data_struct_t* value;
-        for(int i=0; i<= opencode_Length -1; i++){
-            value = malloc(sizeof(data_struct_t));
-            strcpy(value->opencode, opencodeList[i]);
-            value->amount = (float)opencode_answer_table_result[i];
-            error = hashmap_put(mymap,  value->opencode, value);
-        }*/
         printf( "next round waiting ...");
         int c = getchar( );
+        */
     }
     
     if(total_beton_amount_vector)

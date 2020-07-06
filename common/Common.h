@@ -9,6 +9,11 @@
 #include <string.h>
 #include <getopt.h>
 #include <sys/types.h>
+//for socket
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
 
 #define _GNU_SOURCE
 #ifdef __APPLE__
@@ -21,6 +26,9 @@
 //Constants
 #define MAX_SOURCE_SIZE (0x100000)
 #define MAX_DEVICE_SIZE 256
+#define MAX_BUFFER_SIZE 32767
+#define SOCKET_PORT 8700
+#define _DATETIME_SIZE  32
 
 typedef unsigned char boolean; /* Boolean value type. */
 typedef unsigned long int uint32; /* Unsigned 32 bit value */
