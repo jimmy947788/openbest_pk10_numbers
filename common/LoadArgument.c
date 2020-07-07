@@ -10,8 +10,6 @@ static struct option long_options[] =
     {"opencode-answer",         required_argument,      0, 'o'},
     {"log",                     required_argument,      0, 'l'},
     {"help",                    no_argument,            0, 'h'},
-    {"beton-amount",            required_argument,      0, 'a'},
-    {"beton-amount-with-odds",  required_argument,      0, 'w'},
     {"show-gpu-info",           no_argument,            0, 's'},
 };
 
@@ -22,16 +20,12 @@ void Help()
     printf("-k, --kernel-program <path>      Path to opencl kernel program.\n");
     printf("-o, --opencode-answer <path>     Path to opencode anser csv path.\n");
     printf("-l, --log <path>                 Path to program runtime log.\n");
-    printf("--beton-amount <path>            Path to bet amount csv path.\n");
-    printf("--beton-amount-with-odds <path>  Path to bet amount with odds csv path.\n");
     printf("-s, --show-gpu-info              Show GPU info.\n");
 }
 
 void LoadArgs(int argc, char* argv[], 
         char kernel_program_path[], 
         char opencode_answer_path[], 
-        char beton_amount_path[],
-        char beton_amount_with_odds_path[],
         char log_dir[])
 {
     int cmd_opt;
@@ -67,15 +61,7 @@ void LoadArgs(int argc, char* argv[],
         case 'l':
             strcpy(log_dir, optarg);
             break;
-        
-        case 'a':
-            strcpy(beton_amount_path, optarg);
-            break;
-
-        case 'w':
-            strcpy(beton_amount_with_odds_path, optarg);
-            break;
-
+            
         case 'h':
             Help();
             exit(EXIT_SUCCESS);

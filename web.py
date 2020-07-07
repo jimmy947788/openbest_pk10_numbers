@@ -144,12 +144,13 @@ def sum_beton_total_amount(one_vector_mask, amount_matrix, wager_length=10000):
     return result
 
 def transferWager(raw_data):
-    amount_table = []
-    amount_odds_table = []
+    beton_amount_table = []
+    beton_amount_odds_table = []
     jdata = json.loads(raw_data)
     total_bet_count = 0
     total_bet_amount = 0
     
+    expectId = jdata["ExpectID"]
     for bet in jdata["Bets"]:
         betTypePlayCode = bet['BetTypePlayCode']
         unitAmount = bet["UnitAmount"]
@@ -243,11 +244,11 @@ def transferWager(raw_data):
                 row_by_amount.append(0)
                 row_by_amount_odds.append(0)
 
-        amount_table.append(row_by_amount)
-        amount_odds_table.append(row_by_amount_odds)
+        beton_amount_table.append(row_by_amount)
+        beton_amount_odds_table.append(row_by_amount_odds)
 
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
-    return (amount_table, amount_odds_table, total_bet_count)
+    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId)
 
 @app.route('/', methods=['GET'])
 def home():
@@ -262,44 +263,32 @@ def submit():
         raw_data = request.get_data().decode("utf-8")
         logging.debug(f"row data: {raw_data}")
         
-        (amount_table, amount_odds_table, total_bet_count) = transferWager(raw_data)
-        wager_length = len(amount_table)
+        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId) = transferWager(raw_data)
+        wager_length = len(beton_amount_table)
         logging.info(f"wager_length={wager_length}")
+        logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}")
         
-        # 計算每個beton投注總額
-        #=========================================================
-        column_length = len(headers);
+        with open(f"{currentPath}/data/beton_amount_{expectId}.csv", "w+") as f:
+            for amount in beton_amount_table:
+                strAmountWithComma = ','.join(str(e) for e in amount)
+                f.write(strAmountWithComma+"\n")
 
-        # 建立A= [ 1, 1, 1, 1, 1, ... ,1 ,1 ,1 ]
-        one_vector_mask = np.ones(column_length).astype(np.uint16 )
-        logging.debug(f"one_vector_mask={one_vector_mask}, length={len(one_vector_mask)}")
-
-        # 降維
-        # 本金矩陣（只有本金）
-        amount_matrix = np.array(amount_table).flatten().astype(np.float32)
-        logging.debug(f"amount_matrix={amount_matrix}, length={len(amount_matrix)}")
-        
-        # 獎金矩陣（本金*賠率-本金）
-        amount_odds_matrix = np.array(amount_odds_table).flatten().astype(np.float32)
-        logging.debug(f"amount_odds_matrix={amount_odds_matrix}, length={len(amount_odds_matrix)}")
-        
-        # 本金矩陣（各beton加總）
-        total_amount_result = sum_beton_total_amount(one_vector_mask, amount_matrix, wager_length)
-        logging.debug(f"total_amount_result:{total_amount_result}")
-        
-        # 獎金矩陣（各beton加總）
-        total_amount_odds_result = sum_beton_total_amount(one_vector_mask, amount_odds_matrix, wager_length)
-        logging.debug(f"total_amount_odds_result:{total_amount_odds_result}")
+        with open(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv", "w+") as f:
+            for amount in beton_amount_odds_table:
+                strAmountWithComma = ','.join(str(e) for e in amount)
+                f.write(strAmountWithComma+"\n")
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            strAmountWithComma = ','.join(str(e) for e in total_amount_result)
-            strAmountOddsWithComma = ','.join(str(e) for e in total_amount_odds_result)
-            sendData = strAmountWithComma + "\n" + strAmountOddsWithComma
             client.connect(("127.0.0.1", 8700))
+            #sendData = str(expectId)
+            sendData = f"{currentPath}/data/beton_amount_{expectId}.csv,"
+            sendData += f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv,"
+            sendData += f"{wager_length}"
             client.sendall(sendData.encode())
-            serverMessage = client.recv(1024).decode("UTF-8")
+            
+            serverMessage = client.recv(1000).decode("UTF-8")
             print('Server:', serverMessage)
-      
+
         response = { }
         response["code"] = 0
         response["msg"] = "success"

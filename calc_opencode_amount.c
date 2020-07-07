@@ -478,9 +478,7 @@ int main(int argc, char* argv[])
 
     LoadArgs(argc, argv, 
         &kernel_program_file, 
-        &opencode_answer_table_file, 
-        &beton_amount_table_file,
-        &beton_amount_table_with_odds_file,
+        &opencode_answer_table_file,
         &log_dir);
     
     if(strlen(kernel_program_file) == 0 || strlen(opencode_answer_table_file) == 0)
@@ -496,10 +494,9 @@ int main(int argc, char* argv[])
 #ifdef DEBUG
     printf("kernel_program_file:%s\n", kernel_program_file);
     printf("opencode_answer_table_file:%s\n", opencode_answer_table_file);
-    printf("beton_amount_table_file:%s\n", beton_amount_table_file);
-    printf("beton_amount_table_with_odds_file:%s\n", beton_amount_table_with_odds_file);
     printf("log_dir:%s\n", log_dir);
 #endif
+
     int total_platforms = 0;
     cl_platform_id* platforms = NULL;
     int total_devices = 0;
@@ -510,7 +507,7 @@ int main(int argc, char* argv[])
 
     int beton_Length = 0;
     uint32 opencode_Length = 0; 
-    int wager_length = 129; 
+    int wager_length = 0; 
     cl_short* opencode_answer_table = NULL;
     cl_ushort* one_mask = NULL;
     cl_float* beton_amount_table = NULL;
@@ -609,12 +606,10 @@ int main(int argc, char* argv[])
     };
 
     char recv_buffer[MAX_BUFFER_SIZE] = {};
-    char send_buffer[MAX_BUFFER_SIZE] = {};
+    char* send_buffer = NULL;
     int forClientSockfd = 0, sockfd = 0;
     struct sockaddr_in clientInfo;
     int addrlen = sizeof(clientInfo);
-    char delim[] = "\r\n";
-    char *recv_line = NULL;
     char dateTime[_DATETIME_SIZE];
 
     sockfd = create_socket();
@@ -625,64 +620,60 @@ int main(int argc, char* argv[])
     //===================================================================================================
     while(true)
     {
-         
         forClientSockfd = accept(sockfd,(struct sockaddr*) &clientInfo, &addrlen);
         memset(recv_buffer, '\0', MAX_BUFFER_SIZE);
         recv(forClientSockfd, recv_buffer, sizeof(recv_buffer), 0);
-        for(recv_line = strtok(recv_buffer, delim); recv_line != NULL; recv_line = strtok(NULL, delim))
+        printf("======> %s\n", recv_buffer);
+        load_socket_data(recv_buffer, beton_amount_table_file, beton_amount_table_with_odds_file, &wager_length);
+        printf("beton_amount_table_file = %s\n", beton_amount_table_file);
+        printf("beton_amount_table_with_odds_file = %s\n", beton_amount_table_with_odds_file);
+        printf("wager_length = %d\n", wager_length);
+
+#ifdef DEBUG
+        float sum = 0;
+#endif
+        beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
+        load_beton_amount_table(beton_amount_table_file, &beton_amount_table);
+        total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
+        run_kernel_sum_beton_total_amount(
+            context, 
+            queue_list[0], 
+            kSumBetonTotalAmount, 
+            beton_Length, wager_length,
+            one_mask, beton_amount_table, 
+            &total_beton_amount_vector);
+        if(beton_amount_table)
+            free(beton_amount_table);
+
+#ifdef DEBUG
+        sum = 0;
+        for(int i=0; i<=beton_Length-1; i++)
         {
-#ifdef DEBUG
-            printf("======> %s\n", recv_line);
-#endif
+            sum += total_beton_amount_vector[i];
         }
-      
-        memset(dateTime, 0, sizeof(dateTime));
-        /* 獲取系統當前日期時間 */
-        GetDateTime(dateTime);
-        printf("The Local date and time is %s\n", dateTime);
-
-        memset(send_buffer, '\0', MAX_BUFFER_SIZE);
-        send_buffer = "Hello world!!";
-        send(forClientSockfd, send_buffer,  sizeof(send_buffer), 0);
-
-        /*
-#ifdef DEBUG
-    float sum = 0;
-#endif
-    beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
-    load_beton_amount_table(beton_amount_table_file, &beton_amount_table);
-    total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
-    run_kernel_sum_beton_total_amount(context, queue_list[0], kSumBetonTotalAmount, 
-        beton_Length, wager_length,
-        one_mask, beton_amount_table, &total_beton_amount_vector);
-    if(beton_amount_table)
-        free(beton_amount_table);
-
-#ifdef DEBUG
-    sum = 0;
-    for(int i=0; i<=beton_Length-1; i++)
-    {
-        sum += total_beton_amount_vector[i];
-    }
-    printf("====> sum total_beton_amount = %f\n", sum);
+        printf("====> sum total_beton_amount = %f\n", sum);
 #endif
 
-    beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
-    load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
-    total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
-    run_kernel_sum_beton_total_amount(context, queue_list[0], kSumBetonTotalAmount, 
-        beton_Length, wager_length,
-        one_mask, beton_amount_with_odds_table, &total_beton_amount_with_odds_vector);
-    if(beton_amount_with_odds_table)
-        free(beton_amount_with_odds_table);
+        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
+        load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
+        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
+        run_kernel_sum_beton_total_amount(
+            context, 
+            queue_list[0], 
+            kSumBetonTotalAmount, 
+            beton_Length, wager_length,
+            one_mask, beton_amount_with_odds_table, 
+            &total_beton_amount_with_odds_vector);
+        if(beton_amount_with_odds_table)
+            free(beton_amount_with_odds_table);
 
 #ifdef DEBUG
-    sum = 0;
-    for(int i=0; i<=beton_Length-1; i++)
-    {
-        sum += total_beton_amount_with_odds_vector[i];
-    }
-    printf("====> sum total beton amount with odds = %f\n", sum);
+        sum = 0;
+        for(int i=0; i<=beton_Length-1; i++)
+        {
+            sum += total_beton_amount_with_odds_vector[i];
+        }
+        printf("====> sum total beton amount with odds = %f\n", sum);
 #endif
 
         //計算獎號開出金額 1/2
@@ -804,9 +795,16 @@ int main(int argc, char* argv[])
                 free(amountRangeResult2);
         }
         
-        printf( "next round waiting ...");
-        int c = getchar( );
-        */
+        /* 獲取系統當前日期時間 */
+        memset(dateTime, 0, sizeof(dateTime));
+        GetDateTime(dateTime);
+        printf("The Local date and time is %s\n", dateTime);
+
+        send_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
+        memset(send_buffer, '\0', MAX_BUFFER_SIZE);
+        strcpy(send_buffer, "Hello world!!");
+        printf("======> %s\n", send_buffer);
+        send(forClientSockfd, send_buffer,  MAX_BUFFER_SIZE, 0);
     }
     
     if(total_beton_amount_vector)

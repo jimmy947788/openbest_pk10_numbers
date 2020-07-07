@@ -1,5 +1,21 @@
 #include "Common.h"
 
+void load_socket_data(char* data, char* beton_amount_table_file, char* beton_amount_table_with_odds_file, int* wager_length)
+{
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    char delim[] = ",";
+    char *p = NULL;
+
+    p = strtok(data, delim);
+    strcpy(beton_amount_table_file, p);
+    p = strtok(NULL, delim);
+    strcpy(beton_amount_table_with_odds_file, p);
+    p = strtok(NULL, delim);
+    (*wager_length) = strtol(p, NULL, 10);
+}
+
 void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_table)
 {
     FILE * fp;

@@ -26,7 +26,7 @@
 //Constants
 #define MAX_SOURCE_SIZE (0x100000)
 #define MAX_DEVICE_SIZE 256
-#define MAX_BUFFER_SIZE 32767
+#define MAX_BUFFER_SIZE 1000
 #define SOCKET_PORT 8700
 #define _DATETIME_SIZE  32
 
