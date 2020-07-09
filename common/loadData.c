@@ -1,6 +1,12 @@
 #include "Common.h"
 
-void load_socket_data(char* data, char* beton_amount_table_file, char* beton_amount_table_with_odds_file, int* wager_length, char* expectId)
+void load_socket_data(char* data, 
+    char* beton_amount_table_file, 
+    char* beton_amount_table_with_odds_file, 
+    int* wager_length, 
+    char* expectId,
+    float* target_amount,
+    float* tolerance)
 {
     char * line = NULL;
     size_t len = 0;
@@ -8,21 +14,27 @@ void load_socket_data(char* data, char* beton_amount_table_file, char* beton_amo
     char delim[] = ",";
     char *p = NULL;
 
-    //split beton_amount_table_file
+    //split read beton_amount_table_file
     p = strtok(data, delim);
     memset(beton_amount_table_file, '\0', MAX_LENGTH);
     strcpy(beton_amount_table_file, p);
-    //split beton_amount_table_with_odds_file
+    //split read beton_amount_table_with_odds_file
     p = strtok(NULL, delim);
     memset(beton_amount_table_with_odds_file, '\0', MAX_LENGTH);
     strcpy(beton_amount_table_with_odds_file, p);
-    //split wager_length
+    //split read wager_length
     p = strtok(NULL, delim);
     (*wager_length) = strtol(p, NULL, 10);
-    //split expectId
+    //split read expectId
     p = strtok(NULL, delim);
     memset(expectId, '\0', MAX_LENGTH);
     strcpy(expectId, p);
+    //split read target_amount
+    p = strtok(NULL, delim);
+    (*target_amount) = strtof(p, NULL);
+    //split read tolerance
+    p = strtok(NULL, delim);
+    (*tolerance) = strtof(p, NULL);
 }
 
 void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_table)

@@ -156,6 +156,9 @@ def transferWager(raw_data):
         unitAmount = bet["UnitAmount"]
         rawBetOn = bet["BetOn"]
         betOnCount = int(bet["BetOnCount"])
+        killRate =  0.2 #bet["KillRate"]
+        tolerance = 25 #bet["Tolerance"] 
+
         #logging.debug(f"BetTypePlayCode={betTypePlayCode}, BetOn={rawBetOn}, UnitAmount={unitAmount}, betOnCount={betOnCount}")
         extraData = json.loads(bet["ExtraData"])
         odds = []
@@ -247,8 +250,9 @@ def transferWager(raw_data):
         beton_amount_table.append(row_by_amount)
         beton_amount_odds_table.append(row_by_amount_odds)
 
+    target_amount = total_bet_amount * killRate * -1
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
-    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId)
+    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)
 
 @app.route('/', methods=['GET'])
 def home():
@@ -263,11 +267,10 @@ def submit():
         raw_data = request.get_data().decode("utf-8")
         logging.debug(f"row data: {raw_data}")
         
-        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId) = transferWager(raw_data)
+        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)= transferWager(raw_data)
         wager_length = len(beton_amount_table)
         logging.info(f"wager_length={wager_length}")
-        logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}")
-        
+        logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
         
         start = time.time()
         with open(f"{currentPath}/data/beton_amount_{expectId}.csv", "w+") as f:
@@ -286,19 +289,22 @@ def submit():
             sendData = f"{currentPath}/data/beton_amount_{expectId}.csv,"
             sendData += f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv,"
             sendData += f"{wager_length},"
-            sendData += f"{expectId}"
+            sendData += f"{expectId},"
+            sendData += f"{target_amount},"
+            sendData += f"{tolerance},"
             client.sendall(sendData.encode())
             
             serverMessage = client.recv(255).decode("UTF-8")
             print('Server:', serverMessage)
         
-        opencode_answer_amount_result = pd.read_csv(serverMessage)
-        #for a in opencode_answer_amount_result.values.tolist():
-        #    print(a)
         response = { }
         response["code"] = 0
         response["msg"] = "success"
         rows = [] 
+
+        #if os.path.isfile(serverMessage) and os.path.getsize(serverMessage) > 0:
+        #    
+        opencode_answer_amount_result = pd.read_csv(serverMessage)
         for a in opencode_answer_amount_result.values.tolist():
             rows.append(
                     {

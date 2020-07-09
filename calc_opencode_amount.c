@@ -618,8 +618,10 @@ int main(int argc, char* argv[])
 
     sockfd = create_socket();
     //cl_uint* result = NULL;
-    float amountRange1 = -20000 - 25;
-    float amountRange2 = -20000 + 25;
+    float target_amount_range1 = 0;
+    float target_amount_range2 = 0;
+    float target_amount = 0;
+    float tolerance = 0;
     //while 重複直行
     //===================================================================================================
     while(true)
@@ -628,11 +630,23 @@ int main(int argc, char* argv[])
         memset(recv_buffer, '\0', MAX_BUFFER_SIZE);
         recv(forClientSockfd, recv_buffer, sizeof(recv_buffer), 0);
         printf("======> %s\n", recv_buffer);
-        load_socket_data(recv_buffer, beton_amount_table_file, beton_amount_table_with_odds_file, &wager_length, expectId);
+        load_socket_data(recv_buffer, 
+            beton_amount_table_file, 
+            beton_amount_table_with_odds_file, 
+            &wager_length, 
+            expectId,
+            &target_amount,
+            &tolerance);
         printf("beton_amount_table_file = %s\n", beton_amount_table_file);
         printf("beton_amount_table_with_odds_file = %s\n", beton_amount_table_with_odds_file);
         printf("wager_length = %d\n", wager_length);
         printf("expectId = %s\n", expectId);
+        printf("target_amount = %f\n", target_amount);
+        printf("tolerance = %f\n", tolerance);
+        
+        target_amount_range1 = target_amount - tolerance;
+        target_amount_range2 = target_amount + tolerance;
+        printf("target_amount_range1 = %f, target_amount_range2= %f \n", target_amount_range1, target_amount_range2);
 
 #ifdef DEBUG
         float sum = 0;
@@ -728,7 +742,7 @@ int main(int argc, char* argv[])
             kFindBestAmountCount,
             opencode_answer_table_result1,
             dataSegmentLength,
-            amountRange1, amountRange2,
+            target_amount_range1, target_amount_range2,
             &result_count
         );
         clFinish(queue_list[0]);
@@ -761,7 +775,7 @@ int main(int argc, char* argv[])
                 opencode_answer_table_result1,
                 dataSegmentLength,
                 result_count,
-                amountRange1, amountRange2,
+                target_amount_range1, target_amount_range2,
                 &amountRangeResult1);
             clFinish(queue_list[0]);
 #ifdef DEBUG
@@ -797,7 +811,7 @@ int main(int argc, char* argv[])
             kFindBestAmountCount,
             opencode_answer_table_result2,
             dataSegmentLength,
-            amountRange1, amountRange2,
+            target_amount_range1, target_amount_range2,
             &result_count
         );
         clFinish(queue_list[0]);
@@ -814,7 +828,7 @@ int main(int argc, char* argv[])
                 opencode_answer_table_result2,
                 dataSegmentLength,
                 result_count,
-                amountRange1, amountRange2,
+                target_amount_range1, target_amount_range2,
                 &amountRangeResult2);
             clFinish(queue_list[0]);
 #ifdef DEBUG
