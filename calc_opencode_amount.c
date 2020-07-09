@@ -467,11 +467,12 @@ int main(int argc, char* argv[])
 {
     cl_int errNum;
     
-    char kernel_program_file[255] = "";
-    char opencode_answer_table_file[255] = "";
-    char beton_amount_table_file[255] = "";
-    char beton_amount_table_with_odds_file[255] = "";
-    char log_dir[255];
+    char kernel_program_file[MAX_LENGTH] = "";
+    char opencode_answer_table_file[MAX_LENGTH] = "";
+    char beton_amount_table_file[MAX_LENGTH] = "";
+    char beton_amount_table_with_odds_file[MAX_LENGTH] = "";
+    char current_path[MAX_LENGTH];
+    char log_dir[MAX_LENGTH];
     strcpy(log_dir, "log/");
     //map_t mymap;
     //mymap = hashmap_new();
@@ -491,10 +492,12 @@ int main(int argc, char* argv[])
         exit(EXIT_SUCCESS);
     }
     
+    getcwd( current_path, MAX_LENGTH );
 #ifdef DEBUG
     printf("kernel_program_file:%s\n", kernel_program_file);
     printf("opencode_answer_table_file:%s\n", opencode_answer_table_file);
     printf("log_dir:%s\n", log_dir);
+    printf("Current working dir: %s\n", current_path);
 #endif
 
     int total_platforms = 0;
@@ -508,6 +511,7 @@ int main(int argc, char* argv[])
     int beton_Length = 0;
     uint32 opencode_Length = 0; 
     int wager_length = 0; 
+    char expectId[MAX_LENGTH];
     cl_short* opencode_answer_table = NULL;
     cl_ushort* one_mask = NULL;
     cl_float* beton_amount_table = NULL;
@@ -624,10 +628,11 @@ int main(int argc, char* argv[])
         memset(recv_buffer, '\0', MAX_BUFFER_SIZE);
         recv(forClientSockfd, recv_buffer, sizeof(recv_buffer), 0);
         printf("======> %s\n", recv_buffer);
-        load_socket_data(recv_buffer, beton_amount_table_file, beton_amount_table_with_odds_file, &wager_length);
+        load_socket_data(recv_buffer, beton_amount_table_file, beton_amount_table_with_odds_file, &wager_length, expectId);
         printf("beton_amount_table_file = %s\n", beton_amount_table_file);
         printf("beton_amount_table_with_odds_file = %s\n", beton_amount_table_with_odds_file);
         printf("wager_length = %d\n", wager_length);
+        printf("expectId = %s\n", expectId);
 
 #ifdef DEBUG
         float sum = 0;
@@ -729,6 +734,22 @@ int main(int argc, char* argv[])
         clFinish(queue_list[0]);
         printf("result_count=%d \n", result_count);
 
+          
+        char result_file[MAX_LENGTH];
+        memset(result_file, '\0', MAX_LENGTH);
+        sprintf(result_file, "%s/data/opencode_amount_result_%s.csv",  current_path, expectId);
+#ifdef DEBUG
+        printf("opencode amount result file: %s\n", result_file);
+#endif
+        FILE* fp = fopen(result_file, "r");
+        if (fp) {
+            // file exists
+            remove(result_file);
+            fclose(fp);
+        } else {
+            // file doesn't exist
+        }
+
         if(result_count > 0)
         {
             printf("filter opencode when win/loss amount in range ... 1/2\n");
@@ -750,6 +771,18 @@ int main(int argc, char* argv[])
                 printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_table_result1[index]);
             }
 #endif
+            //寫入檔案 1/2
+            fp = fopen(result_file, "a");
+            for(int i=0; i<=result_count-1; i++ )
+            {
+                int index = amountRangeResult1[i];
+                char tmp[MAX_LENGTH];
+                memset(tmp, '\0', MAX_LENGTH);
+                sprintf(tmp, "%s,%f\n",  opencodeList[index], opencode_answer_table_result1[index]);
+                fputs(tmp, fp);
+            }
+            fclose(fp);
+
             if(amountRangeResult1)
                 free(amountRangeResult1);
         }
@@ -791,6 +824,17 @@ int main(int argc, char* argv[])
                 printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_table_result2[amountRangeResult2[i]]);
             }
 #endif
+            //寫入檔案 2/2
+            fp = fopen(result_file, "a");
+            for(int i=0; i<=result_count-1; i++ )
+            {
+                int index = amountRangeResult2[i] + dataSegmentLength;
+                char tmp[MAX_LENGTH];
+                memset(tmp, '\0', MAX_LENGTH);
+                sprintf(tmp, "%s,%f\n",  opencodeList[index], opencode_answer_table_result2[index]);
+                fputs(tmp, fp);
+            }
+            fclose(fp);
             if(amountRangeResult2)
                 free(amountRangeResult2);
         }
@@ -800,11 +844,8 @@ int main(int argc, char* argv[])
         GetDateTime(dateTime);
         printf("The Local date and time is %s\n", dateTime);
 
-        send_buffer = (char*) malloc(sizeof(char) * MAX_BUFFER_SIZE);
-        memset(send_buffer, '\0', MAX_BUFFER_SIZE);
-        strcpy(send_buffer, "Hello world!!");
-        printf("======> %s\n", send_buffer);
-        send(forClientSockfd, send_buffer,  MAX_BUFFER_SIZE, 0);
+        printf("======>send: %s\n", result_file);
+        send(forClientSockfd, result_file, sizeof(result_file), 0);
     }
     
     if(total_beton_amount_vector)

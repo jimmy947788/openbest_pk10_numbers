@@ -268,6 +268,8 @@ def submit():
         logging.info(f"wager_length={wager_length}")
         logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}")
         
+        
+        start = time.time()
         with open(f"{currentPath}/data/beton_amount_{expectId}.csv", "w+") as f:
             for amount in beton_amount_table:
                 strAmountWithComma = ','.join(str(e) for e in amount)
@@ -283,29 +285,35 @@ def submit():
             #sendData = str(expectId)
             sendData = f"{currentPath}/data/beton_amount_{expectId}.csv,"
             sendData += f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv,"
-            sendData += f"{wager_length}"
+            sendData += f"{wager_length},"
+            sendData += f"{expectId}"
             client.sendall(sendData.encode())
             
-            serverMessage = client.recv(1000).decode("UTF-8")
+            serverMessage = client.recv(255).decode("UTF-8")
             print('Server:', serverMessage)
-
+        
+        opencode_answer_amount_result = pd.read_csv(serverMessage)
+        #for a in opencode_answer_amount_result.values.tolist():
+        #    print(a)
         response = { }
         response["code"] = 0
         response["msg"] = "success"
         rows = [] 
-        """
-        for i in range(len(opencodes)):
+        for a in opencode_answer_amount_result.values.tolist():
             rows.append(
                     {
-                        "TotalAmountSum": str(risk_result[i]),
-                        "WinAmountSum": str(risk_result[i]),
-                        "BetCount" : str(total_bet_count),
-                        "OpenCode": str(opencodes[i])
+                        "TotalAmountSum": a[1],
+                        #"WinAmountSum": a[1],
+                        #"BetCount" : 0,
+                        "OpenCode": a[0]
                     }
                 )
-        """
+        
         response["result"] = { "rows" : rows }
         #print(json.dumps(response, cls=NumpyEncoder))
+        end = time.time()
+        print(end - start)
+
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
     return render_template('bestopen.html', title=title)
 
