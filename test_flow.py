@@ -6,11 +6,20 @@ import json
 import logging
 import datetime
 from pathlib import Path
+from flask import Flask, request, render_template , Response
 import numpy as np
 import pandas as pd
 import itertools
 import pyopencl as cl
 import time
+from itertools import islice
+import socket
+
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 # 轉換betOn格式
 # =================================================
@@ -104,16 +113,18 @@ def program_build(kernel_file = 'kernels/kernel_program.cl'):
         raise
     return program
 
-def beton_total_amount(one_vector_mask, amount_matrix, wager_length=10000):
+def sum_beton_total_amount(one_vector_mask, amount_matrix, wager_length=10000):
     tStart = time.time()#計時開始
     queue = cl.CommandQueue(context)
+    selection_length = len(one_vector_mask)    
+    result = np.empty(selection_length, dtype=np.float32)
+
     # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
     buffer_mask = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=one_vector_mask)
     buffer_matrix = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=amount_matrix)
-    buffer_result = cl.Buffer(context, cl.mem_flags.WRITE_ONLY,  size = one_vector_mask.nbytes) 
- 
-    selection_length = len(one_vector_mask)
-    event = program.beton_total_amount(
+    buffer_result = cl.Buffer(context, cl.mem_flags.WRITE_ONLY,  size=result.nbytes) 
+   
+    event = program.sum_beton_total_amount(
                     queue, (selection_length, ), (1, ),
                     buffer_mask, 
                     buffer_matrix,
@@ -122,7 +133,7 @@ def beton_total_amount(one_vector_mask, amount_matrix, wager_length=10000):
     event.wait()
 
     # Read data back from buffer
-    result = np.array(one_vector_mask, dtype=np.float32)
+    result = np.empty(selection_length, dtype=np.float32)
     cl.enqueue_copy(queue, result, buffer_result)
     queue.flush()
 
@@ -130,63 +141,22 @@ def beton_total_amount(one_vector_mask, amount_matrix, wager_length=10000):
     logging.info("It cost %f sec" % (tEnd - tStart))#會自動做近位
     return result
 
-def calc_numbers_risk(total_amount_vector, total_amount_odds_vector):
-    queue = cl.CommandQueue(context)
-    numbers_length = len(opencodes)
-    beton_length = len(headers);
-    result = np.empty(numbers_length, dtype=np.float32)
-
-    # opencode_table 降維
-    logging.info(f"opencode_answer length={opencode_answer}")
-
-    tStart = time.time() 
-    # create buffer READ/WRITE  cl.mem_flags.READ_WRITE
-    buffer_total_amount = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_vector)
-    buffer_total_amount_odds = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=total_amount_odds_vector)
-    buffer_answers = cl.Buffer(context, cl.mem_flags.READ_WRITE | cl.mem_flags.COPY_HOST_PTR, hostbuf=opencode_answer)
-    buffer_result = cl.Buffer(context, cl.mem_flags.READ_WRITE,  result.nbytes)
-
-    # Create, configure, and execute kernel (Seems too easy, doesn't it?)
-    global_work_offset = (0, )
-    global_work_size = (numbers_length, )
-    local_work_size = (1, )
-    kernel = program.calc_numbers_risk
-    kernel.set_arg(0, buffer_total_amount)
-    kernel.set_arg(1, buffer_total_amount_odds)
-    kernel.set_arg(2, buffer_answers)
-    kernel.set_arg(3, buffer_result)
-    kernel.set_arg(4, np.int32(beton_length))
-
-    ev = cl.enqueue_nd_range_kernel(queue, kernel, global_work_size, local_work_size, global_work_offset)
-
-    # Read data back from buffer
-    result = np.empty(numbers_length, dtype=np.float32)
-    cl.enqueue_copy(queue, result, buffer_result)
-    queue.flush()
-    #print("result=", result)
-
-    tEnd = time.time( )
-    print("It cost %f sec" % (tEnd - tStart)) 
-    return result
-# =================================================
-# =================================================
-
 def transferWager(raw_data):
-    amount_table = []
-    amount_odds_table = []
+    beton_amount_table = []
+    beton_amount_odds_table = []
     jdata = json.loads(raw_data)
     total_bet_count = 0
     total_bet_amount = 0
-    #fo = open('odds_matrix.csv', 'w+', encoding='UTF-8')
-    #fb = open('data/beton_matrix.csv', 'w+', encoding='UTF-8')
-    #strHeaderWithComma = ','.join(str(e) for e in headers)
-    #fb.write(strHeaderWithComma + "\n")
     
+    expectId = jdata["ExpectID"]
     for bet in jdata["Bets"]:
         betTypePlayCode = bet['BetTypePlayCode']
         unitAmount = bet["UnitAmount"]
         rawBetOn = bet["BetOn"]
         betOnCount = int(bet["BetOnCount"])
+        killRate =  0.2 #bet["KillRate"]
+        tolerance = 25 #bet["Tolerance"] 
+
         #logging.debug(f"BetTypePlayCode={betTypePlayCode}, BetOn={rawBetOn}, UnitAmount={unitAmount}, betOnCount={betOnCount}")
         extraData = json.loads(bet["ExtraData"])
         odds = []
@@ -267,103 +237,64 @@ def transferWager(raw_data):
         for h in headers:
             if h in betOn:
                 row_by_amount.append(unitAmount)
-                row_by_amount_odds.append((odds[i]-1) * unitAmount)
-                i+=1
+                row_by_amount_odds.append((odds[i]-1) * unitAmount) #此處賠率要扣掉1（本金）
                 total_bet_count += 1
                 total_bet_amount += unitAmount
+                i+=1
             else:
                 row_by_amount.append(0)
                 row_by_amount_odds.append(0)
 
-        #strHeaderWithComma = ','.join(str(e) for e in row_by_amount)
-        #fb.write(strHeaderWithComma + "\n")
-        #print(f"row_by_amount length: {len(row_by_amount)}")
-        amount_table.append(row_by_amount)
-        amount_odds_table.append(row_by_amount_odds)
-        #fo.write("\n")
+        beton_amount_table.append(row_by_amount)
+        beton_amount_odds_table.append(row_by_amount_odds)
 
-    #fb.close()
-    #fo.close()
+    target_amount = total_bet_amount * killRate * -1
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
-    return (amount_table, amount_odds_table, total_bet_count)
+    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)
 
-def process():
-    title = '最佳化開獎策略'
-   
+
+
+def submit():
+    
     #print('request.form', request.data)
-    
-    with open("data/test_data.txt", 'r') as f:
-        raw_data = f.read() # 讀取檔案內容
-
+    betOn_rows = []
+    #raw_data = request.get_data().decode("utf-8")
+    with open(f"{currentPath}/data/test_wager_data.txt") as f:
+        raw_data = f.read()
     logging.debug(f"row data: {raw_data}")
-
-    (amount_table, amount_odds_table, total_bet_count) = transferWager(raw_data)
-    wager_length = len(amount_table)
+    
+    (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)= transferWager(raw_data)
+    wager_length = len(beton_amount_table)
     logging.info(f"wager_length={wager_length}")
-    #logging.info(f"amount_table={amount_table}")
+    logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
     
-    # 計算每個beton投注總額
-    #=========================================================
-    column_length = len(headers);
+    start = time.time()
+    with open(f"{currentPath}/data/beton_amount_{expectId}.csv", "w+") as f:
+        for amount in beton_amount_table:
+            strAmountWithComma = ','.join(str(e) for e in amount)
+            f.write(strAmountWithComma+"\n")
 
-    # 建立A= [ 1, 1, 1, 1, 1, ... ,1 ,1 ,1 ]
-    one_vector_mask = np.ones(column_length).astype(np.float32)
-    logging.debug(f"one_vector_mask={one_vector_mask}, length={len(one_vector_mask)}")
+    with open(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv", "w+") as f:
+        for amount in beton_amount_odds_table:
+            strAmountWithComma = ','.join(str(e) for e in amount)
+            f.write(strAmountWithComma+"\n")
 
-    # 降維
-    amount_matrix = np.array(amount_table).flatten().astype(np.float32)
-    logging.debug(f"amount_matrix={amount_matrix}, length={len(amount_matrix)}")
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+        client.connect(("127.0.0.1", 8700))
+        #sendData = str(expectId)
+        sendData = f"{currentPath}/data/beton_amount_{expectId}.csv,"
+        sendData += f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv,"
+        sendData += f"{wager_length},"
+        sendData += f"{expectId},"
+        sendData += f"{target_amount},"
+        sendData += f"{tolerance},"
+        client.sendall(sendData.encode())
+        
+        serverMessage = client.recv(255).decode("UTF-8")
+        print('Server:', serverMessage)
     
-    amount_odds_matrix = np.array(amount_odds_table).flatten().astype(np.float32)
-    logging.debug(f"amount_odds_matrix={amount_odds_matrix}, length={len(amount_odds_matrix)}")
-    
-    total_amount_result = beton_total_amount(one_vector_mask, amount_matrix, wager_length)
-    logging.debug(f"total_amount_result:{total_amount_result}")
-    with open('data/beton_total_amount.csv', 'w+', encoding='UTF-8') as f:
-        strHeaderWithComma = ','.join(str(e) for e in headers)
-        f.write(strHeaderWithComma + "\n")
-
-        strTotalAmountWithComma = ','.join(str(e) for e in total_amount_result)
-        f.write(strTotalAmountWithComma + "\n")
-    
-    total_amount_odds_result = beton_total_amount(one_vector_mask, amount_odds_matrix, wager_length)
-    logging.debug(f"total_amount_odds_result:{total_amount_odds_result}")
-    with open('data/beton_total_odds.csv', 'w+', encoding='UTF-8') as f:
-        strHeaderWithComma = ','.join(str(e) for e in headers)
-        f.write(strHeaderWithComma + "\n")
-
-        strTotalAmountWithComma = ','.join(str(e) for e in total_amount_odds_result)
-        f.write(strTotalAmountWithComma + "\n")
-    
-    # 計算輸贏
-    #=========================================================
-    risk_result = calc_numbers_risk(total_amount_result, total_amount_odds_result)
-    logging.debug(f"risk_result:{risk_result}")
-    logging.info(f"risk_result_length: { len(risk_result)}, opencodes_length:{len(opencodes)}")
-    
-    response = { }
-    response["code"] = 0
-    response["msg"] = "success"
-    rows = []
-    #print(f"risk_result[{numbers_length-1}]", risk_result[numbers_length-1])
-    #print(f"numbers[{numbers_length-1}]", numbers[numbers_length-1])
-
-    """
-    with  open('opencode_answer.csv', 'w+',  encoding='UTF-8') as f:
-        for i in len(opencodes):
-            f.write(str(opencodes[i])+", "+ str(risk_result[i])+ "\n")
-        try:
-            rows.append(
-                {
-                    "TotalAmountSum": risk_result[i],
-                    "WinAmountSum": risk_result[i],
-                    "BetCount" : 0,
-                    "OpenCode": numbers[i]
-                }
-            )
-        except :
-            pass 
-    """
+    end = time.time()
+    print(end - start)
 
 if __name__ == "__main__":
     global headers
@@ -371,7 +302,7 @@ if __name__ == "__main__":
     global context
     global opencodes
     global currentPath
-    global opencode_answer
+    global opencode_answer_table
 
     currentPath =  os.path.dirname(os.path.abspath(__file__))
     
@@ -387,54 +318,14 @@ if __name__ == "__main__":
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     logging.debug("current path : " + currentPath)
 
+    with open(f"{currentPath}/data/beton_list.txt") as f:
+        headers = f.read().split(',')
+    #print(headers)
+
     # Create context and command queue
     platform = cl.get_platforms()[0]
     devices = platform.get_devices()
     context = cl.Context(devices)
     program = program_build()
-    
-   
-    #i=0
-    opencodes = []
-    headers = [ ]
-    opencode_answer = np.array([]).astype(np.int32)
 
-    logging.info("load opencode table....")
-    with open(f"{currentPath}/data/beton_list.txt", "r") as f:
-        headers = f.read().split(',')
-
-    logging.info("load opencode table....")
-    columns =[ "opencode" ]
-    for c in  headers:
-        columns.append(c)
-    opencode_table = pd.read_csv(f"{currentPath}/data/opencode_table.csv", names=columns)
-    opencode_table.set_index("opencode" , inplace=True)
-    print(f"opencode_table length = { len(opencode_table) }")
-    #print(opencode_table.loc["1-2-3-4-5-6-7-10-8-9"])
-
-    for i in range(1, len(opencode_table)):
-        data = opencode_table.iloc[i]
-        opencode = data[0]
-        print(opencode)
-        opencode_answer = np.append(opencode_answer, data[1:]).astype(np.int32)
-        opencode_table.drop(opencode, axis=0, inplace=True)
-
-    """
-        line = f.readline().replace("\n", "")
-        data = line.replace("\n", "").split(',')
-        for h in data[1:]:
-            headers.append(h)   
-        print(headers)
-        while line:
-            line = f.readline()
-            data = line.replace("\n", "").split(',')
-            opencodes.append(data[0])
-            print(data[0])
-            opencode_answer = np.append(opencode_answer, data[1:]).astype(np.int32)
-            #print(len(data[1:]))
-            #i += 1 
-            #if i==10:
-            #    nb = input('init...')
-            #    break
-    """
-    #process()
+    submit()

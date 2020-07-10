@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+//for thread
+#include <pthread.h>
 
 #define _GNU_SOURCE
 #ifdef __APPLE__
