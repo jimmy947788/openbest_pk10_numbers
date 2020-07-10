@@ -539,9 +539,9 @@ int main(int argc, char* argv[])
     checkErr(errNum, "clCreateContext");
     printf(" ........... successful!!\n");
 
-    printf("create OpenCL command queue for all devics");
+    printf("create OpenCL command queue for all devics\n");
     create_queue_list(context, device_list, total_devices, &queue_list);
-    printf(" ........... successful!!\n");
+    printf(" ........... successful!!(total command queue=%d)\n", total_devices);
 
     printf("build OpenCL program from");
     // build an OpenCL program

@@ -121,11 +121,11 @@ void create_queue_list(cl_context context,
     cl_command_queue** queue_list)
 {
     cl_int errNum;
-    *queue_list = (cl_command_queue*)malloc(sizeof(cl_command_queue) * total_devices);
+    queue_list = (cl_command_queue*)malloc(sizeof(cl_command_queue) * total_devices);
     for(cl_int i=0; i<=total_devices -1; i++ )
     {
-        *queue_list[i] = clCreateCommandQueue(context, device_list[i], 0, &errNum);
-        //checkErr(errNum, "clCreateCommandQueue");
+        queue_list[i] = clCreateCommandQueue(context, device_list[i], 0, &errNum);
+        checkErr(errNum, "clCreateCommandQueue");
         if(errNum < 0) {
             perror("Couldn't read the buffer");
             exit(EXIT_FAILURE);   
