@@ -9,8 +9,7 @@ int run_kernel_sum_beton_total_amount(
         int beton_length, int wgaer_length, 
         cl_ushort* one_mask, 
         cl_float* bet_amount, 
-        cl_event event,
-        cl_mem* result_buffer)
+        cl_float** result)
 {
     cl_int errNum;
     clock_t timeStart, timeEnd;
@@ -25,7 +24,7 @@ int run_kernel_sum_beton_total_amount(
         &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a mask_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     printf("clCreateBuffer bet_amount_buffer\n");
@@ -36,59 +35,58 @@ int run_kernel_sum_beton_total_amount(
         &errNum);    
     if(errNum < 0) {
       perror("Couldn't create a bet_amount_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
-    /*
-    *result_buffer = clCreateBuffer(context,
+
+    cl_mem result_buffer = clCreateBuffer(context,
         CL_MEM_WRITE_ONLY,
         sizeof(cl_float) * beton_length, 
         NULL, 
         &errNum);
      if(errNum < 0) {
       perror("Couldn't create a result_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
-    */
+
     /* Create kernel argument */
     errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &mask_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(mask_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &bet_amount_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(bet_amount_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
-    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), result_buffer);
+    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(result_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     errNum = clSetKernelArg(kernel, 3, sizeof(cl_int), &wgaer_length);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(wgaer_length)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     int dim = 1;
     const size_t global_offset[] = { 0 };
     const size_t global_size[] = { beton_length };
     const size_t local_size[] = { 1 };
-    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  &event);
+    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  NULL);
 
     checkErr(errNum, "clEnqueueNDRangeKernel");    
     printf("pass kernel code to GPU%d\n", 0);
 
-     /* Read and print the result * /
-    /*
+     /* Read and print the result */
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * beton_length, *result, 0, NULL, NULL);
     if(errNum < 0) {
         perror("Couldn't read the buffer");
-        exit(1);   
+        exit(EXIT_FAILURE);
     }
+
     clReleaseMemObject(result_buffer);
-    */
     clReleaseMemObject(mask_buffer);
     clReleaseMemObject(bet_amount_buffer);
    
@@ -120,7 +118,7 @@ int run_kernel_calc_numbers_risk(
         &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a total_beton_amount_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
     
     cl_mem total_beton_amount_with_odds_buffer = clCreateBuffer(
@@ -131,7 +129,7 @@ int run_kernel_calc_numbers_risk(
         &errNum);    
     if(errNum < 0) {
       perror("Couldn't create a total_beton_amount_with_odds_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     cl_buffer_region region;
@@ -145,7 +143,7 @@ int run_kernel_calc_numbers_risk(
         &errNum);
    if(errNum < 0) {
       perror("Couldn't create a sub-buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
    }
     
 #ifdef DEBUG
@@ -176,7 +174,7 @@ int run_kernel_calc_numbers_risk(
         &errNum);
     if(errNum < 0) {
       perror("Couldn't create a result_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     /* Create kernel argument */
@@ -184,35 +182,35 @@ int run_kernel_calc_numbers_risk(
     //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer);
     //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer);
    // checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (sub_opencode_answer_table_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     errNum = clSetKernelArg(kernel, 3, sizeof(cl_mem), &result_buffer);
     //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (result_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     errNum = clSetKernelArg(kernel, 4, sizeof(cl_int), &beton_length);
     //checkErr(errNum, "clSetKernelArg");
     if(errNum < 0) {
         perror("Couldn't set a kernel argument (beton_length)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     int dim = 1;
@@ -228,7 +226,7 @@ int run_kernel_calc_numbers_risk(
     //checkErr(errNum, "clEnqueueReadBuffer");
     if(errNum < 0) {
         perror("Couldn't read the buffer");
-        exit(1);   
+        exit(EXIT_FAILURE);
     }
 
     clReleaseMemObject(total_beton_amount_buffer);
@@ -262,7 +260,7 @@ int run_kernel_find_best_amount_count(
         &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a opencode_amount_list_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     cl_mem result_buffer = clCreateBuffer(
@@ -273,29 +271,29 @@ int run_kernel_find_best_amount_count(
         &errNum);
     if(errNum < 0) {
       perror("Couldn't create a result_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     /* Create kernel argument */
     errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &opencode_amount_list_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(opencode_amount_list_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &result_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(result_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     errNum = clSetKernelArg(kernel, 2, sizeof(float), &amount_range1);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(amount_range1)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     errNum = clSetKernelArg(kernel, 3, sizeof(float), &amount_range2);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(amount_range2)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     int dim = 1;
@@ -311,7 +309,7 @@ int run_kernel_find_best_amount_count(
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_uint) , count_result, 0, NULL, NULL);
     if(errNum < 0) {
         perror("Couldn't read the buffer");
-        exit(1);   
+        exit(EXIT_FAILURE);
     }
 
     clReleaseMemObject(opencode_amount_list_buffer);
@@ -344,7 +342,7 @@ int run_kernel_find_best_amount(
         &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a opencode_amount_list_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     cl_mem result_counter_buffer = clCreateBuffer(context, 
@@ -354,7 +352,7 @@ int run_kernel_find_best_amount(
         &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a best_amount_count_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     cl_mem result_buffer = clCreateBuffer(
@@ -365,7 +363,7 @@ int run_kernel_find_best_amount(
         &errNum);
     if(errNum < 0) {
       perror("Couldn't create a result_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     cl_mem mutex_buffer = clCreateBuffer(context, 
@@ -375,42 +373,42 @@ int run_kernel_find_best_amount(
         &errNum); 
     if(errNum < 0) {
       perror("Couldn't create a mutex_buffer");
-      exit(1);   
+      exit(EXIT_FAILURE);
     };
 
     /* Create kernel argument */
     errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &opencode_amount_list_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(opencode_amount_list_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &result_counter_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(result_counter_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     
     errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(result_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     
     errNum = clSetKernelArg(kernel, 3, sizeof(cl_mem), &mutex_buffer);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(mutex_buffer)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     errNum = clSetKernelArg(kernel, 4, sizeof(float), &amount_range1);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(amount_range1)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
     errNum = clSetKernelArg(kernel, 5, sizeof(float), &amount_range2);
     if(errNum < 0) {
         perror("Couldn't set a kernel argument(amount_range2)");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     int dim = 1;
@@ -426,7 +424,7 @@ int run_kernel_find_best_amount(
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_uint) * best_amount_count , *result, 0, NULL, NULL);
     if(errNum < 0) {
         perror("Couldn't read the buffer");
-        exit(1);   
+        exit(EXIT_FAILURE);
     }
 
     clReleaseMemObject(opencode_amount_list_buffer);
@@ -594,7 +592,6 @@ int main(int argc, char* argv[])
 
     //以下重複直行
     //===================================================================================================
-    cl_mem opencode_answer_table_buffer = NULL;
     int dataSegmentLength =  opencode_Length / dataSegmentNum;
     int dataSegmentOffset = 0;
 
@@ -604,7 +601,7 @@ int main(int argc, char* argv[])
     printf("........... successful !!\n");
     
     //create opencode_answer_table Buffer
-    opencode_answer_table_buffer = clCreateBuffer(
+   cl_mem opencode_answer_table_buffer = clCreateBuffer(
         context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_short) * beton_Length * opencode_Length, 
@@ -612,7 +609,7 @@ int main(int argc, char* argv[])
         &errNum);    
     if(errNum < 0) {
         perror("Couldn't create a opencode_answer_table_buffer");
-        exit(1);   
+        exit(EXIT_FAILURE);
     };
 
     char recv_buffer[MAX_BUFFER_SIZE] = {};
@@ -628,7 +625,6 @@ int main(int argc, char* argv[])
     float target_amount_range2 = 0;
     float target_amount = 0;
     float tolerance = 0;
-    cl_event events[2];
     //while 重複直行
     //===================================================================================================
     while(true)
@@ -661,51 +657,15 @@ int main(int argc, char* argv[])
         beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
         load_beton_amount_table(beton_amount_table_file, &beton_amount_table);
         total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
-        cl_mem result_buffer1 = clCreateBuffer(context, 
-            CL_MEM_WRITE_ONLY,
-            sizeof(cl_float) * beton_Length, 
-            NULL, 
-            &errNum);
-        if(errNum < 0) {
-            perror("Couldn't create a result_buffer");
-            exit(1);   
-        };
-        printf("events[0] pinter is %p\n",  &events[0]);
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
             kSumBetonTotalAmount, 
             beton_Length, wager_length,
             one_mask, beton_amount_table,
-            &events[0],
-            &result_buffer1);
+            &total_beton_amount_vector);
         if(beton_amount_table)
             free(beton_amount_table);
-
-        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
-        load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
-        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
-        cl_mem result_buffer2 = NULL;
-        run_kernel_sum_beton_total_amount(
-            context, 
-            queue_list[1], 
-            kSumBetonTotalAmount, 
-            beton_Length, wager_length,
-            one_mask, beton_amount_with_odds_table, 
-            &events[1],
-            &result_buffer2);
-        if(beton_amount_with_odds_table)
-            free(beton_amount_with_odds_table);
-
-        clWaitForEvents(2, events);
-        // 從buffer讀取total_beton_amount_vector
-        //==================================================================================================
-        /* Read and print the result */
-        errNum = clEnqueueReadBuffer(queue_list[0], result_buffer1, CL_TRUE, 0, sizeof(cl_float) * beton_Length, total_beton_amount_vector, 0, NULL, NULL);
-        if(errNum < 0) {
-            perror("Couldn't read the buffer (total_beton_amount_vector)");
-            exit(1);   
-        }
 #ifdef DEBUG
         sum = 0;
         for(int i=0; i<=beton_Length-1; i++)
@@ -715,14 +675,18 @@ int main(int argc, char* argv[])
         printf("====> sum total_beton_amount = %f\n", sum);
 #endif
 
-         // 從buffer讀取total_beton_amount_with_odds_vector
-        //==================================================================================================
-        /* Read and print the result */
-        errNum = clEnqueueReadBuffer(queue_list[1], result_buffer2, CL_TRUE, 0, sizeof(cl_float) * beton_Length, total_beton_amount_with_odds_vector, 0, NULL, NULL);
-        if(errNum < 0) {
-            perror("Couldn't read the buffer (total_beton_amount_vector)");
-            exit(1);   
-        }
+        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
+        load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
+        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
+        run_kernel_sum_beton_total_amount(
+            context, 
+            queue_list[0], 
+            kSumBetonTotalAmount, 
+            beton_Length, wager_length,
+            one_mask, beton_amount_with_odds_table, 
+            &total_beton_amount_with_odds_vector);
+        if(beton_amount_with_odds_table)
+            free(beton_amount_with_odds_table);
 #ifdef DEBUG
         sum = 0;
         for(int i=0; i<=beton_Length-1; i++)
@@ -731,13 +695,8 @@ int main(int argc, char* argv[])
         }
         printf("====> sum total beton amount with odds = %f\n", sum);
 #endif
-        
-        clReleaseMemObject(result_buffer1);
-        clReleaseMemObject(result_buffer2);
-
         //計算獎號開出金額 1/2
         //===================================================================
-        //memset(opencode_answer_table_result, 0, opencode_Length);
         printf("calc total win/loss amount in opencode list ... 1/2\n");
         dataSegmentOffset = 0;
         memset(opencode_answer_table_result1, 0.0f, dataSegmentLength);
@@ -788,7 +747,6 @@ int main(int argc, char* argv[])
         clFinish(queue_list[0]);
         printf("result_count=%d \n", result_count);
 
-          
         char result_file[MAX_LENGTH];
         memset(result_file, '\0', MAX_LENGTH);
         sprintf(result_file, "%s/data/opencode_amount_result_%s.csv",  current_path, expectId);
