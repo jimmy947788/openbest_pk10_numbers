@@ -101,7 +101,8 @@ __kernel void find_best_amount(
    {
       //printf("result_counter=%d, opencode_amount_list[%d]=%f\n", index, numbers_index, opencode_amount_list[numbers_index]);
       result_vector[index] = numbers_index;
-      *result_counter +=1;
+      //*result_counter +=1;
+      atomic_inc(result_counter);
       
    }
    UNLOCK(mutex);
