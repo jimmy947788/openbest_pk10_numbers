@@ -51,10 +51,10 @@ ifeq ($(ver), debug)
 endif
 
 $(PROJ): $(PROJ).c common/*.c
-	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS)
+	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -lpthread
 	cp kernels/kernel_program.cl bin/
 
 .PHONY: clean
 
 clean:
-	rm bin/$(PROJ)
+	rm bin/*
