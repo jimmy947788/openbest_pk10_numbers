@@ -14,6 +14,7 @@ import pyopencl as cl
 import time
 from itertools import islice
 import socket
+import random
 
 app = Flask(__name__)
 
@@ -149,17 +150,22 @@ def transferWager(raw_data):
     jdata = json.loads(raw_data)
     total_bet_count = 0
     total_bet_amount = 0
+
+    print("=====================================")
+    logging.debug(jdata)
     
     expectId = jdata["ExpectID"]
+    opencodeCount = int(jdata["OpenCodeCount"])
+    killRate =  float(jdata["KillRate"])
+    tolerance = float(jdata["Tolerance"]) 
+    lotteryCode = jdata["LotteryCode"]
+    logging.debug(f"expectId={expectId}, opencodeCount={opencodeCount}, lotteryCode={lotteryCode}, killRate={killRate}, tolerance={tolerance}")
+
     for bet in jdata["Bets"]:
         betTypePlayCode = bet['BetTypePlayCode']
         unitAmount = bet["UnitAmount"]
         rawBetOn = bet["BetOn"]
-        betOnCount = int(bet["BetOnCount"])
-        killRate =  0.2 #bet["KillRate"]
-        tolerance = 25 #bet["Tolerance"] 
-
-        #logging.debug(f"BetTypePlayCode={betTypePlayCode}, BetOn={rawBetOn}, UnitAmount={unitAmount}, betOnCount={betOnCount}")
+        betOnCount  = bet["BetOnCount"]
         extraData = json.loads(bet["ExtraData"])
         odds = []
         betOn = []
@@ -252,7 +258,7 @@ def transferWager(raw_data):
 
     target_amount = total_bet_amount * killRate * -1
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
-    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)
+    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)
 
 @app.route('/', methods=['GET'])
 def home():
@@ -267,7 +273,7 @@ def submit():
         raw_data = request.get_data().decode("utf-8")
         logging.debug(f"row data: {raw_data}")
         
-        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)= transferWager(raw_data)
+        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)= transferWager(raw_data)
         wager_length = len(beton_amount_table)
         logging.info(f"wager_length={wager_length}")
         logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
@@ -301,24 +307,31 @@ def submit():
         response["code"] = 0
         response["msg"] = "success"
         rows = [] 
+    
+        try:
+            opencode_answer_amount_result = pd.read_csv(serverMessage)
+            # print(opencode_answer_amount_result.values.tolist())
+            # print("=================")
+            opencode_count_result = random.sample(opencode_answer_amount_result.values.tolist(), opencodeCount)
+            logging.debug(opencode_count_result)
+            # print("=================")
+            for a in opencode_count_result:
+                rows.append(
+                        {
+                            "TotalAmountSum": a[1],
+                            #"WinAmountSum": a[1],
+                            #"BetCount" : 0,
+                            "OpenCode": a[0]
+                        }
+                    )
+        except Exception as e:
+            logging.error(response)
 
-        #if os.path.isfile(serverMessage) and os.path.getsize(serverMessage) > 0:
-        #    
-        opencode_answer_amount_result = pd.read_csv(serverMessage)
-        for a in opencode_answer_amount_result.values.tolist():
-            rows.append(
-                    {
-                        "TotalAmountSum": a[1],
-                        #"WinAmountSum": a[1],
-                        #"BetCount" : 0,
-                        "OpenCode": a[0]
-                    }
-                )
-        
         response["result"] = { "rows" : rows }
         #print(json.dumps(response, cls=NumpyEncoder))
         end = time.time()
         print(end - start)
+        logging.info(response)
 
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
     return render_template('bestopen.html', title=title)
