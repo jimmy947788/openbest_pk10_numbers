@@ -763,11 +763,10 @@ int main(int argc, char* argv[])
         printf("=======> clWaitForEvents \n");
         clWaitForEvents(2, read_events);
 
-        /*clReleaseEvent(read_events[0]);
+        clReleaseEvent(read_events[0]);
         clReleaseEvent(read_events[1]);
         clReleaseEvent(kernel_events[0]);
         clReleaseEvent(kernel_events[1]);
-        */
         clReleaseMemObject(result_buffer[0]);
         clReleaseMemObject(result_buffer[1]);
 #ifdef DEBUG
