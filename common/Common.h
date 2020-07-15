@@ -23,7 +23,7 @@
 #include <CL/cl.h>
 #endif
 
-#define VERSION "1.00"
+#define VERSION "1.01"
 //Constants
 #define MAX_SOURCE_SIZE (0x100000)
 #define MAX_DEVICE_SIZE 256

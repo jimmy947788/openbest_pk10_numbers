@@ -150,9 +150,6 @@ def transferWager(raw_data):
     jdata = json.loads(raw_data)
     total_bet_count = 0
     total_bet_amount = 0
-
-    print("=====================================")
-    logging.debug(jdata)
     
     expectId = jdata["ExpectID"]
     opencodeCount = int(jdata["OpenCodeCount"])
@@ -330,7 +327,7 @@ def submit():
         response["result"] = { "rows" : rows }
         #print(json.dumps(response, cls=NumpyEncoder))
         end = time.time()
-        print(end - start)
+        print(f"spend time: {end - start} s")
         logging.info(response)
 
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')

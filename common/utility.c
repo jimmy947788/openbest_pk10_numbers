@@ -8,7 +8,7 @@ int ReadFileContent(const char* path, char *content)
     fp = fopen(path, "r");
     if (!fp) {
         fprintf(stderr, "Failed to load file.\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     source_size = fread( content, 1, MAX_SOURCE_SIZE, fp);
     //printf(source_str);
@@ -42,7 +42,7 @@ void show_device_information(cl_device_id device)
     cl_int err = clGetDeviceInfo(device, CL_DEVICE_NAME, 48 * sizeof(char), name_data, NULL);			
     if(err < 0) {		
         perror("Couldn't read extension data");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     /* Access device address size */
@@ -173,4 +173,14 @@ void build_program_for_all_devices(
         
         exit(EXIT_FAILURE);
     }
+}
+
+double executionTime(cl_event event)
+{
+    cl_ulong start, end;
+    
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+
+    return (double)1.0e-9 * (end - start); // convert nanoseconds to seconds on return
 }
