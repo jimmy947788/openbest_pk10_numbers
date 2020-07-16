@@ -95,148 +95,6 @@ int run_kernel_sum_beton_total_amount(
     return 0;
 }
 
-int run_kernel_calc_numbers_risk(
-        cl_context context, 
-        cl_command_queue queue, 
-        cl_kernel *kernel,
-        int beton_length, int opencode_length, int offset,
-        cl_float* total_beton_amount, 
-        cl_float* total_beton_amount_with_odds, 
-        cl_mem* opencode_answer_table_buffer,
-        cl_mem* result_buffer)
-{
-    cl_int errNum;
-    clock_t timeStart, timeEnd;
-    timeStart = clock();
-    
-    /* Create a write-only buffer to hold the output data */
-    cl_mem total_beton_amount_buffer = clCreateBuffer(
-        context, 
-        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_float) * beton_length, 
-        total_beton_amount, 
-        &errNum); 
-    if(errNum < 0) {
-      perror("Couldn't create a total_beton_amount_buffer");
-      exit(EXIT_FAILURE);
-    };
-    
-    cl_mem total_beton_amount_with_odds_buffer = clCreateBuffer(
-        context, 
-        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_float) * beton_length, 
-        total_beton_amount_with_odds, 
-        &errNum);    
-    if(errNum < 0) {
-      perror("Couldn't create a total_beton_amount_with_odds_buffer");
-      exit(EXIT_FAILURE);
-    };
-
-    cl_buffer_region region;
-    region.origin = offset;
-    region.size = sizeof(cl_short) * beton_length * opencode_length;
-    cl_mem sub_opencode_answer_table_buffer = clCreateSubBuffer(
-        *opencode_answer_table_buffer, 
-        CL_MEM_READ_ONLY , 
-        CL_BUFFER_CREATE_TYPE_REGION, 
-        &region, 
-        &errNum);
-   if(errNum < 0) {
-      perror("Couldn't create a sub-buffer");
-      exit(EXIT_FAILURE);
-   }
-    
-#ifdef DEBUG
-    void *main_buffer_mem = NULL, *sub_buffer_mem = NULL;
-    size_t main_buffer_size, sub_buffer_size;
-   /* Obtain size information about the buffers */
-   clGetMemObjectInfo(*opencode_answer_table_buffer, CL_MEM_SIZE, 
-         sizeof(main_buffer_size), &main_buffer_size, NULL);
-   clGetMemObjectInfo(sub_opencode_answer_table_buffer, CL_MEM_SIZE, 
-         sizeof(sub_buffer_size), &sub_buffer_size, NULL);
-   printf("Main buffer size: %lu\n", main_buffer_size);
-   printf("Sub-buffer size:  %lu\n", sub_buffer_size);
-   
-   /* Obtain the host pointers */
-   clGetMemObjectInfo(*opencode_answer_table_buffer, CL_MEM_HOST_PTR, sizeof(main_buffer_mem), 
-  	      &main_buffer_mem, NULL);
-   clGetMemObjectInfo(sub_opencode_answer_table_buffer, CL_MEM_HOST_PTR, sizeof(sub_buffer_mem), 
-  	      &sub_buffer_mem, NULL);
-   printf("Main buffer memory address: %p\n", main_buffer_mem);
-   printf("Sub-buffer memory address:  %p\n", sub_buffer_mem);
-#endif
-    /*
-    *result_buffer = clCreateBuffer(
-        context,
-        CL_MEM_WRITE_ONLY,
-        sizeof(cl_float) * opencode_length , 
-        NULL, 
-        &errNum);
-    if(errNum < 0) {
-      perror("Couldn't create a result_buffer");
-      exit(EXIT_FAILURE);
-    };
-    */
-    /* Create kernel argument */
-    errNum = clSetKernelArg(*kernel, 0, sizeof(cl_mem), &total_beton_amount_buffer);
-    if(errNum < 0) {
-        perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
-        exit(EXIT_FAILURE);
-    };
-
-    errNum = clSetKernelArg(*kernel, 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer);
-    if(errNum < 0) {
-        perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
-        exit(EXIT_FAILURE);
-    };
-
-    errNum = clSetKernelArg(*kernel, 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer);
-    if(errNum < 0) {
-        perror("Couldn't set a kernel argument (sub_opencode_answer_table_buffer)");
-        exit(EXIT_FAILURE);
-    };
-
-    errNum = clSetKernelArg(*kernel, 3, sizeof(cl_mem), result_buffer);
-    if(errNum < 0) {
-        perror("Couldn't set a kernel argument (result_buffer)");
-        exit(EXIT_FAILURE);
-    };
-
-    errNum = clSetKernelArg(*kernel, 4, sizeof(cl_int), &beton_length);
-    if(errNum < 0) {
-        perror("Couldn't set a kernel argument (beton_length)");
-        exit(EXIT_FAILURE);
-    };
-
-    /*
-    int dim = 1;
-    const size_t global_offset[] = { 0 };
-    const size_t global_size[] = { opencode_length };
-    const size_t local_size[] = { 1 };
-    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL, kernel_event);
-    */
-
-    //printf("pass kernel code to GPU%d\n", 0);
-    /*
-    /* Read and print the result * /
-    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * opencode_length, *result, 0, NULL, NULL);
-    //checkErr(errNum, "clEnqueueReadBuffer");
-    if(errNum < 0) {
-        perror("Couldn't read the buffer");
-        exit(EXIT_FAILURE);
-    }
-    clReleaseMemObject(result_buffer);
-    */
-
-    //clReleaseMemObject(total_beton_amount_buffer);
-    //clReleaseMemObject(total_beton_amount_with_odds_buffer);
-    //clReleaseMemObject(sub_opencode_answer_table_buffer);
-
-    timeEnd = clock();
-    //printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-    return 0;
-}
-
 int run_kernel_find_best_amount_count(
         cl_context context, 
         cl_command_queue queue, 
@@ -510,7 +368,7 @@ int main(int argc, char* argv[])
     cl_program* program = NULL;
     cl_command_queue* queue_list = NULL;
 
-    int beton_Length = 0;
+    int beton_length = 0;
     uint32 opencode_length = 0; 
     int wager_length = 0; 
     char expectId[MAX_LENGTH];
@@ -555,7 +413,11 @@ int main(int argc, char* argv[])
     checkErr(errNum, "clCreateKernel");
     printf("Create OpenCL Kernel program :%s\n", "sum_beton_total_amount");
     
-    cl_kernel kCalcNumbersRisk = clCreateKernel(program, "calc_numbers_risk", &errNum);
+    cl_kernel kCalcNumbersRisk1 = clCreateKernel(program, "calc_numbers_risk", &errNum);
+    checkErr(errNum, "clCreateKernel");
+    printf("Create OpenCL Kernel program :%s\n", "calc_numbers_risk");
+
+    cl_kernel kCalcNumbersRisk2 = clCreateKernel(program, "calc_numbers_risk", &errNum);
     checkErr(errNum, "clCreateKernel");
     printf("Create OpenCL Kernel program :%s\n", "calc_numbers_risk");
 
@@ -573,22 +435,22 @@ int main(int argc, char* argv[])
     printf(".......... successful!!\n");
     //============================================================================
     printf("get opencode answer table shape...\n");
-    get_opnecode_answer_table_shape(opencode_answer_table_file, &beton_Length, &opencode_length);
-    printf("opencode Length:%ld, beton Length:%d\n", opencode_length, beton_Length);
+    get_opnecode_answer_table_shape(opencode_answer_table_file, &beton_length, &opencode_length);
+    printf("opencode Length:%ld, beton Length:%d\n", opencode_length, beton_length);
     
     printf("load opencode answer table from csv...\n");
     fflush(stdout); //不給\n就不給輸出,flush強制輸出
-    opencode_answer_table = (cl_short *)malloc(sizeof(cl_short) * beton_Length * opencode_length);
+    opencode_answer_table = (cl_short *)malloc(sizeof(cl_short) * beton_length * opencode_length);
     opencodeList = (char**)malloc(sizeof(*opencodeList) * opencode_length);
     load_opnecode_answer_table(opencode_answer_table_file, &opencode_answer_table, &opencodeList);
 
-    one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * beton_Length);
-    for(int i=0; i<=beton_Length-1; i++ )
+    one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * beton_length);
+    for(int i=0; i<=beton_length-1; i++ )
     {
         one_mask[i] = 1;
     }
 
-    //以下重複直行
+    //初始化資料
     //===================================================================================================
     int dataSegmentLength =  opencode_length / dataSegmentNum;
     int dataSegmentOffset = 0;
@@ -598,18 +460,6 @@ int main(int argc, char* argv[])
     opencode_answer_table_result2 = (cl_float*)malloc(sizeof(cl_float) * dataSegmentLength);
     printf("........... successful !!\n");
     
-    //create opencode_answer_table Buffer
-   cl_mem opencode_answer_table_buffer = clCreateBuffer(
-        context, 
-        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_short) * beton_Length * opencode_length, 
-        opencode_answer_table, 
-        &errNum);    
-    if(errNum < 0) {
-        perror("Couldn't create a opencode_answer_table_buffer");
-        exit(EXIT_FAILURE);
-    };
-
     char recv_buffer[MAX_BUFFER_SIZE] = {};
     char* send_buffer = NULL;
     int forClientSockfd = 0, sockfd = 0;
@@ -624,9 +474,44 @@ int main(int argc, char* argv[])
     float target_amount = 0;
     float tolerance = 0;
 
+    //opencl buffer
+    cl_mem total_beton_amount_buffer[2];
+    cl_mem total_beton_amount_with_odds_buffer[2];
+    cl_mem sub_opencode_answer_table_buffer[2];
+    cl_mem result_buffer[2];
+    cl_buffer_region region[2];
+    //opencl events
     cl_event kernel_events[2];
     cl_event read_events[2];
-    cl_mem result_buffer[2];
+
+     //create opencode_answer_table Buffer
+    cl_mem opencode_answer_table_buffer = clCreateBuffer(
+        context, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
+        sizeof(cl_short) * beton_length * opencode_length, 
+        opencode_answer_table, 
+        &errNum);    
+    if(errNum < 0) {
+            perror("Couldn't create a opencode_answer_table_buffer");
+            exit(EXIT_FAILURE);
+    };
+
+    //create buffer sub_opencode_answer_table_buffer
+    region[0].origin = 0;
+    region[0].size = sizeof(cl_short) * beton_length * dataSegmentLength;
+    sub_opencode_answer_table_buffer[0] = clCreateSubBuffer(opencode_answer_table_buffer, CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region[0], &errNum);
+    if(errNum < 0) {
+        perror("Couldn't create a sub-buffer");
+        exit(EXIT_FAILURE);
+    }
+    //create buffer sub_opencode_answer_table_buffer
+    region[1].origin = 1814400;
+    region[1].size = sizeof(cl_short) * beton_length * dataSegmentLength;
+    sub_opencode_answer_table_buffer[1] = clCreateSubBuffer(opencode_answer_table_buffer, CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region[1], &errNum);
+    if(errNum < 0) {
+        perror("Couldn't create a sub-buffer");
+        exit(EXIT_FAILURE);
+    }
     //while 重複直行
     //===================================================================================================
     while(true)
@@ -656,76 +541,125 @@ int main(int argc, char* argv[])
 #ifdef DEBUG
         float sum = 0;
 #endif
-        beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
+        beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * beton_length * wager_length);
         load_beton_amount_table(beton_amount_table_file, &beton_amount_table);
-        total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
+        total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * beton_length);
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
             kSumBetonTotalAmount, 
-            beton_Length, wager_length,
+            beton_length, wager_length,
             one_mask, beton_amount_table,
             &total_beton_amount_vector);
         if(beton_amount_table)
             free(beton_amount_table);
 #ifdef DEBUG
         sum = 0;
-        for(int i=0; i<=beton_Length-1; i++)
+        for(int i=0; i<=beton_length-1; i++)
         {
             sum += total_beton_amount_vector[i];
         }
         printf("====> sum total_beton_amount = %f\n", sum);
 #endif
 
-        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * beton_Length * wager_length);
+        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * beton_length * wager_length);
         load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
-        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * beton_Length);
+        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * beton_length);
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
             kSumBetonTotalAmount, 
-            beton_Length, wager_length,
+            beton_length, wager_length,
             one_mask, beton_amount_with_odds_table, 
             &total_beton_amount_with_odds_vector);
         if(beton_amount_with_odds_table)
             free(beton_amount_with_odds_table);
 #ifdef DEBUG
         sum = 0;
-        for(int i=0; i<=beton_Length-1; i++)
+        for(int i=0; i<=beton_length-1; i++)
         {
             sum += total_beton_amount_with_odds_vector[i];
         }
         printf("====> sum total beton amount with odds = %f\n", sum);
 #endif
-        printf("result_buffer[0] pointer is %p, result_buffer[1] pointer is %p. \n", result_buffer[0], result_buffer[1]);
-        result_buffer[0] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * dataSegmentLength ,  NULL,  &errNum);
-        if(errNum < 0) {
-            perror("Couldn't create a result_buffer");
-            exit(EXIT_FAILURE);
-        };
-        result_buffer[1] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * dataSegmentLength ,  NULL,  &errNum);
-        if(errNum < 0) {
-            perror("Couldn't create a result_buffer");
-            exit(EXIT_FAILURE);
-        };
 
+        clock_t timeStart, timeEnd;
+        timeStart = clock();
         //計算獎號開出金額 1/2
         //===================================================================
         printf("calc total win/loss amount in opencode list ... 1/2\n");
         dataSegmentOffset = 0; 
         memset(opencode_answer_table_result1, 0.0f, dataSegmentLength);
-        run_kernel_calc_numbers_risk(context, queue_list[0], &kCalcNumbersRisk, 
-            beton_Length, dataSegmentLength, dataSegmentOffset,
-            total_beton_amount_vector, 
-            total_beton_amount_with_odds_vector,  
-            &opencode_answer_table_buffer,
-            &result_buffer[0]);
-        
+        // creater buffer total_beton_amount_buffer
+        total_beton_amount_buffer[0] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,  sizeof(cl_float) * beton_length, total_beton_amount_vector, &errNum); 
+        if(errNum < 0) {
+            perror("Couldn't create a total_beton_amount_buffer");
+            exit(EXIT_FAILURE);
+        };
+        //create buffer total_beton_amount_with_odds_buffer 
+        total_beton_amount_with_odds_buffer[0] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * beton_length, total_beton_amount_with_odds_vector, &errNum);    
+        if(errNum < 0) {
+            perror("Couldn't create a total_beton_amount_with_odds_buffer");
+            exit(EXIT_FAILURE);
+        };
+       
+        //create buffer result_buffer
+        result_buffer[0] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * dataSegmentLength ,  NULL,  &errNum);
+        if(errNum < 0) {
+            perror("Couldn't create a result_buffer");
+            exit(EXIT_FAILURE);
+        };
+#ifdef DEBUG
+        void *main_buffer_mem = NULL, *sub_buffer_mem = NULL;
+        size_t main_buffer_size, sub_buffer_size;
+        /* Obtain size information about the buffers */
+        clGetMemObjectInfo(opencode_answer_table_buffer, CL_MEM_SIZE, sizeof(main_buffer_size), &main_buffer_size, NULL);
+        clGetMemObjectInfo(sub_opencode_answer_table_buffer[0], CL_MEM_SIZE,  sizeof(sub_buffer_size), &sub_buffer_size, NULL);
+        printf("Main buffer size: %lu\n", main_buffer_size);
+        printf("Sub-buffer size:  %lu\n", sub_buffer_size);
+   
+        /* Obtain the host pointers */
+        clGetMemObjectInfo(opencode_answer_table_buffer, CL_MEM_HOST_PTR, sizeof(main_buffer_mem), &main_buffer_mem, NULL);
+        clGetMemObjectInfo(sub_opencode_answer_table_buffer[0], CL_MEM_HOST_PTR, sizeof(sub_buffer_mem),  &sub_buffer_mem, NULL);
+        printf("Main buffer memory address: %p\n", main_buffer_mem);
+        printf("Sub-buffer memory address:  %p\n", sub_buffer_mem);
+#endif
+        /* Create kernel argument */
+        errNum = clSetKernelArg(kCalcNumbersRisk1, 0, sizeof(cl_mem), &total_beton_amount_buffer[0]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
+            exit(EXIT_FAILURE);
+        };
+
+        errNum = clSetKernelArg(kCalcNumbersRisk1, 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[0]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
+            exit(EXIT_FAILURE);
+        };
+
+        errNum = clSetKernelArg(kCalcNumbersRisk1, 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer[0]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (sub_opencode_answer_table_buffer)");
+            exit(EXIT_FAILURE);
+        };
+
+        errNum = clSetKernelArg(kCalcNumbersRisk1, 3, sizeof(cl_mem), &result_buffer[0]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (result_buffer)");
+            exit(EXIT_FAILURE);
+        };
+
+        errNum = clSetKernelArg(kCalcNumbersRisk1, 4, sizeof(cl_int), &beton_length);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (beton_length)");
+            exit(EXIT_FAILURE);
+        };
+
         int dim = 1;
         const size_t global_offset[] = { 0 };
         const size_t global_size[] = { dataSegmentLength };
         const size_t local_size[] = { 1 };
-        errNum = clEnqueueNDRangeKernel(queue_list[0], kCalcNumbersRisk, dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[0]);
+        errNum = clEnqueueNDRangeKernel(queue_list[0], kCalcNumbersRisk1, dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[0]);
         if(errNum < 0) {
             perror("Couldn't enqueue kernel");
             exit(EXIT_FAILURE);
@@ -736,18 +670,71 @@ int main(int argc, char* argv[])
         printf("calc total win/loss amount in opencode list ... 2/2\n");
         dataSegmentOffset = 1814400;
         memset(opencode_answer_table_result2, 0.0f, dataSegmentLength);
-        run_kernel_calc_numbers_risk(context, queue_list[1], &kCalcNumbersRisk, 
-            beton_Length, dataSegmentLength, dataSegmentOffset,
-            total_beton_amount_vector, 
-            total_beton_amount_with_odds_vector, 
-            &opencode_answer_table_buffer,
-            &result_buffer[1]);
-        errNum = clEnqueueNDRangeKernel(queue_list[1], kCalcNumbersRisk, dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[1]);
+         // creater buffer total_beton_amount_buffer
+        total_beton_amount_buffer[1] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,  sizeof(cl_float) * beton_length, total_beton_amount_vector, &errNum); 
+        if(errNum < 0) {
+            perror("Couldn't create a total_beton_amount_buffer");
+            exit(EXIT_FAILURE);
+        };
+        //create buffer total_beton_amount_with_odds_buffer 
+        total_beton_amount_with_odds_buffer[1] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * beton_length, total_beton_amount_with_odds_vector, &errNum);    
+        if(errNum < 0) {
+            perror("Couldn't create a total_beton_amount_with_odds_buffer");
+            exit(EXIT_FAILURE);
+        };
+        //create buffer result_buffer
+        result_buffer[1] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * dataSegmentLength ,  NULL,  &errNum);
+        if(errNum < 0) {
+            perror("Couldn't create a result_buffer");
+            exit(EXIT_FAILURE);
+        };
+#ifdef DEBUG
+        //void *main_buffer_mem = NULL, *sub_buffer_mem = NULL;
+        //size_t main_buffer_size, sub_buffer_size;
+        /* Obtain size information about the buffers */
+        clGetMemObjectInfo(opencode_answer_table_buffer, CL_MEM_SIZE, sizeof(main_buffer_size), &main_buffer_size, NULL);
+        clGetMemObjectInfo(sub_opencode_answer_table_buffer[1], CL_MEM_SIZE,  sizeof(sub_buffer_size), &sub_buffer_size, NULL);
+        printf("Main buffer size: %lu\n", main_buffer_size);
+        printf("Sub-buffer size:  %lu\n", sub_buffer_size);
+   
+        /* Obtain the host pointers */
+        clGetMemObjectInfo(opencode_answer_table_buffer, CL_MEM_HOST_PTR, sizeof(main_buffer_mem), &main_buffer_mem, NULL);
+        clGetMemObjectInfo(sub_opencode_answer_table_buffer[1], CL_MEM_HOST_PTR, sizeof(sub_buffer_mem),  &sub_buffer_mem, NULL);
+        printf("Main buffer memory address: %p\n", main_buffer_mem);
+        printf("Sub-buffer memory address:  %p\n", sub_buffer_mem);
+#endif
+        /* Create kernel argument */
+        errNum = clSetKernelArg(kCalcNumbersRisk2, 0, sizeof(cl_mem), &total_beton_amount_buffer[1]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
+            exit(EXIT_FAILURE);
+        };
+        errNum = clSetKernelArg(kCalcNumbersRisk2, 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[1]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
+            exit(EXIT_FAILURE);
+        };
+        errNum = clSetKernelArg(kCalcNumbersRisk2, 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer[1]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (sub_opencode_answer_table_buffer)");
+            exit(EXIT_FAILURE);
+        };
+        errNum = clSetKernelArg(kCalcNumbersRisk2, 3, sizeof(cl_mem), &result_buffer[1]);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (result_buffer)");
+            exit(EXIT_FAILURE);
+        };
+        errNum = clSetKernelArg(kCalcNumbersRisk2, 4, sizeof(cl_int), &beton_length);
+        if(errNum < 0) {
+            perror("Couldn't set a kernel argument (beton_length)");
+            exit(EXIT_FAILURE);
+        };
+        errNum = clEnqueueNDRangeKernel(queue_list[1], kCalcNumbersRisk2, dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[1]);
         if(errNum < 0) {
             perror("Couldn't enqueue kernel");
             exit(EXIT_FAILURE);
         }
-
+      
         /* Read and print the result */
         errNum = clEnqueueReadBuffer(queue_list[0], result_buffer[0], CL_FALSE, 0, sizeof(cl_float) * dataSegmentLength, opencode_answer_table_result1, 0, NULL, &read_events[0]);
         if(errNum < 0) {
@@ -755,20 +742,47 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
         errNum = clEnqueueReadBuffer(queue_list[1], result_buffer[1], CL_FALSE, 0, sizeof(cl_float) * dataSegmentLength, opencode_answer_table_result2, 0, NULL, &read_events[1]);
-        //checkErr(errNum, "clEnqueueReadBuffer");
         if(errNum < 0) {
             perror("Couldn't read the buffer");
             exit(EXIT_FAILURE);
         }
         printf("=======> clWaitForEvents \n");
         clWaitForEvents(2, read_events);
+        
+        timeEnd = clock();
+        printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", "use 2 GPU calc", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 
-        clReleaseEvent(read_events[0]);
-        clReleaseEvent(read_events[1]);
-        clReleaseEvent(kernel_events[0]);
-        clReleaseEvent(kernel_events[1]);
-        clReleaseMemObject(result_buffer[0]);
-        clReleaseMemObject(result_buffer[1]);
+        printf("execute kernel from gpu0 time:%lfs\n", executionTime(kernel_events[0]));
+        printf("execute kernel from gpu1 time:%lfs\n", executionTime(kernel_events[1]));
+        printf("read buffer from gpu0 time:%lfs\n", executionTime(read_events[0]));
+        printf("read buffer from gpu1 time:%lfs\n", executionTime(read_events[1]));
+
+        printf("release total_beton_amount_buffer[0]\n");
+        clReleaseMemObject(total_beton_amount_buffer[0]);
+        printf("release total_beton_amount_with_odds_buffer[0]\n");
+        clReleaseMemObject(total_beton_amount_with_odds_buffer[0]);
+        //printf("release sub_opencode_answer_table_buffer[0]\n");
+        //clReleaseMemObject(sub_opencode_answer_table_buffer[0]);
+            
+        printf("release total_beton_amount_buffer[1]\n");
+        clReleaseMemObject(total_beton_amount_buffer[1]);
+        printf("release total_beton_amount_with_odds_buffer[1]\n");
+        clReleaseMemObject(total_beton_amount_with_odds_buffer[1]);
+        //printf("release sub_opencode_answer_table_buffer[1]\n");
+        //clReleaseMemObject(sub_opencode_answer_table_buffer[1]);
+        
+        printf("release kernel_events\n");
+        for(int i =0 ;i<= total_devices -1; i++)
+            clReleaseEvent(kernel_events[i]);
+
+        printf("release read_events\n");
+        for(int i =0 ;i<= total_devices -1; i++)
+            clReleaseEvent(read_events[i]);
+        
+        printf("release result_buffer\n");
+        for(int i =0 ;i<= total_devices -1; i++)
+            clReleaseEvent(result_buffer[i]);
+
 #ifdef DEBUG
         for(int i=0; i<=20 - 1; i++)
         {
@@ -782,128 +796,47 @@ int main(int argc, char* argv[])
             printf("%s, result[%d]=%f \n",opencodeList[i +dataSegmentOffset ], i + dataSegmentOffset, opencode_answer_table_result2[i]);
         }
 #endif
-        // 過濾指定金額 1/2
-        //====================================================================
-        printf("count opencode when win/loss amount in range ... 1/2\n");
-        int result_count = 0;
-        run_kernel_find_best_amount_count(
-            context, 
-            queue_list[0],
-            kFindBestAmountCount,
-            opencode_answer_table_result1,
-            dataSegmentLength,
-            target_amount_range1, target_amount_range2,
-            &result_count
-        );
-        clFinish(queue_list[0]);
-        printf("result_count=%d \n", result_count);
-
+        
+        clock_t timeStart, timeEnd;
+        timeStart = clock();
         char result_file[MAX_LENGTH];
         memset(result_file, '\0', MAX_LENGTH);
         sprintf(result_file, "%s/data/opencode_amount_result_%s.csv",  current_path, expectId);
-#ifdef DEBUG
-        printf("opencode amount result file: %s\n", result_file);
-#endif
+        //check result file exist
         FILE* fp = fopen(result_file, "r");
         if (fp) {
             // file exists
             remove(result_file);
-            fclose(fp);
-        } else {
-            // file doesn't exist
-        }
-
-        if(result_count > 0)
-        {
-            printf("filter opencode when win/loss amount in range ... 1/2\n");
-            cl_uint* amountRangeResult1 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
-            memset(amountRangeResult1, 0, result_count);
-            run_kernel_find_best_amount(
-                context,
-                queue_list[0],
-                kFindBestAmount,
-                opencode_answer_table_result1,
-                dataSegmentLength,
-                result_count,
-                target_amount_range1, target_amount_range2,
-                &amountRangeResult1);
-            //clFinish(queue_list[0]);
-#ifdef DEBUG
-            for(int i=0; i<=result_count-1; i++ )
-            {
-                int index = amountRangeResult1[i];
-                //printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_table_result1[index]);
-            }
-#endif
-            //寫入檔案 1/2
-            fp = fopen(result_file, "a");
-            for(int i=0; i<=result_count-1; i++ )
-            {
-                int index = amountRangeResult1[i];
-                char tmp[MAX_LENGTH];
-                memset(tmp, '\0', MAX_LENGTH);
-                sprintf(tmp, "%s,%f\n",  opencodeList[index], opencode_answer_table_result1[index]);
-                fputs(tmp, fp);
-            }
-            fclose(fp);
-
-            if(amountRangeResult1)
-                free(amountRangeResult1);
-        }
-
-        // 過濾指定金額 2/2
-        //====================================================================
-        printf("count opencode when win/loss amount in range ... 2/2\n");
-        result_count = 0;
-        run_kernel_find_best_amount_count(
-            context, 
-            queue_list[0],
-            kFindBestAmountCount,
-            opencode_answer_table_result2,
-            dataSegmentLength,
-            target_amount_range1, target_amount_range2,
-            &result_count
-        );
-        clFinish(queue_list[0]);
-        printf("result_count=%d \n", result_count);
-
-        if(result_count > 0)
-        {
-            printf("filter opencode when win/loss amount in range ... 2/2\n");
-            cl_uint* amountRangeResult2 = (cl_uint*)malloc(sizeof(cl_uint) * result_count);
-            memset(amountRangeResult2, 0, result_count);
-            run_kernel_find_best_amount(
-                context,
-                queue_list[0],
-                kFindBestAmount,
-                opencode_answer_table_result2,
-                dataSegmentLength,
-                result_count,
-                target_amount_range1, target_amount_range2,
-                &amountRangeResult2);
-            clFinish(queue_list[0]);
-#ifdef DEBUG
-            for(int i=0; i<=result_count-1; i++ )
-            {
-                int index = amountRangeResult2[i] + dataSegmentLength;
-                printf("%s, result[%d]=%f \n", opencodeList[index], index, opencode_answer_table_result2[amountRangeResult2[i]]);
-            }
-#endif
-            //寫入檔案 2/2
-            fp = fopen(result_file, "a");
-            for(int i=0; i<=result_count-1; i++ )
-            {
-                int index = amountRangeResult2[i] + dataSegmentLength;
-                char tmp[MAX_LENGTH];
-                memset(tmp, '\0', MAX_LENGTH);
-                sprintf(tmp, "%s,%f\n",  opencodeList[index], opencode_answer_table_result2[index]);
-                fputs(tmp, fp);
-            }
-            fclose(fp);
-            if(amountRangeResult2)
-                free(amountRangeResult2);
-        }
+        } 
+        fclose(fp);
         
+        char tmp[MAX_LENGTH];
+        //寫入檔案 1/2
+        fp = fopen(result_file, "a");
+        for(int i=0; i<= dataSegmentLength -1; i++ )
+        {
+            float amount = opencode_answer_table_result1[i];
+            if(target_amount_range1 <=amount && amount <= target_amount_range2)
+            {
+                memset(tmp, '\0', MAX_LENGTH);
+                sprintf(tmp, "%s,%f\n",  opencodeList[i], amount);
+                fputs(tmp, fp);
+            }
+        }
+        for(int i=0; i<= dataSegmentLength -1; i++ )
+        {
+            float amount = opencode_answer_table_result2[i];
+            if(target_amount_range1 <=amount && amount <= target_amount_range2)
+            {
+                memset(tmp, '\0', MAX_LENGTH);
+                sprintf(tmp, "%s,%f\n",  opencodeList[i + dataSegmentOffset], amount);
+                fputs(tmp, fp);
+            }
+        }
+        fclose(fp);
+        timeEnd = clock();
+        printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", "save result to csv", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+     
         /* 獲取系統當前日期時間 */
         memset(dateTime, 0, sizeof(dateTime));
         GetDateTime(dateTime);
