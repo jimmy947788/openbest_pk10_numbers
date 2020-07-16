@@ -124,7 +124,7 @@ void create_queue_list(cl_context context,
     *queue_list = (cl_command_queue*)malloc(sizeof(cl_command_queue) * total_devices);
     for(cl_int i=0; i<=total_devices -1; i++ )
     {
-        *(*queue_list + i) = clCreateCommandQueue(context, device_list[i], 0, &errNum);
+        *(*queue_list + i) = clCreateCommandQueue(context, device_list[i], CL_QUEUE_PROFILING_ENABLE, &errNum);
         checkErr(errNum, "clCreateCommandQueue");
         if(errNum < 0) {
             perror("Couldn't read the buffer");
@@ -175,12 +175,15 @@ void build_program_for_all_devices(
     }
 }
 
-double executionTime(cl_event event)
+void executionTime(cl_event event, double* tttt)
 {
     cl_ulong start, end;
+    double total_time;
     
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+    total_time = end - start;
 
-    return (double)1.0e-9 * (end - start); // convert nanoseconds to seconds on return
+    *tttt = (total_time /1000000.0);
+    //return (double)(end - start)*(double)(1e-06); // convert nanoseconds to seconds on return
 }
