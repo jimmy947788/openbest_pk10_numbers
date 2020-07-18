@@ -10,8 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/calc_opencode_amount",
             "args": [ 
-                "--kernel-program", "${workspaceFolder}/kernels/kernel_program.cl", 
-                "--opencode-answer", "${workspaceFolder}/data/opencode_table_all.csv",
+                "--kernel-program", "${workspaceFolder}/bin/kernel_program.cl", 
                 "--log", "${workspaceFolder}/log/"
             ],
             "stopAtEntry": false,

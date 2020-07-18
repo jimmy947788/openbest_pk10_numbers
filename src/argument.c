@@ -1,4 +1,4 @@
-#include "Common.h"
+#include "../header/argument.h"
 
 /* Flag set by ‘--verbose’. */
 static int verbose_flag;
@@ -7,25 +7,22 @@ static struct option long_options[] =
     /* These options set a flag. */
     {"version",                 no_argument,            0, 'V'},
     {"kernel-program",          required_argument,      0, 'k'},
-    {"opencode-answer",         required_argument,      0, 'o'},
     {"log",                     required_argument,      0, 'l'},
     {"help",                    no_argument,            0, 'h'},
     {"show-gpu-info",           no_argument,            0, 's'},
 };
 
-void Help()
+void help()
 {
     printf("option\n");
     printf("-V, -version                     Show program version.\n");
     printf("-k, --kernel-program <path>      Path to opencl kernel program.\n");
-    printf("-o, --opencode-answer <path>     Path to opencode anser csv path.\n");
     printf("-l, --log <path>                 Path to program runtime log.\n");
     printf("-s, --show-gpu-info              Show GPU info.\n");
 }
 
-void LoadArgs(int argc, char* argv[], 
+void laod_args(int argc, char* argv[], 
         char kernel_program_path[], 
-        char opencode_answer_path[], 
         char log_dir[])
 {
     int cmd_opt;
@@ -37,7 +34,7 @@ void LoadArgs(int argc, char* argv[],
         /* getopt_long stores the option index here. */
         int option_index = 0;
 
-        cmd_opt = getopt_long (argc, argv, "Vk:o:l:hs", /* v不用帶參數, k:必須要帶參數 a:必須要帶參數 h不用帶參數 l:必須要帶參數 */
+        cmd_opt = getopt_long (argc, argv, "Vk:l:hs", /* v不用帶參數, k:必須要帶參數 a:必須要帶參數 h不用帶參數 l:必須要帶參數 */
                        long_options, &option_index);   
         /* Detect the end of the options. */
         if (cmd_opt == -1) {
@@ -54,16 +51,12 @@ void LoadArgs(int argc, char* argv[],
             strcpy(kernel_program_path, optarg);
             break;
 
-        case 'o':
-            strcpy(opencode_answer_path, optarg);
-            break;
-
         case 'l':
             strcpy(log_dir, optarg);
             break;
             
         case 'h':
-            Help();
+            help();
             exit(EXIT_SUCCESS);
         
         case 's':
@@ -82,7 +75,7 @@ void LoadArgs(int argc, char* argv[],
 
         case '?':
             /* getopt_long already printed an error message. */
-            Help();
+            help();
             exit(EXIT_SUCCESS);
 
         default:

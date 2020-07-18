@@ -1,22 +1,5 @@
-#include "Common.h"
-    
-int ReadFileContent(const char* path, char *content)
-{
-    FILE *fp;
-    size_t source_size;
-
-    fp = fopen(path, "r");
-    if (!fp) {
-        fprintf(stderr, "Failed to load file.\n");
-        exit(EXIT_FAILURE);
-    }
-    source_size = fread( content, 1, MAX_SOURCE_SIZE, fp);
-    //printf(source_str);
-    fclose( fp );
-    
-    return source_size;
-}
-
+#include "../header/utility.h"
+  
 void checkErr(cl_int err, const char* name)
 {
     if(err != CL_SUCCESS)
@@ -142,7 +125,7 @@ void build_program_for_all_devices(
     cl_int errNum;
     // Load the kernel source code into the array source_str
     char* programContent = (char*)malloc(MAX_SOURCE_SIZE);
-    size_t programSize = ReadFileContent(programPath, programContent);
+    size_t programSize = readFileContent(programPath, programContent);
 
     // Create a program from the kernel source
     *program = clCreateProgramWithSource(context, 1, 
@@ -186,4 +169,93 @@ void executionTime(cl_event event, double* elapsedTime)
 
     *elapsedTime = (end-start)*1.0e-6f;
     //return (double)(end - start)*(double)(1e-06); // convert nanoseconds to seconds on return
+}
+
+int run_kernel_sum_beton_total_amount(
+        cl_context context, 
+        cl_command_queue queue, 
+        cl_kernel kernel,
+        int wgaer_length, 
+        cl_ushort* one_mask, 
+        cl_float* bet_amount, 
+        cl_float** result)
+{
+    cl_int errNum;
+    
+    printf("clCreateBuffer mask_buffer\n");
+    /* Create a write-only buffer to hold the output data */
+    cl_mem mask_buffer = clCreateBuffer(context, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
+        sizeof(cl_ushort) * PK10_BETON_COUNT, 
+        one_mask, 
+        &errNum); 
+    if(errNum < 0) {
+      perror("Couldn't create a mask_buffer");
+      exit(EXIT_FAILURE);
+    };
+
+    printf("clCreateBuffer bet_amount_buffer\n");
+    cl_mem bet_amount_buffer = clCreateBuffer(context, 
+        CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
+        sizeof(cl_float) * PK10_BETON_COUNT * wgaer_length, 
+        bet_amount, 
+        &errNum);    
+    if(errNum < 0) {
+      perror("Couldn't create a bet_amount_buffer");
+      exit(EXIT_FAILURE);
+    };
+
+    cl_mem result_buffer = clCreateBuffer(context,
+        CL_MEM_WRITE_ONLY,
+        sizeof(cl_float) * PK10_BETON_COUNT, 
+        NULL, 
+        &errNum);
+     if(errNum < 0) {
+      perror("Couldn't create a result_buffer");
+      exit(EXIT_FAILURE);
+    };
+
+    /* Create kernel argument */
+    errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &mask_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(mask_buffer)");
+        exit(EXIT_FAILURE);
+    };
+    errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &bet_amount_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(bet_amount_buffer)");
+        exit(EXIT_FAILURE);
+    };
+    errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(result_buffer)");
+        exit(EXIT_FAILURE);
+    };
+    errNum = clSetKernelArg(kernel, 3, sizeof(cl_int), &wgaer_length);
+    if(errNum < 0) {
+        perror("Couldn't set a kernel argument(wgaer_length)");
+        exit(EXIT_FAILURE);
+    };
+
+    int dim = 1;
+    const size_t global_offset[] = { 0 };
+    const size_t global_size[] = { PK10_BETON_COUNT };
+    const size_t local_size[] = { 1 };
+    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  NULL);
+
+    checkErr(errNum, "clEnqueueNDRangeKernel");    
+    printf("pass kernel code to GPU%d\n", 0);
+
+     /* Read and print the result */
+    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * PK10_BETON_COUNT, *result, 0, NULL, NULL);
+    if(errNum < 0) {
+        perror("Couldn't read the buffer");
+        exit(EXIT_FAILURE);
+    }
+
+    clReleaseMemObject(result_buffer);
+    clReleaseMemObject(mask_buffer);
+    clReleaseMemObject(bet_amount_buffer);
+   
+    return 0;
 }

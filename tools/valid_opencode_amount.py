@@ -288,7 +288,8 @@ def transferWager(raw_data):
 if __name__ == "__main__":
 
     currentPath = os.path.dirname(os.path.abspath(__file__))
-    
+    currentPath = currentPath.replace("/tools", "")
+
     if not os.path.exists(f"{currentPath}/log"):
         os.mkdir(f"{currentPath}/log")
     home_path = str(Path.home())
@@ -314,7 +315,7 @@ if __name__ == "__main__":
     
     with open(f"{currentPath}/data/test_wager_data.txt") as f:
         raw_data = f.read()
-    logging.debug(f"row data: {raw_data}")
+    # logging.debug(f"row data: {raw_data}")
     
     (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)= transferWager(raw_data)
 
@@ -346,19 +347,20 @@ if __name__ == "__main__":
     total_amount_odds_result = beton_total_amount(one_vector_mask, amount_odds_matrix, wager_length)
     logging.debug(f"total_amount_odds_result:{total_amount_odds_result}")
 
+    with open(f"{currentPath}/data/opencode_table_test.csv") as f:
+        columns = f.read().splitlines()[0].split(',')
+        answer = columns[1:]
+        opencode = columns[0]
+        print(answer)
     
-    with open("data/opencode_table_test.csv") as f:
-        ddddd = f.read().splitlines()[0].split(',')[1:]
-        print(ddddd)
-    
-    print("ddddd len:", len(ddddd))
+    print("answer len:", len(answer))
     print("total_amount_odds_result len:", len(total_amount_odds_result))
     print("total_amount_result len:", len(total_amount_result))
 
     sum = 0
     for i in range(1056):
-        if int(ddddd[i]) > 0:
+        if int(answer[i]) > 0:
             sum += total_amount_odds_result[i] 
         else:
             sum += total_amount_result[i] * -1
-    print(f"sum={sum}")
+    print(f"opencode={opencode}, amount={sum}")

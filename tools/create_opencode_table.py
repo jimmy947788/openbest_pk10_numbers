@@ -2,6 +2,7 @@ import itertools
 import pandas as pd
 from argparse import ArgumentParser
 import re
+import os
 
 def DWD(balls, pos, num):
     return 1 if balls[pos -1] == num else -1
@@ -124,17 +125,25 @@ ALL_BALLS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 def main():
     parser = ArgumentParser()
     parser.add_argument("--header", help="optional argument", dest="header", default=False)
+    parser.add_argument("--opencode", help="optional argument", dest="opencode", default=None)
     args = parser.parse_args()
     hasHeader = bool(args.header)
     print("header arg:", hasHeader)
+    print("opencode arg:", args.opencode)
 
-    #ballsList = [(1, 2, 3, 4, 5, 6, 7, 8, 10, 9)]
-    ballsList = [(5,10,9,8,7,6,1,4,2,3)]
-    #ballsList = list(itertools.permutations(ALL_BALLS, 10))
+    currentPath = os.path.dirname(os.path.abspath(__file__))
+    currentPath = currentPath.replace("/tools", "")
+
+    ballsList = []
+    if args.opencode:
+        res = tuple(map(int, args.opencode.split('-'))) 
+        ballsList.append(res)
+    else:
+        ballsList = list(itertools.permutations(ALL_BALLS, 10))
 
     row_max_length = 20
     row_count = 0
-    with open('data/opencode_table_test.csv', 'w+', encoding='UTF-8') as f:
+    with open(f'{currentPath}/data/opencode_table_test.csv', 'w+', encoding='UTF-8') as f:
         headers = createHeader()
         if hasHeader:
             strHeaderWithComma = ','.join(str(e) for e in headers)
@@ -143,9 +152,6 @@ def main():
 
         for balls in ballsList: # ALL
             print(balls)
-
-            #if balls[0] >= 6:
-            #    break
 
             columns = []
             for header in headers:

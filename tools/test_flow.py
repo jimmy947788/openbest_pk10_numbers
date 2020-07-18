@@ -304,7 +304,8 @@ if __name__ == "__main__":
     global currentPath
     global opencode_answer_table
 
-    currentPath =  os.path.dirname(os.path.abspath(__file__))
+    currentPath = os.path.dirname(os.path.abspath(__file__))
+    currentPath = currentPath.replace("/tools", "")
     
     if not os.path.exists(f"{currentPath}/log"):
         os.mkdir(f"{currentPath}/log")

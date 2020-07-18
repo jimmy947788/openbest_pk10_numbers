@@ -50,7 +50,7 @@ ifeq ($(ver), debug)
 	CFLAGS += -g -DDEBUG
 endif
 
-$(PROJ): $(PROJ).c common/*.c
+$(PROJ): src/*.c
 	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -lpthread
 	cp kernels/kernel_program.cl bin/
 

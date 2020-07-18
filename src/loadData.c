@@ -1,40 +1,21 @@
-#include "Common.h"
+#include "../header/loadData.h"
 
-void load_socket_data(char* data, 
-    char* beton_amount_table_file, 
-    char* beton_amount_table_with_odds_file, 
-    int* wager_length, 
-    char* expectId,
-    float* target_amount,
-    float* tolerance)
+int readFileContent(const char* path, char *content)
 {
-    char * line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    char delim[] = ",";
-    char *p = NULL;
+    FILE *fp;
+    size_t source_size;
 
-    //split read beton_amount_table_file
-    p = strtok(data, delim);
-    memset(beton_amount_table_file, '\0', MAX_LENGTH);
-    strcpy(beton_amount_table_file, p);
-    //split read beton_amount_table_with_odds_file
-    p = strtok(NULL, delim);
-    memset(beton_amount_table_with_odds_file, '\0', MAX_LENGTH);
-    strcpy(beton_amount_table_with_odds_file, p);
-    //split read wager_length
-    p = strtok(NULL, delim);
-    (*wager_length) = strtol(p, NULL, 10);
-    //split read expectId
-    p = strtok(NULL, delim);
-    memset(expectId, '\0', MAX_LENGTH);
-    strcpy(expectId, p);
-    //split read target_amount
-    p = strtok(NULL, delim);
-    (*target_amount) = strtof(p, NULL);
-    //split read tolerance
-    p = strtok(NULL, delim);
-    (*tolerance) = strtof(p, NULL);
+    fp = fopen(path, "r");
+    if (!fp) {
+        fprintf(stderr, "Failed to load file.\n");
+        exit(EXIT_FAILURE);
+    }
+    source_size = fread( content, 1, MAX_SOURCE_SIZE, fp);
+    //printf(source_str);
+    if(fp)
+        fclose( fp );
+    
+    return source_size;
 }
 
 void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_table)
@@ -128,7 +109,7 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
 }
 
 
-int load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_answer, char*** opencodeList)
+int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list, cl_short** opencode_answer_table)
 {
     FILE * fp;
     char * line = NULL;
@@ -140,6 +121,8 @@ int load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_a
     int csv_row_index = 0;
     uint32 opencode_answer_index = 0;
     clock_t timeStart, timeEnd;
+    int opencode_length = strlen(OPENCODE_SAMPLE);
+    char* opencode_pointer = NULL;
 
     timeStart = clock();
     fp = fopen(opencode_answer_path, "r");
@@ -157,15 +140,17 @@ int load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_a
         for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
         {
             if(csv_column_index == 0){
-                //Load opencode list
-                *(*opencodeList + (csv_row_index)) = (char*) malloc(sizeof(char) * 20);
-                strcpy(*(*opencodeList + (csv_row_index)), p);
-                //printf("opencodeList[%d] = %s \n",  (csv_row_index -1),   *(*opencodeList + (csv_row_index -1))    );
+                // Load opencode list 
+                // 把csv檔案的第1欄opencode存到opencode_list
+                *(*opencode_list + (csv_row_index)) = (char*) malloc(sizeof(char) * opencode_length);
+                strcpy(*(*opencode_list + (csv_row_index)), p);
+                //printf("opencode_list[%d] = %s \n",  (csv_row_index -1), *(*opencode_list + (csv_row_index -1))    );
             }
             else
             {
+                // 把csv檔案第1欄後面的答案存到opencode_answer
                 short ret = strtol(p, NULL, 10);
-                *(*opencode_answer + opencode_answer_index) = ret;
+                *(*opencode_answer_table + opencode_answer_index) = ret;
                 opencode_answer_index ++;
             }
             csv_column_index ++;
