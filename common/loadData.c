@@ -158,8 +158,8 @@ int load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_a
         {
             if(csv_column_index == 0){
                 //Load opencode list
-                *(*opencodeList + (csv_row_index -1)) = (char*) malloc(sizeof(char) * 20);
-                strcpy(*(*opencodeList + (csv_row_index -1)), p);
+                *(*opencodeList + (csv_row_index)) = (char*) malloc(sizeof(char) * 20);
+                strcpy(*(*opencodeList + (csv_row_index)), p);
                 //printf("opencodeList[%d] = %s \n",  (csv_row_index -1),   *(*opencodeList + (csv_row_index -1))    );
             }
             else
