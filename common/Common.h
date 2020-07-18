@@ -30,7 +30,8 @@
 #define MAX_LENGTH 255
 #define MAX_BUFFER_SIZE 1000
 #define SOCKET_PORT 8700
-#define _DATETIME_SIZE  32
+#define _DATETIME_SIZE 32
+#define OPENCODE_SAMPLE "1-2-3-4-5-6-7-8-9-10"
 
 typedef unsigned char boolean; /* Boolean value type. */
 typedef unsigned long int uint32; /* Unsigned 32 bit value */
