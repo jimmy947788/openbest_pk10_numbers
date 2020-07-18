@@ -31,7 +31,10 @@
 #define MAX_BUFFER_SIZE 1000
 #define SOCKET_PORT 8700
 #define _DATETIME_SIZE 32
-#define OPENCODE_SAMPLE "1-2-3-4-5-6-7-8-9-10"
+#define PK10_BETON_COUNT 1056
+#define PK10_OPENCODE_COUNT 3628800
+
+static const char OPENCODE_SAMPLE[] ="1-2-3-4-5-6-7-8-9-10";
 
 typedef unsigned char boolean; /* Boolean value type. */
 typedef unsigned long int uint32; /* Unsigned 32 bit value */
