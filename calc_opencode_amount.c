@@ -2,6 +2,38 @@
 #include "common/Common.h"
 #include "common/hashmap.h"
 
+typedef struct my_data {
+    cl_command_queue queue;
+    cl_kernel kernel;
+    int dataSegmentLength;
+    cl_event event;
+} my_data;
+
+// 子執行緒函數
+void *enqueueKernelFunc(void *arg) {
+    my_data *data=(my_data *)arg; // 取得資料
+    
+    int dim = 1;
+    const size_t global_offset[] = { 0 };
+    const size_t global_size[] = { data->dataSegmentLength };
+    const size_t local_size[] = { 1 };
+    cl_int errNum = clEnqueueNDRangeKernel(
+        data->queue, 
+        data->kernel, 
+        dim, global_offset, global_size, local_size, 
+        0, 
+        NULL, 
+        &data->event);
+    if(errNum < 0) {
+        perror("Couldn't enqueue kernel");
+        exit(EXIT_FAILURE);
+    }
+
+   //data->result = result; // 將結果放進 data 中
+   pthread_exit(NULL);
+}
+
+
 int run_kernel_sum_beton_total_amount(
         cl_context context, 
         cl_command_queue queue, 
@@ -413,7 +445,12 @@ int main(int argc, char* argv[])
     checkErr(errNum, "clCreateKernel");
     printf("Create OpenCL Kernel program :%s\n", "sum_beton_total_amount");
     
-    cl_kernel kCalcNumbersRisk = clCreateKernel(program, "calc_numbers_risk", &errNum);
+    cl_kernel kCalcNumbersRisk[2];
+    kCalcNumbersRisk[0] = clCreateKernel(program, "calc_numbers_risk", &errNum);
+    checkErr(errNum, "clCreateKernel");
+    printf("Create OpenCL Kernel program :%s\n", "calc_numbers_risk");
+
+    kCalcNumbersRisk[1] = clCreateKernel(program, "calc_numbers_risk", &errNum);
     checkErr(errNum, "clCreateKernel");
     printf("Create OpenCL Kernel program :%s\n", "calc_numbers_risk");
 
@@ -469,7 +506,9 @@ int main(int argc, char* argv[])
     float target_amount_range2 = 0;
     float target_amount = 0;
     float tolerance = 0;
-
+    
+    pthread_t tEnqueueKernel[2];
+    my_data data[2];
     //opencl buffer
     cl_mem total_beton_amount_buffer[2];
     cl_mem total_beton_amount_with_odds_buffer[2];
@@ -480,7 +519,7 @@ int main(int argc, char* argv[])
     cl_event kernel_events[2];
     cl_event read_events[2];
 
-     //create opencode_answer_table Buffer
+    //create opencode_answer_table Buffer
     cl_mem opencode_answer_table_buffer = clCreateBuffer(
         context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
@@ -493,21 +532,23 @@ int main(int argc, char* argv[])
     };
 
     //create buffer sub_opencode_answer_table_buffer
-    region.origin = 0;
-    region.size = sizeof(cl_short) * beton_length * dataSegmentLength;
-    sub_opencode_answer_table_buffer[0] = clCreateSubBuffer(opencode_answer_table_buffer, CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region, &errNum);
-    if(errNum < 0) {
-        perror("Couldn't create a sub-buffer");
-        exit(EXIT_FAILURE);
-    }
-    //create buffer sub_opencode_answer_table_buffer
-    region.origin = 1814400;
-    region.size = sizeof(cl_short) * beton_length * dataSegmentLength;
-    sub_opencode_answer_table_buffer[1] = clCreateSubBuffer(opencode_answer_table_buffer, CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region, &errNum);
-    if(errNum < 0) {
-        perror("Couldn't create a sub-buffer");
-        exit(EXIT_FAILURE);
-    }
+        region.origin = 0;
+        region.size = sizeof(cl_short) * beton_length * dataSegmentLength;
+        sub_opencode_answer_table_buffer[0] = clCreateSubBuffer(opencode_answer_table_buffer, CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region, &errNum);
+        if(errNum < 0) {
+            perror("Couldn't create a sub-buffer");
+            exit(EXIT_FAILURE);
+        }
+
+         //create buffer sub_opencode_answer_table_buffer
+        region.origin = 1814400;
+        region.size = sizeof(cl_short) * beton_length * dataSegmentLength;
+        sub_opencode_answer_table_buffer[1] = clCreateSubBuffer(opencode_answer_table_buffer, CL_MEM_READ_ONLY, CL_BUFFER_CREATE_TYPE_REGION, &region, &errNum);
+        if(errNum < 0) {
+            perror("Couldn't create a sub-buffer");
+            exit(EXIT_FAILURE);
+        }
+    
     //while 重複直行
     //===================================================================================================
     while(true)
@@ -580,6 +621,7 @@ int main(int argc, char* argv[])
 #endif
 
         clock_t timeStart, timeEnd;
+        timeStart = clock();
 
         //計算獎號開出金額 1/2
         //===================================================================
@@ -598,7 +640,8 @@ int main(int argc, char* argv[])
             perror("Couldn't create a total_beton_amount_with_odds_buffer");
             exit(EXIT_FAILURE);
         };
-       
+
+
         //create buffer result_buffer
         result_buffer[0] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * dataSegmentLength ,  NULL,  &errNum);
         if(errNum < 0) {
@@ -621,45 +664,36 @@ int main(int argc, char* argv[])
         printf("Sub-buffer memory address:  %p\n", sub_buffer_mem);
 #endif*/
         /* Create kernel argument */
-        errNum = clSetKernelArg(kCalcNumbersRisk, 0, sizeof(cl_mem), &total_beton_amount_buffer[0]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[0], 0, sizeof(cl_mem), &total_beton_amount_buffer[0]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
             exit(EXIT_FAILURE);
         };
 
-        errNum = clSetKernelArg(kCalcNumbersRisk, 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[0]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[0], 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[0]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
             exit(EXIT_FAILURE);
         };
 
-        errNum = clSetKernelArg(kCalcNumbersRisk, 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer[0]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[0], 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer[0]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (sub_opencode_answer_table_buffer)");
             exit(EXIT_FAILURE);
         };
 
-        errNum = clSetKernelArg(kCalcNumbersRisk, 3, sizeof(cl_mem), &result_buffer[0]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[0], 3, sizeof(cl_mem), &result_buffer[0]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (result_buffer)");
             exit(EXIT_FAILURE);
         };
 
-        errNum = clSetKernelArg(kCalcNumbersRisk, 4, sizeof(cl_int), &beton_length);
+        errNum = clSetKernelArg(kCalcNumbersRisk[0], 4, sizeof(cl_int), &beton_length);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (beton_length)");
             exit(EXIT_FAILURE);
         };
 
-        int dim = 1;
-        const size_t global_offset[] = { 0 };
-        const size_t global_size[] = { dataSegmentLength };
-        const size_t local_size[] = { 1 };
-        errNum = clEnqueueNDRangeKernel(queue_list[0], kCalcNumbersRisk, dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[0]);
-        if(errNum < 0) {
-            perror("Couldn't enqueue kernel");
-            exit(EXIT_FAILURE);
-        }
         
         //計算獎號開出金額 2/2
         //====================================================================
@@ -678,6 +712,7 @@ int main(int argc, char* argv[])
             perror("Couldn't create a total_beton_amount_with_odds_buffer");
             exit(EXIT_FAILURE);
         };
+
         //create buffer result_buffer
         result_buffer[1] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * dataSegmentLength ,  NULL,  &errNum);
         if(errNum < 0) {
@@ -700,38 +735,78 @@ int main(int argc, char* argv[])
         printf("Sub-buffer memory address:  %p\n", sub_buffer_mem);
 #endif*/
         /* Create kernel argument */
-        errNum = clSetKernelArg(kCalcNumbersRisk, 0, sizeof(cl_mem), &total_beton_amount_buffer[1]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[1], 0, sizeof(cl_mem), &total_beton_amount_buffer[1]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
             exit(EXIT_FAILURE);
         };
-        errNum = clSetKernelArg(kCalcNumbersRisk, 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[1]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[1], 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[1]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
             exit(EXIT_FAILURE);
         };
-        errNum = clSetKernelArg(kCalcNumbersRisk, 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer[1]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[1], 2, sizeof(cl_mem), &sub_opencode_answer_table_buffer[1]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (sub_opencode_answer_table_buffer)");
             exit(EXIT_FAILURE);
         };
-        errNum = clSetKernelArg(kCalcNumbersRisk, 3, sizeof(cl_mem), &result_buffer[1]);
+        errNum = clSetKernelArg(kCalcNumbersRisk[1], 3, sizeof(cl_mem), &result_buffer[1]);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (result_buffer)");
             exit(EXIT_FAILURE);
         };
-        errNum = clSetKernelArg(kCalcNumbersRisk, 4, sizeof(cl_int), &beton_length);
+        errNum = clSetKernelArg(kCalcNumbersRisk[1], 4, sizeof(cl_int), &beton_length);
         if(errNum < 0) {
             perror("Couldn't set a kernel argument (beton_length)");
             exit(EXIT_FAILURE);
         };
-        errNum = clEnqueueNDRangeKernel(queue_list[1], kCalcNumbersRisk, dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[1]);
+        timeEnd = clock();
+        printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", "clSetKernelArg", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+
+        
+        timeStart = clock();
+        // enqueue task
+        //==============================================================================================================        
+        /*
+        data[0].dataSegmentLength = dataSegmentLength;
+        data[0].kernel = kCalcNumbersRisk[0];
+        data[0].queue = queue_list[0];
+        pthread_create(&tEnqueueKernel[0], NULL, enqueueKernelFunc, (void*) &data[0]);  
+
+        data[1].dataSegmentLength = dataSegmentLength;
+        data[1].kernel = kCalcNumbersRisk[1];
+        data[1].queue = queue_list[1];
+        pthread_create(&tEnqueueKernel[1], NULL, enqueueKernelFunc, (void*) &data[1]);  
+
+        //pthread_join(tEnqueueKernel[0], NULL);
+        pthread_join(tEnqueueKernel[1], NULL);
+
+        timeEnd = clock();
+        printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", "tEnqueueKernel", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+        */
+        int dim = 1;
+        const size_t global_offset[] = { 0 };
+        const size_t global_size[] = { dataSegmentLength };
+        const size_t local_size[] = { 1 };
+        errNum = clEnqueueNDRangeKernel(queue_list[0], kCalcNumbersRisk[0], dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[0]);
         if(errNum < 0) {
             perror("Couldn't enqueue kernel");
             exit(EXIT_FAILURE);
         }
-      
+
+        errNum = clEnqueueNDRangeKernel(queue_list[1], kCalcNumbersRisk[1], dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[1]);
+        if(errNum < 0) {
+            perror("Couldn't enqueue kernel");
+            exit(EXIT_FAILURE);
+        }
+        clWaitForEvents(2, kernel_events);
+        timeEnd = clock();
+        printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", "clEnqueueNDRangeKernel", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+        
+
+        timeStart = clock();
         /* Read and print the result */
+        //==============================================================================================================   
         errNum = clEnqueueReadBuffer(queue_list[0], result_buffer[0], CL_FALSE, 0, sizeof(cl_float) * dataSegmentLength, opencode_answer_table_result1, 0, NULL, &read_events[0]);
         if(errNum < 0) {
             perror("Couldn't read the buffer");
@@ -745,6 +820,8 @@ int main(int argc, char* argv[])
         printf("=======> clWaitForEvents \n");
         clWaitForEvents(2, read_events);
         
+        timeEnd = clock();
+        printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", "clEnqueueReadBuffer", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 
 
         printf("release total_beton_amount_buffer[0]\n");
@@ -770,6 +847,7 @@ int main(int argc, char* argv[])
         printf("read_events[0] time is %0.3f\n", dddd);
         executionTime(read_events[1], &dddd);
         printf("read_events[1] time is %0.3f\n", dddd);
+        
         
         printf("release kernel_events\n");
         for(int i =0 ;i<= total_devices -1; i++)

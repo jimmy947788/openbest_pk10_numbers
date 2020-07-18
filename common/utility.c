@@ -175,7 +175,7 @@ void build_program_for_all_devices(
     }
 }
 
-void executionTime(cl_event event, double* tttt)
+void executionTime(cl_event event, double* elapsedTime)
 {
     cl_ulong start, end;
     double total_time;
@@ -184,6 +184,6 @@ void executionTime(cl_event event, double* tttt)
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
     total_time = end - start;
 
-    *tttt = (total_time /1000000.0);
+    *elapsedTime = (end-start)*1.0e-6f;
     //return (double)(end - start)*(double)(1e-06); // convert nanoseconds to seconds on return
 }
