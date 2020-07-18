@@ -127,7 +127,8 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
     printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 }
 
-void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_answer, char*** opencodeList)
+
+int load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_answer, char*** opencodeList)
 {
     FILE * fp;
     char * line = NULL;
@@ -155,24 +156,17 @@ void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_
         csv_column_index = 0;
         for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
         {
-            if(csv_row_index >=1){
-                if(csv_column_index == 0){
-                    //Load opencode list
-                    *(*opencodeList + (csv_row_index -1)) = (char*) malloc(sizeof(char) * 20);
-                    strcpy(*(*opencodeList + (csv_row_index -1)), p);
-                    //printf("opencodeList[%d] = %s \n",  (csv_row_index -1),   *(*opencodeList + (csv_row_index -1))    );
-                }
-                else
-                {
-                    short ret = strtol(p, NULL, 10);
-                    *(*opencode_answer + opencode_answer_index) = ret;
-                    opencode_answer_index ++;
-                }
+            if(csv_column_index == 0){
+                //Load opencode list
+                *(*opencodeList + (csv_row_index -1)) = (char*) malloc(sizeof(char) * 20);
+                strcpy(*(*opencodeList + (csv_row_index -1)), p);
+                //printf("opencodeList[%d] = %s \n",  (csv_row_index -1),   *(*opencodeList + (csv_row_index -1))    );
             }
             else
             {
-                //all beton
-                //printf("%s\n", p);
+                short ret = strtol(p, NULL, 10);
+                *(*opencode_answer + opencode_answer_index) = ret;
+                opencode_answer_index ++;
             }
             csv_column_index ++;
             
@@ -186,4 +180,5 @@ void load_opnecode_answer_table(char* opencode_answer_path, cl_short** opencode_
 
     timeEnd = clock();
     printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+    return csv_row_index;
 }
