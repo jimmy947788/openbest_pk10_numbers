@@ -101,7 +101,7 @@ def TSZF2(rawBetOn):
         betOn.append("TSZF2_" + str1)
     return betOn
 
-def program_build(kernel_file = 'kernels/kernel_program.cl'): 
+def program_build(kernel_file): 
      # Open program file and build
     program_file = open(kernel_file, 'r') # Scale x Matrx
     program_text = program_file.read()
@@ -268,7 +268,7 @@ def submit():
         #print('request.form', request.data)
         betOn_rows = []
         raw_data = request.get_data().decode("utf-8")
-        logging.debug(f"row data: {raw_data}")
+        # logging.debug(f"row data: {raw_data}")
         
         (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)= transferWager(raw_data)
         wager_length = len(beton_amount_table)
@@ -298,7 +298,7 @@ def submit():
             sendData += f"{opencodeCount},"
             client.sendall(sendData.encode())
             
-            serverMessage = client.recv(255).decode("UTF-8")
+            serverMessage = client.recv(1048576).decode("UTF-8")
             print('Server:', serverMessage)
         
         response = { }
@@ -307,19 +307,14 @@ def submit():
         rows = [] 
     
         try:
-            opencode_answer_amount_result = pd.read_csv(serverMessage)
-            # print(opencode_answer_amount_result.values.tolist())
             # print("=================")
-            opencode_count_result = random.sample(opencode_answer_amount_result.values.tolist(), opencodeCount)
-            logging.debug(opencode_count_result)
-            # print("=================")
-            for a in opencode_count_result:
+            for row in serverMessage.split("\n"):
                 rows.append(
                         {
-                            "TotalAmountSum": a[1],
+                            "TotalAmountSum": row.split(',')[1],
                             #"WinAmountSum": a[1],
                             #"BetCount" : 0,
-                            "OpenCode": a[0]
+                            "OpenCode": row.split(',')[0]
                         }
                     )
         except Exception as e:
@@ -365,7 +360,7 @@ if __name__ == "__main__":
     platform = cl.get_platforms()[0]
     devices = platform.get_devices()
     context = cl.Context(devices)
-    program = program_build()
+    program = program_build( f"{currentPath}/kernels/kernel_program.cl")
 
     app.config["DEBUG"] = True
     app.run(host='0.0.0.0', port=5000)

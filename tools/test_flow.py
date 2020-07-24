@@ -156,6 +156,7 @@ def transferWager(raw_data):
         betOnCount = int(bet["BetOnCount"])
         killRate =  0.2 #bet["KillRate"]
         tolerance = 25 #bet["Tolerance"] 
+        opencodeCount = 50
 
         #logging.debug(f"BetTypePlayCode={betTypePlayCode}, BetOn={rawBetOn}, UnitAmount={unitAmount}, betOnCount={betOnCount}")
         extraData = json.loads(bet["ExtraData"])
@@ -250,7 +251,7 @@ def transferWager(raw_data):
 
     target_amount = total_bet_amount * killRate * -1
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
-    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)
+    return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)
 
 
 
@@ -263,7 +264,7 @@ def submit():
         raw_data = f.read()
     logging.debug(f"row data: {raw_data}")
     
-    (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance)= transferWager(raw_data)
+    (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)= transferWager(raw_data)
     wager_length = len(beton_amount_table)
     logging.info(f"wager_length={wager_length}")
     logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
@@ -288,9 +289,10 @@ def submit():
         sendData += f"{expectId},"
         sendData += f"{target_amount},"
         sendData += f"{tolerance},"
+        sendData += f"{opencodeCount},"
         client.sendall(sendData.encode())
         
-        serverMessage = client.recv(255).decode("UTF-8")
+        serverMessage = client.recv(1048576).decode("UTF-8")
         print('Server:', serverMessage)
     
     end = time.time()
