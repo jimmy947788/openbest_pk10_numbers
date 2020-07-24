@@ -5,24 +5,27 @@ static int verbose_flag;
 static struct option long_options[] =
 {
     /* These options set a flag. */
-    {"version",                 no_argument,            0, 'V'},
-    {"kernel-program",          required_argument,      0, 'k'},
-    {"log",                     required_argument,      0, 'l'},
-    {"help",                    no_argument,            0, 'h'},
-    {"show-gpu-info",           no_argument,            0, 's'},
+    {"version",                             no_argument,               0, 'V'},
+    {"kernel-program",               required_argument,      0, 'k'},
+    {"opencode-answer-table",  required_argument,      0, 'o'},
+    {"log",                                   required_argument,      0, 'l'},
+    {"help",                                 no_argument,                0, 'h'},
+    {"show-gpu-info",                no_argument,                0, 's'},
 };
 
 void help()
 {
     printf("option\n");
-    printf("-V, -version                     Show program version.\n");
-    printf("-k, --kernel-program <path>      Path to opencl kernel program.\n");
-    printf("-l, --log <path>                 Path to program runtime log.\n");
-    printf("-s, --show-gpu-info              Show GPU info.\n");
+    printf("-V, -version                                               Show program version.\n");
+    printf("-k, --kernel-program <path>                   Path to opencl kernel program.\n");
+    printf("-o, --opencode-answer-table <path>      Path to opencl kernel program.\n");
+    printf("-l, --log <path>                                        Path to program runtime log.\n");
+    printf("-s, --show-gpu-info                                  Show GPU info.\n");
 }
 
 void laod_args(int argc, char* argv[], 
         char kernel_program_path[], 
+        char*** opencode_answer_table_path, 
         char log_dir[])
 {
     int cmd_opt;
@@ -30,6 +33,17 @@ void laod_args(int argc, char* argv[],
     cl_uint total_platforms = 0;
     cl_device_id* devices = NULL;
     cl_uint total_devices = 0;
+    //char** opencode_answer_table_path;
+
+    // for split ','
+    //======================
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    char delim[] = ",";
+    char *p = NULL;
+    //======================
+
     while(1) {
         /* getopt_long stores the option index here. */
         int option_index = 0;
@@ -73,6 +87,23 @@ void laod_args(int argc, char* argv[],
                 free(devices);
             exit(EXIT_SUCCESS);
 
+        case 'o':
+            //printf("optarg=%s\n", optarg);
+            *opencode_answer_table_path = (char**)malloc(sizeof(**opencode_answer_table_path) * 2);
+            //split read opencode_answer_table_path1
+            p = strtok(optarg, delim);
+            *(*opencode_answer_table_path + 0) = (char*) malloc(sizeof(char) * MAX_LENGTH);
+            memset( *(*opencode_answer_table_path + 0) , '\0', MAX_LENGTH);
+            strcpy(*(*opencode_answer_table_path + 0), p);
+            //printf("opencode_answer_table_path[0]=%s\n", *(*opencode_answer_table_path + 0));
+
+           //split read opencode_answer_table_path2
+            p = strtok(NULL, delim);
+            *(*opencode_answer_table_path + 1) = (char*) malloc(sizeof(char) * MAX_LENGTH);
+              memset( *(*opencode_answer_table_path + 1) , '\0', MAX_LENGTH);
+            strcpy(*(*opencode_answer_table_path + 1), p);
+            //printf("opencode_answer_table_path[1]=%s\n", *(*opencode_answer_table_path + 1));
+            break;
         case '?':
             /* getopt_long already printed an error message. */
             help();
