@@ -323,8 +323,8 @@ def submit():
         response["result"] = { "rows" : rows }
         #print(json.dumps(response, cls=NumpyEncoder))
         end = time.time()
+        logging.debug(response)
         print(f"spend time: {end - start} s")
-        logging.info(response)
 
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
     return render_template('bestopen.html', title=title)
