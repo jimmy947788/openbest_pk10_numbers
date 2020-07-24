@@ -441,18 +441,20 @@ int main(int argc, char* argv[])
         }
         printf("target_amount_counter = %d\n", target_amount_counter );
 
-        printf("randam data from target_amount_results\n");
+        time_t t;
         char temp_target_amount_results[MAX_SOURCE_SIZE];
         memset(temp_target_amount_results, '\0', MAX_SOURCE_SIZE);
-        time_t t;
-        srand((unsigned) time(&t));
-        for( int i = 0 ; i <= result_count-1 ; i++ ) {
-            int rand_num = rand() % target_amount_counter;
-            printf("rand_num[%d] = %d\n", i, rand_num);
-            strcat (temp_target_amount_results, target_amount_results[rand_num]);
-            //printf("%s",  target_amount_results[rand_num]);
+        if( target_amount_counter > 0)
+        {
+            printf("randam data from target_amount_results\n");
+            srand((unsigned) time(&t));
+            for( int i = 0 ; i <= result_count-1 ; i++ ) {
+                int rand_num = rand() % target_amount_counter;
+                //printf("rand_num[%d] = %d\n", i, rand_num);
+                strcat (temp_target_amount_results, target_amount_results[rand_num]);
+            }
         }
-        printf("%s", temp_target_amount_results);
+        //printf("%s", temp_target_amount_results);
         if(target_amount_results)
             free(target_amount_results);
 
