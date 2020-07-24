@@ -196,8 +196,8 @@ int main(int argc, char* argv[])
         printf("tolerance = %f\n", tolerance);
         printf("result_count = %d\n", result_count);
         
-        target_amount_range1 = target_amount - tolerance;
-        target_amount_range2 = target_amount + tolerance;
+        target_amount_range1 = target_amount - (target_amount * tolerance);
+        target_amount_range2 = target_amount + (target_amount * tolerance);
         printf("target_amount_range1 = %f, target_amount_range2= %f \n", target_amount_range1, target_amount_range2);
 
 #ifdef DEBUG
@@ -414,7 +414,8 @@ int main(int argc, char* argv[])
             for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
             {
                 float amount = opencode_answer_table_result[num][i];
-                if(target_amount_range1 <=amount && amount <= target_amount_range2)
+                //if(target_amount_range2 <=amount ) //玩家贏錢
+                if(amount <= target_amount_range1) //莊家贏錢
                 {
                     memset(tmp, '\0', MAX_LENGTH);
                     sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
