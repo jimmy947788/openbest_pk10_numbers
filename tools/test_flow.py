@@ -155,7 +155,7 @@ def transferWager(raw_data):
         rawBetOn = bet["BetOn"]
         betOnCount = int(bet["BetOnCount"])
         killRate =  0.2 #bet["KillRate"]
-        tolerance = 25 #bet["Tolerance"] 
+        tolerance = 1 #bet["Tolerance"] 
         opencodeCount = 50
 
         #logging.debug(f"BetTypePlayCode={betTypePlayCode}, BetOn={rawBetOn}, UnitAmount={unitAmount}, betOnCount={betOnCount}")
