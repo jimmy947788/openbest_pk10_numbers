@@ -23,12 +23,11 @@ int main(int argc, char* argv[])
     char beton_amount_table_file[MAX_LENGTH] = "";
     char beton_amount_table_with_odds_file[MAX_LENGTH] = "";
     char current_path[MAX_LENGTH];
+    char** opencode_answer_table_path;
     char log_dir[MAX_LENGTH];
     strcpy(log_dir, "log/");
-    //map_t mymap;
-    //mymap = hashmap_new();
 
-    laod_args(argc, argv, &kernel_program_file, &log_dir);
+    laod_args(argc, argv, &kernel_program_file, &opencode_answer_table_path, &log_dir);
     
     if(strlen(kernel_program_file) == 0)
     {
@@ -111,18 +110,15 @@ int main(int argc, char* argv[])
     cl_float* opencode_answer_table_result[USE_GPU_NUM];
     char** opencodeList[USE_GPU_NUM];
 
-    char opencode_answer_table_path[MAX_LENGTH];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
-        printf("load opencode answer table from csv...%d/%d\n", (num+1), USE_GPU_NUM);
+        printf("load opencode answer table from %s...%d/%d\n", opencode_answer_table_path[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給\n就不給輸出,flush強制輸出
         opencode_answer_table[num] = (cl_short *)malloc(sizeof(cl_short) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num]);
         opencodeList[num] = (char**)malloc(sizeof(*opencodeList[num]) * GPU_HANDEL_COUNT[num]);
-        sprintf(opencode_answer_table_path, "%s/%s", current_path, OPENCODE_ANSWER_TABLE_PATH[num]);
-        int ret = load_opnecode_answer_table(opencode_answer_table_path, &opencodeList[num], &opencode_answer_table[num]);
+        int ret = load_opnecode_answer_table(opencode_answer_table_path[num], &opencodeList[num], &opencode_answer_table[num]);
         printf("opencodeList[%d] length:%ld\n", num, ret);
     }
-
 
     one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * PK10_BETON_COUNT);
     for(int i=0; i<=PK10_BETON_COUNT-1; i++ )
@@ -148,6 +144,7 @@ int main(int argc, char* argv[])
     float target_amount_range2 = 0;
     float target_amount = 0;
     float tolerance = 0;
+    int  result_count = 0;
     
     //opencl buffer
     cl_mem total_beton_amount_buffer[USE_GPU_NUM];
@@ -189,13 +186,15 @@ int main(int argc, char* argv[])
             &wager_length, 
             expectId,
             &target_amount,
-            &tolerance);
+            &tolerance,
+            &result_count);
         printf("beton_amount_table_file = %s\n", beton_amount_table_file);
         printf("beton_amount_table_with_odds_file = %s\n", beton_amount_table_with_odds_file);
         printf("wager_length = %d\n", wager_length);
         printf("expectId = %s\n", expectId);
         printf("target_amount = %f\n", target_amount);
         printf("tolerance = %f\n", tolerance);
+        printf("result_count = %d\n", result_count);
         
         target_amount_range1 = target_amount - tolerance;
         target_amount_range2 = target_amount + tolerance;
@@ -405,11 +404,11 @@ int main(int argc, char* argv[])
             remove(result_file);
             fclose(fp);
         }
-        
+
+        int target_amount_counter = 0;
         char tmp[MAX_LENGTH];
-        //寫入檔案 1/2
+        //將到達條件金額寫入檔案 
         fp = fopen(result_file, "a");
-        
         for(int num=0; num<=USE_GPU_NUM - 1; num++)
         {
             for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
@@ -420,20 +419,49 @@ int main(int argc, char* argv[])
                     memset(tmp, '\0', MAX_LENGTH);
                     sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
                     fputs(tmp, fp);
+                    target_amount_counter++;
                 }
             }
         }
         fclose(fp);
         timeEnd = clock();
         printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", "save result to csv", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-     
+
+        printf("read data from csv file\n");
+        int target_amount_result_index = 0;
+        char** target_amount_results;
+        target_amount_results = (char**)malloc(sizeof(*target_amount_results) * target_amount_counter);
+        fp = fopen(result_file, "r");
+        while( fgets(tmp, MAX_LENGTH, fp) ) {
+            //printf("%s\n",line);
+            *(target_amount_results + target_amount_result_index) = (char*) malloc(sizeof(char) * MAX_LENGTH);
+            memset(*(target_amount_results + target_amount_result_index), '\0', MAX_LENGTH);
+            strcpy(*(target_amount_results + target_amount_result_index), tmp);
+            target_amount_result_index++;
+        }
+        printf("target_amount_counter = %d\n", target_amount_counter );
+
+        printf("randam data from target_amount_results\n");
+        char temp_target_amount_results[MAX_SOURCE_SIZE];
+        memset(temp_target_amount_results, '\0', MAX_SOURCE_SIZE);
+        time_t t;
+        srand((unsigned) time(&t));
+        for( int i = 0 ; i <= result_count-1 ; i++ ) {
+            int rand_num = rand() % target_amount_counter;
+            printf("rand_num[%d] = %d\n", i, rand_num);
+            strcat (temp_target_amount_results, target_amount_results[rand_num]);
+            //printf("%s",  target_amount_results[rand_num]);
+        }
+        printf("%s", temp_target_amount_results);
+        if(target_amount_results)
+            free(target_amount_results);
+
         /* 獲取系統當前日期時間 */
         memset(dateTime, 0, sizeof(dateTime));
         GetDateTime(dateTime);
         printf("The Local date and time is %s\n", dateTime);
 
-        printf("======>send: %s\n", result_file);
-        send(forClientSockfd, result_file, sizeof(result_file), 0);
+        send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
     }
     
     if(total_beton_amount_vector)
