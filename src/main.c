@@ -140,8 +140,8 @@ int main(int argc, char* argv[])
 
     sockfd = create_socket();
     //cl_uint* result = NULL;
-    float target_amount_range1 = 0;
-    float target_amount_range2 = 0;
+    //float target_amount_range1 = 0;
+    //float target_amount_range2 = 0;
     float target_amount = 0;
     float tolerance = 0;
     int  result_count = 0;
@@ -196,9 +196,13 @@ int main(int argc, char* argv[])
         printf("tolerance = %f\n", tolerance);
         printf("result_count = %d\n", result_count);
         
-        target_amount_range1 = target_amount - (target_amount * tolerance);
-        target_amount_range2 = target_amount + (target_amount * tolerance);
-        printf("target_amount_range1 = %f, target_amount_range2= %f \n", target_amount_range1, target_amount_range2);
+        //target_amount_range1 = target_amount - (target_amount * tolerance);
+        //target_amount_range2 = target_amount + (target_amount * tolerance);
+        //printf("target_amount_range1 = %f, target_amount_range2= %f \n", target_amount_range1, target_amount_range2);
+        if(tolerance ==1 )
+            printf("user winner target_amount=%f\n", target_amount);
+        else //if(tolerance ==-1)
+            printf("banker winner target_amount=%f\n", target_amount);
 
 #ifdef DEBUG
         float sum = 0;
@@ -414,13 +418,24 @@ int main(int argc, char* argv[])
             for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
             {
                 float amount = opencode_answer_table_result[num][i];
-                //if(target_amount_range2 <=amount ) //玩家贏錢
-                if(amount <= target_amount_range1) //莊家贏錢
+                if(tolerance == 1)
                 {
-                    memset(tmp, '\0', MAX_LENGTH);
-                    sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
-                    fputs(tmp, fp);
-                    target_amount_counter++;
+                    if(target_amount <= amount ) //玩家贏錢
+                    {
+                        memset(tmp, '\0', MAX_LENGTH);
+                        sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
+                        fputs(tmp, fp);
+                        target_amount_counter++;
+                    }
+                }else
+                {
+                    if(amount <= target_amount) //莊家贏錢
+                    {
+                        memset(tmp, '\0', MAX_LENGTH);
+                        sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
+                        fputs(tmp, fp);
+                        target_amount_counter++;
+                    }
                 }
             }
         }
