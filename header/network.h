@@ -23,5 +23,6 @@ void parser_data(char* data,
     int* wager_length, 
     char* expectId,
     float* target_amount,
-    float* tolerance);
+    float* tolerance,
+    int* result_count);
 #endif

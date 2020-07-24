@@ -295,6 +295,7 @@ def submit():
             sendData += f"{expectId},"
             sendData += f"{target_amount},"
             sendData += f"{tolerance},"
+            sendData += f"{opencodeCount},"
             client.sendall(sendData.encode())
             
             serverMessage = client.recv(255).decode("UTF-8")
