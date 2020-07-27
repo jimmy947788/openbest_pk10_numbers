@@ -22,27 +22,27 @@ int main(int argc, char* argv[])
     char opencode_answer_table_file[MAX_LENGTH] = "";
     char beton_amount_table_file[MAX_LENGTH] = "";
     char beton_amount_table_with_odds_file[MAX_LENGTH] = "";
-    char current_path[MAX_LENGTH];
-    char** opencode_answer_table_path;
+    char work_folder[MAX_LENGTH] = "";
     char log_dir[MAX_LENGTH];
     strcpy(log_dir, "log/");
+    char temp_path[MAX_LENGTH] = "";
 
-    laod_args(argc, argv, &kernel_program_file, &opencode_answer_table_path, &log_dir);
+    laod_args(argc, argv, &kernel_program_file, &work_folder, &log_dir);
     
-    if(strlen(kernel_program_file) == 0)
+    if(strlen(kernel_program_file) == 0 || strlen(work_folder) == 0)
     {
         printf("must be support argument...\n");
         printf("\t--kernel-program <path>\n");
+        printf("\t--work-folder  <path>\n");
         printf("show help\n");
         printf("\tcalc_opencode_amount -h\n");
         exit(EXIT_SUCCESS);
     }
     
-    getcwd(current_path, MAX_LENGTH );
 #ifdef DEBUG
     printf("kernel_program_file:%s\n", kernel_program_file);
     printf("log_dir:%s\n", log_dir);
-    printf("Current working dir: %s\n", current_path);
+    printf("work folder: %s\n", work_folder);
 #endif
 
     int total_platforms = 0;
@@ -81,8 +81,11 @@ int main(int argc, char* argv[])
     printf(" ........... successful!!(total command queue=%d)\n", total_devices);
 
     printf("build OpenCL program from");
+    memset(temp_path, '\0', MAX_LENGTH);
+    sprintf(temp_path, "%s%s", work_folder, kernel_program_file);
+    //printf("full kernel_program_file:%s\n", temp_path);
     // build an OpenCL program
-    build_program_for_all_devices(kernel_program_file, context, device_list, &program);
+    build_program_for_all_devices(temp_path, context, device_list, &program);
     printf(".......... successful!!\n");
 
     // Create OpenCL Kernel function
@@ -109,14 +112,15 @@ int main(int argc, char* argv[])
     cl_short* opencode_answer_table[USE_GPU_NUM];
     cl_float* opencode_answer_table_result[USE_GPU_NUM];
     char** opencodeList[USE_GPU_NUM];
-
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
-        printf("load opencode answer table from %s...%d/%d\n", opencode_answer_table_path[num], (num+1), USE_GPU_NUM);
+        printf("load opencode answer table from %s...%d/%d\n", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給\n就不給輸出,flush強制輸出
         opencode_answer_table[num] = (cl_short *)malloc(sizeof(cl_short) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num]);
         opencodeList[num] = (char**)malloc(sizeof(*opencodeList[num]) * GPU_HANDEL_COUNT[num]);
-        int ret = load_opnecode_answer_table(opencode_answer_table_path[num], &opencodeList[num], &opencode_answer_table[num]);
+        memset(temp_path, '\0', MAX_LENGTH);
+        sprintf(temp_path, "%s%s", work_folder, OPENCODE_ANSWER_TABLE_PATH[num]);
+        int ret = load_opnecode_answer_table(temp_path, &opencodeList[num], &opencode_answer_table[num]);
         printf("opencodeList[%d] length:%ld\n", num, ret);
     }
 
@@ -400,7 +404,7 @@ int main(int argc, char* argv[])
         timeStart = clock();
         char result_file[MAX_LENGTH];
         memset(result_file, '\0', MAX_LENGTH);
-        sprintf(result_file, "%s/data/opencode_amount_result_%s.csv", current_path, expectId);
+        sprintf(result_file, "%s/data/opencode_amount_result_%s.csv", work_folder, expectId);
         //check result file exist
         FILE* fp = fopen(result_file, "r");
         if (fp) {

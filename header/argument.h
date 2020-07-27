@@ -11,7 +11,7 @@
 
 void help();
 void laod_args(int argc, char* argv[], 
-        char kernel_program_path[], 
-        char*** opencode_answer_table_path, 
+        char kernel_program_file[], 
+        char work_folder[], 
         char log_dir[]);
 #endif

@@ -18,8 +18,8 @@ static const char OPENCODE_SAMPLE[] ="1-2-3-4-5-6-7-8-9-10";
 
 #define USE_GPU_NUM 2
 static const char OPENCODE_ANSWER_TABLE_PATH[USE_GPU_NUM][MAX_LENGTH] = {
-    "data/opencode_table_1.csv",
-    "data/opencode_table_2.csv"
+    "/data/opencode_table_1.csv",
+    "/data/opencode_table_2.csv"
 };
 static const uint32 GPU_HANDEL_COUNT[USE_GPU_NUM] = {
     PK10_OPENCODE_COUNT / USE_GPU_NUM,
