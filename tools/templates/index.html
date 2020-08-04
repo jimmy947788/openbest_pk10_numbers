@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>系統資訊</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <table cellspacing="0" cellpadding="0">
+        <tr>
+            <td>CPU:</td>
+            <td>{{CPU}}</td>
+        </tr>
+        <tr>
+            <td>MEM:</td>
+            <td>{{MEM}}</td>
+        </tr>
+        <tr>
+            <td>SSD:</td>
+            <td>{{SSD}}</td>
+        </tr>
+    </table>
+    <table style="border-collapse: collapse;border: 1px solid black;">
+        <tr>
+            <th>ID</th>
+            <th>Temp</th>
+            <th>Powrer</th>
+            <th>VRAM</th>
+        </tr>
+        <tr>
+            <td>GPU0</td>
+            <td>{{ GPU0[0] }}</td>
+            <td>{{ GPU0[1] }} / {{ GPU0[2] }}</td>
+            <td>{{ GPU0[3] }} / {{ GPU0[4] }}</td>
+        </tr>
+        <tr>
+            <td>GPU1</td>
+            <td>{{ GPU1[0] }}</td>
+            <td>{{ GPU1[1] }} / {{ GPU1[2] }} </td>
+            <td>{{ GPU1[3] }} / {{ GPU1[4] }} </td>
+        </tr>
+    </table>
+</body>
+<script type="text/javascript">
+    $(document).ready(function(){
+    });
+</script>
+</html>
+

@@ -15,6 +15,7 @@ import time
 from itertools import islice
 import socket
 import random
+import subprocess
 
 app = Flask(__name__)
 
@@ -259,7 +260,15 @@ def transferWager(raw_data):
 
 @app.route('/', methods=['GET'])
 def home():
-    return "<h1>最佳化開獎策略!</h1>"
+    path = f"{currentPath}/tools/systemInfo.sh"
+    out, err = subprocess.Popen(['bash', path], stdout=subprocess.PIPE).communicate() 
+    out = out.decode(encoding='UTF-8').splitlines()
+    cpu_usage = out[0]
+    mem_usage = out[1]
+    ssd_usage = out[2]
+    gpu0_info = out[3].split(",")
+    gpu1_info = out[4].split(",")
+    return render_template(f'index.html', CPU=cpu_usage, MEM=mem_usage, SSD=ssd_usage, GPU0=gpu0_info, GPU1=gpu1_info)
 
 @app.route("/bestopen", methods=['GET', 'POST'])
 def submit():
@@ -316,7 +325,7 @@ def submit():
                             #"BetCount" : 0,
                             "OpenCode": row.split(',')[0]
                         }
-                    )
+                    ) 
         except Exception as e:
             logging.error(response)
 
@@ -325,8 +334,8 @@ def submit():
         end = time.time()
         logging.debug(response)
         print(f"spend time: {end - start} s")
-
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
+   
     return render_template('bestopen.html', title=title)
 
 if __name__ == "__main__":
