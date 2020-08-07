@@ -254,7 +254,7 @@ def transferWager(raw_data):
         beton_amount_table.append(row_by_amount)
         beton_amount_odds_table.append(row_by_amount_odds)
 
-    target_amount = total_bet_amount * killRate * -1
+    target_amount = total_bet_amount * killRate #* -1
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
     return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)
 
@@ -277,7 +277,7 @@ def submit():
         #print('request.form', request.data)
         betOn_rows = []
         raw_data = request.get_data().decode("utf-8")
-        # logging.debug(f"row data: {raw_data}")
+        logging.debug(f"row data: {raw_data}")
         
         (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)= transferWager(raw_data)
         wager_length = len(beton_amount_table)
