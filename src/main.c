@@ -475,6 +475,11 @@ int main(int argc, char* argv[])
             }
         }
         //printf("%s", temp_target_amount_results);
+        for(int i=0; i<=target_amount_result_index-1; i++)
+        {
+            if(*(target_amount_results + i))
+                free(*(target_amount_results + i));
+        }
         if(target_amount_results)
             free(target_amount_results);
 
