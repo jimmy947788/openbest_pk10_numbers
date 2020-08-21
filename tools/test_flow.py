@@ -14,7 +14,7 @@ import pyopencl as cl
 import time
 from itertools import islice
 import socket
-import tools.TransferWager.A5 as A5
+import TransferWager.A5 as A5
 
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -73,8 +73,9 @@ def submit():
     with open(f"{currentPath}/data/test_wager_data.txt") as f:
         raw_data = f.read()
     logging.debug(f"row data: {raw_data}")
+    jdata = json.loads(raw_data)
     
-    (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5.transferWager(jdata)
+    (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5.transferWager(logging, headers, jdata)
     wager_length = len(beton_amount_table)
     logging.info(f"wager_length={wager_length}")
     logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")

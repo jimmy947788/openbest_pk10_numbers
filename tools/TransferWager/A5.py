@@ -1,4 +1,10 @@
-
+#!/usr/bin/python
+ 
+import os
+import sys
+import json
+import logging
+import itertools
 
 # 轉換betOn格式
 # =================================================
@@ -77,7 +83,7 @@ def TSZF2(rawBetOn):
         betOn.append("TSZF2_" + str1)
     return betOn
     
-def transferWager(jdata):
+def transferWager(logging, headers, jdata):
     beton_amount_table = []
     beton_amount_odds_table = []
     total_bet_count = 0

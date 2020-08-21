@@ -16,7 +16,7 @@ from itertools import islice
 import socket
 import random
 import subprocess
-import tools.TransferWager.A5 as A5
+import TransferWager.A5 as A5
 
 app = Flask(__name__)
 
@@ -95,7 +95,7 @@ def submit():
         jdata = json.loads(raw_data)
         # if jdata["BuID"] == "redfire":
 
-        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5.transferWager(jdata)
+        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) =  A5.transferWager(logging, headers, jdata)
         wager_length = len(beton_amount_table)
         logging.info(f"wager_length={wager_length}")
         logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
