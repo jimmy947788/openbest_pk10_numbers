@@ -15,6 +15,7 @@ import time
 from itertools import islice
 import socket
 import TransferWager.A5 as A5
+import TransferWager.Redfire as Redfire
 
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -70,12 +71,12 @@ def submit():
     #print('request.form', request.data)
     betOn_rows = []
     #raw_data = request.get_data().decode("utf-8")
-    with open(f"{currentPath}/data/test_wager_data.txt") as f:
+    with open(f"{currentPath}/data/test_wager_data_redfire.txt") as f:
         raw_data = f.read()
     logging.debug(f"row data: {raw_data}")
     jdata = json.loads(raw_data)
     
-    (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5.transferWager(logging, headers, jdata)
+    (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = Redfire.transferWager(logging, headers, jdata)
     wager_length = len(beton_amount_table)
     logging.info(f"wager_length={wager_length}")
     logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
@@ -134,7 +135,7 @@ if __name__ == "__main__":
 
     with open(f"{currentPath}/data/beton_list.txt") as f:
         headers = f.read().split(',')
-    #print(headers)
+    print(f"header count: {len(headers)}")
 
     # Create context and command queue
     platform = cl.get_platforms()[0]
