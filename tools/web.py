@@ -94,7 +94,7 @@ def submit():
         raw_data = request.get_data().decode("utf-8")
         logging.debug(f"row data: {raw_data}")
         jdata = json.loads(raw_data)
-        if jdata["BuID"] == "redfire":
+        if jdata["BuID"] == "RedFire":
             (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = Redfire.transferWager(logging, headers, jdata)    
         else:
             (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5.transferWager(logging, headers, jdata)
