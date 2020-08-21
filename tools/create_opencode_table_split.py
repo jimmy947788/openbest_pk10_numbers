@@ -77,6 +77,34 @@ def SUMO(balls):
 def SUME(balls):
     return 1 if  ((balls[0] + balls[1] ) % 2) == 0  else -1
 
+def SUMB11(balls):
+    sum = (balls[0] + balls[1])
+    if sum == 11:
+        return 0
+    elif sum < 11:
+        return -1
+    else:
+        return 1
+
+def SUMS11(balls):
+    sum = (balls[0] + balls[1])
+    if sum == 11:
+        return 0
+    elif sum > 11:
+        return -1
+    else:
+        return 1
+
+def SUMO11(balls):
+    if (balls[0] + balls[1]) == 11:
+        return 0
+    return 1 if  ((balls[0] + balls[1]) % 2) != 0  else -1
+
+def SUME11(balls):
+    if (balls[0] + balls[1]) == 11:
+        return 0
+    return 1 if  ((balls[0] + balls[1]) % 2) == 0  else -1
+
 def TSZF2(balls, num1, num2):
     result1 = balls[0] == num1 and balls[1] == num2 
     result2 = balls[0] == num2 and balls[1] == num1 
@@ -115,6 +143,10 @@ def createHeader():
     headers.append(f"SUMS")
     headers.append(f"SUMO")
     headers.append(f"SUME")
+    headers.append(f"SUMB11")
+    headers.append(f"SUMS11")
+    headers.append(f"SUMO11")
+    headers.append(f"SUME11")
     for (i, j) in list(itertools.combinations(ALL_BALLS, 2)):
         headers.append(f"TSZF2_{i}-{j}")
     return headers

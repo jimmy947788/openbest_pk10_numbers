@@ -13,7 +13,7 @@
 static const char OPENCODE_SAMPLE[] ="1-2-3-4-5-6-7-8-9-10";
 
 #define VERSION "1.01"
-#define PK10_BETON_COUNT 1056
+#define PK10_BETON_COUNT 1060
 #define PK10_OPENCODE_COUNT 3628800
 
 #define USE_GPU_NUM 2
