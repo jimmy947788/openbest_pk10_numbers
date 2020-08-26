@@ -168,7 +168,7 @@ def main():
     for balls in ballsList: # ALL
         headers = createHeader()
 
-        #print (balls)
+        print (balls)
         file = None
         if balls[0] <=5:
             file = file1
@@ -292,6 +292,22 @@ def main():
                 #print(f"SUMO = {ret}")
             elif header == "SUME":
                 ret = SUME(balls)
+                columns.append(ret)
+                #print(f"SUME = {ret}")
+            elif header == "SUMB11":
+                ret = SUMB11(balls)
+                columns.append(ret)
+                #print(f"SUMB = {ret}")
+            elif header == "SUMS11":
+                ret = SUMS11(balls)
+                columns.append(ret)
+                #print(f"SUMS = {ret}")
+            elif header == "SUMO11":
+                ret = SUMO11(balls)
+                columns.append(ret)
+                #print(f"SUMO = {ret}")
+            elif header == "SUME11":
+                ret = SUME11(balls)
                 columns.append(ret)
                 #print(f"SUME = {ret}")
             elif re.match("^TSZF2_([0-9]{1,2})-([0-9]{1,2})$", header):
