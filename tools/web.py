@@ -151,8 +151,8 @@ def submit():
         response["result"] = { "rows" : rows }
         #print(json.dumps(response, cls=NumpyEncoder))
         end = time.time()
-        logging.debug(response)
-        print(f"spend time: {end - start} s")
+        #logging.debug(response)
+        logging.info(f"spend time: {end - start} s, row length:{ len(rows) }")
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
    
     return render_template('bestopen.html', title=title)
