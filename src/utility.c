@@ -259,3 +259,15 @@ int run_kernel_sum_beton_total_amount(
    
     return 0;
 }
+
+void logging(char* message)
+{
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    char buffer [50];
+    sprintf (buffer, "calc_opencode_amount_%d%02d%02d.log",  tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+
+    FILE *fp= fopen(buffer, "a+");
+    fprintf (fp, "%s %s\n", __TIME__, message);
+    if(fp)fclose(fp);
+}

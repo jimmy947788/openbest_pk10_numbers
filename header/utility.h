@@ -8,6 +8,8 @@
 #ifndef UTILITY_H_   /* Include guard */
 #define UTILITY_H_
 
+#include <stdio.h>
+#include <time.h>
 #include "config.h"
 
 void checkErr(cl_int err, const char* name);
@@ -33,4 +35,6 @@ int run_kernel_sum_beton_total_amount(
         cl_ushort* one_mask, 
         cl_float* bet_amount, 
         cl_float** result);
+
+void logging(char* message);
 #endif
