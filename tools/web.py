@@ -153,6 +153,14 @@ def submit():
         end = time.time()
         #logging.debug(response)
         logging.info(f"spend time: {end - start} s, row length:{ len(rows) }")
+        
+        if os.path.exists(f"{currentPath}/data/beton_amount_{expectId}.csv"):
+            os.remove(f"{currentPath}/data/beton_amount_{expectId}.csv")
+        if os.path.exists(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv"):
+            os.remove(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv") 
+        if os.path.exists(f"{currentPath}/data/opencode_amount_result_{expectId}.csv"):
+            os.remove(f"{currentPath}/data/opencode_amount_result_{expectId}.csv") 
+
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
    
     return render_template('bestopen.html', title=title)
