@@ -84,16 +84,17 @@ def logfile_sort(e):
 
 @app.route('/log/<path:filename>', methods=['GET'])
 def download(filename):
-    #uploads = os.path.join(current_app.root_path, app.config['UPLOAD_FOLDER'])
-    #return send_from_directory(directory=uploads, filename=filename)
     fullpath = f"{currentPath}/log/"
     whitelist = [
         "114.34.170.104", #Doway
         "122.116.29.74" #AsiaEastern
     ]
-    logging.info(f"remote ip :{request.remote_addr}")
+    logging.info(f"download logfile {filename} from remote ip :{request.remote_addr}")
     if  request.remote_addr in whitelist:
-        return send_from_directory(directory=fullpath, filename=filename)
+        if os.path.isfile(fullpath + filename ):
+            return send_from_directory(directory=fullpath, filename=filename)
+        else:
+            return Response(f"file not exist...")
     else:
         logging.info(f"remote ip {request.remote_addr} not in white list")
         return Response(f"remote ip {request.remote_addr} not in white list")
@@ -109,12 +110,16 @@ def home():
     gpu0_info = out[3].split(",")
     gpu1_info = out[4].split(",")
 
+    dateTimeObj = datetime.datetime.now()
+    timeStr = dateTimeObj.strftime("%H%M%S%f")
+    print('Current Timestamp : ', timeStr)
+
     # 取得所有檔案與子目錄名稱
     logfiles = listdir(f"{currentPath}/log")
     logfiles.sort(reverse=True, key=logfile_sort)
     logfilelength = len(logfiles)
     return render_template(f'index.html', CPU=cpu_usage, MEM=mem_usage, SSD=ssd_usage, GPU0=gpu0_info, GPU1=gpu1_info, 
-        logfilelength=10, logfiles = logfiles[:10])
+        logfilelength=10, logfiles = logfiles[:10], timestamp=timeStr)
 
 @app.route("/bestopen", methods=['GET', 'POST'])
 def submit():
@@ -123,7 +128,7 @@ def submit():
         #print('request.form', request.data)
         betOn_rows = []
         raw_data = request.get_data().decode("utf-8")
-        logging.debug(f"row data: {raw_data}")
+        logging.info(f"[Request] row data: {raw_data}")
         jdata = json.loads(raw_data)
         buId = jdata["BuID"]
         if buId == "RedFire":
@@ -191,14 +196,17 @@ def submit():
         #print(json.dumps(response, cls=NumpyEncoder))
         end = time.time()
         #logging.debug(response)
-        logging.info(f"buId:{buId}, expectId:{expectId}, spend time: {end - start} s, row length:{ len(rows) }")
+        logging.info(f"[Response] buId:{buId}, expectId:{expectId}, spend time: {end - start} s, row length:{ len(rows) }")
         
-        if os.path.exists(f"{currentPath}/data/beton_amount_{expectId}.csv"):
-            os.remove(f"{currentPath}/data/beton_amount_{expectId}.csv")
-        if os.path.exists(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv"):
-            os.remove(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv") 
-        if os.path.exists(f"{currentPath}/data/opencode_amount_result_{expectId}.csv"):
-            os.remove(f"{currentPath}/data/opencode_amount_result_{expectId}.csv") 
+        try:
+            if os.path.exists(f"{currentPath}/data/beton_amount_{expectId}.csv"):
+                os.remove(f"{currentPath}/data/beton_amount_{expectId}.csv")
+            if os.path.exists(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv"):
+                os.remove(f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv") 
+            if os.path.exists(f"{currentPath}/data/opencode_amount_result_{expectId}.csv"):
+                os.remove(f"{currentPath}/data/opencode_amount_result_{expectId}.csv") 
+        except:
+            logging.error("delete temp csv failed!!!")
 
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
    

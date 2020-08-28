@@ -42,7 +42,7 @@
     </table>
     <ul>
         {%for i in range(0, logfilelength)%} 
-            <li><a href="/log/{{logfiles[i]}}">{{logfiles[i]}}</a> </li> 
+            <li><a href="/log/{{logfiles[i]}}?t={{timestamp}}">{{logfiles[i]}}</a> </li> 
         {%endfor%} 
     </ul>
 </body>
