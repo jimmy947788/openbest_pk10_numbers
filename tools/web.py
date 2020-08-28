@@ -6,7 +6,6 @@ import json
 import logging
 import datetime
 from pathlib import Path
-from flask import Flask, request, render_template , Response
 import numpy as np
 import pandas as pd
 import itertools
@@ -18,6 +17,12 @@ import random
 import subprocess
 import TransferWager.A5 as A5
 import TransferWager.Redfire as Redfire
+import traceback
+import test
+from os import listdir
+from os.path import isfile, isdir, join
+from flask import send_from_directory
+from flask import Flask, request, render_template , Response
 
 app = Flask(__name__)
 
@@ -71,7 +76,27 @@ def sum_beton_total_amount(one_vector_mask, amount_matrix, wager_length=10000):
     logging.info("It cost %f sec" % (tEnd - tStart))#會自動做近位
     return result
 
+def logfile_sort(e):
+    trm = e.replace("opencode", "")
+    trm = trm.replace("-", "")
+    trm = trm.replace(".log", "")
+    return int(trm)
 
+@app.route('/log/<path:filename>', methods=['GET'])
+def download(filename):
+    #uploads = os.path.join(current_app.root_path, app.config['UPLOAD_FOLDER'])
+    #return send_from_directory(directory=uploads, filename=filename)
+    fullpath = f"{currentPath}/log/"
+    whitelist = [
+        "114.34.170.104", #Doway
+        "122.116.29.74" #AsiaEastern
+    ]
+    logging.info(f"remote ip :{request.remote_addr}")
+    if  request.remote_addr in whitelist:
+        return send_from_directory(directory=fullpath, filename=filename)
+    else:
+        logging.info(f"remote ip {request.remote_addr} not in white list")
+        return Response(f"remote ip {request.remote_addr} not in white list")
 
 @app.route('/', methods=['GET'])
 def home():
@@ -83,7 +108,13 @@ def home():
     ssd_usage = out[2]
     gpu0_info = out[3].split(",")
     gpu1_info = out[4].split(",")
-    return render_template(f'index.html', CPU=cpu_usage, MEM=mem_usage, SSD=ssd_usage, GPU0=gpu0_info, GPU1=gpu1_info)
+
+    # 取得所有檔案與子目錄名稱
+    logfiles = listdir(f"{currentPath}/log")
+    logfiles.sort(reverse=True, key=logfile_sort)
+    logfilelength = len(logfiles)
+    return render_template(f'index.html', CPU=cpu_usage, MEM=mem_usage, SSD=ssd_usage, GPU0=gpu0_info, GPU1=gpu1_info, 
+        logfilelength=10, logfiles = logfiles[:10])
 
 @app.route("/bestopen", methods=['GET', 'POST'])
 def submit():
@@ -94,7 +125,8 @@ def submit():
         raw_data = request.get_data().decode("utf-8")
         logging.debug(f"row data: {raw_data}")
         jdata = json.loads(raw_data)
-        if jdata["BuID"] == "RedFire":
+        buId = jdata["BuID"]
+        if buId == "RedFire":
             (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = Redfire.transferWager(logging, headers, jdata)    
         else:
             (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5.transferWager(logging, headers, jdata)
@@ -127,7 +159,7 @@ def submit():
             client.sendall(sendData.encode())
             
             serverMessage = client.recv(1048576).decode("UTF-8")
-            print('Server:', serverMessage)
+            #logging.debug('Server:', serverMessage)
         
         response = { }
         response["code"] = 0
@@ -137,22 +169,29 @@ def submit():
         try:
             # print("=================")
             for row in serverMessage.split("\n"):
-                rows.append(
-                        {
-                            "TotalAmountSum": row.split(',')[1],
-                            #"WinAmountSum": a[1],
-                            #"BetCount" : 0,
-                            "OpenCode": row.split(',')[0]
-                        }
-                    ) 
+                #if not row: 
+                rows.append({
+                    "TotalAmountSum": row.split(',')[1],
+                    #"WinAmountSum": a[1],
+                    # #"BetCount" : 0,
+                    "OpenCode": row.split(',')[0]
+                }) 
         except Exception as e:
-            logging.error(response)
+            error_class = e.__class__.__name__ #取得錯誤類型
+            detail = e.args[0] #取得詳細內容
+            cl, exc, tb = sys.exc_info() #取得Call Stack
+            lastCallStack = traceback.extract_tb(tb)[-1] #取得Call Stack的最後一筆資料
+            fileName = lastCallStack[0] #取得發生的檔案名稱
+            lineNum = lastCallStack[1] #取得發生的行號
+            funcName = lastCallStack[2] #取得發生的函數名稱
+            errMsg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, error_class, detail)
+            logging.error(errMsg)
 
         response["result"] = { "rows" : rows }
         #print(json.dumps(response, cls=NumpyEncoder))
         end = time.time()
         #logging.debug(response)
-        logging.info(f"spend time: {end - start} s, row length:{ len(rows) }")
+        logging.info(f"buId:{buId}, expectId:{expectId}, spend time: {end - start} s, row length:{ len(rows) }")
         
         if os.path.exists(f"{currentPath}/data/beton_amount_{expectId}.csv"):
             os.remove(f"{currentPath}/data/beton_amount_{expectId}.csv")

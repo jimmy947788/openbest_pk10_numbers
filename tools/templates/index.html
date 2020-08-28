@@ -40,6 +40,11 @@
             <td>{{ GPU1[3] }} / {{ GPU1[4] }} </td>
         </tr>
     </table>
+    <ul>
+        {%for i in range(0, logfilelength)%} 
+            <li><a href="/log/{{logfiles[i]}}">{{logfiles[i]}}</a> </li> 
+        {%endfor%} 
+    </ul>
 </body>
 <script type="text/javascript">
     $(document).ready(function(){
