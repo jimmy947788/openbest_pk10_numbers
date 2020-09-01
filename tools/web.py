@@ -82,6 +82,13 @@ def logfile_sort(e):
     trm = trm.replace(".log", "")
     return int(trm)
 
+def checkOpencodeExists(dict, opencode): 
+    for d in dict:
+        if d["OpenCode"] == opencode:
+            return True
+    return False
+
+
 @app.route('/log/<path:filename>', methods=['GET'])
 def download(filename):
     fullpath = f"{currentPath}/log/"
@@ -165,7 +172,7 @@ def submit():
             sendData += f"{opencodeCount},"
             client.sendall(sendData.encode())
             
-            serverMessage = client.recv(1048576).decode("UTF-8")
+            serverMessage = client.recv(1048576).decode("UTF-8").replace('\0', '')
             #logging.debug('Server:', serverMessage)
         
         response = { }
@@ -176,13 +183,15 @@ def submit():
         try:
             # print("=================")
             for row in serverMessage.split("\n"):
-                #if not row: 
-                rows.append({
-                    "TotalAmountSum": row.split(',')[1],
-                    #"WinAmountSum": a[1],
-                    # #"BetCount" : 0,
-                    "OpenCode": row.split(',')[0]
-                }) 
+                if len(row) > 0:
+                    logging.debug(row)
+                    opencode = row.split(',')[0]
+                    amount = row.split(',')[1]
+                    if not checkOpencodeExists(rows, opencode):
+                        rows.append({
+                            "TotalAmountSum": amount,
+                            "OpenCode": opencode
+                        }) 
         except Exception as e:
             error_class = e.__class__.__name__ #取得錯誤類型
             detail = e.args[0] #取得詳細內容
