@@ -1,0 +1,9 @@
+{
+    "name": "Daedalus",
+    "host": "daedalus.com.tw",
+    "protocol": "sftp",
+    "port": 2022,
+    "username": "jimmywu",
+    "remotePath": "/home/jimmywu/Developer/projects/openbest_pk10_numbers",
+    "uploadOnSave": true
+}
