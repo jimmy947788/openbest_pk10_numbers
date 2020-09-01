@@ -51,7 +51,7 @@ ifeq ($(ver), debug)
 endif
 
 $(PROJ): src/*.c
-	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -lpthread
+	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -DLOG_USE_COLOR
 	cp kernels/kernel_program.cl bin/
 
 .PHONY: clean
