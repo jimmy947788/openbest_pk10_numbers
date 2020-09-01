@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
     }
     
     char log_file[MAX_LENGTH];
-    sprintf(log_file, "%scalc_opencode_amount.log", log_dir);
+    sprintf(log_file, "%s/%scalc_opencode_amount.log", work_folder, log_dir);
     FILE *logfp = fopen(log_file, "a+");
     log_add_fp(logfp, LOG_TRACE);
 
