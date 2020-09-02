@@ -468,10 +468,11 @@ int main(int argc, char* argv[])
         }
         log_info("target_amount_counter = %d", target_amount_counter );
 
-        //亂數讀取 result_count 筆所有符合開獎結果
-        //temp_target_amount_results : 把所有結果組成很長的字串透過socket回傳
-        //target_amount_results[rand_num] : 1-3-7-2-9-4-10-8-5-6,0.000000\n
-        //target_amount_results[rand_num] : {獎號},{金額}\n
+        // 亂數讀取 result_count 筆所有符合開獎結果
+        // 把所有結果組成很長的字串透過socket回傳 > temp_target_amount_results
+        // target_amount_results[rand_num] : 1-3-7-2-9-4-10-8-5-6,0.000000\n
+        // target_amount_results[rand_num] : {獎號},{金額}\n
+        // temp_target_amount_results : {獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n
         int rand_num = 0;
         time_t t;
         char temp_target_amount_results[MAX_SOURCE_SIZE];
@@ -486,8 +487,11 @@ int main(int argc, char* argv[])
                 log_debug("rand_num[%d] = %d", i, rand_num);
                 log_debug("target_amount_results[%d] = %s", rand_num, target_amount_results[rand_num]);
 #endif
-                strcat (temp_target_amount_results, target_amount_results[rand_num]);
-                //log_debug("temp_target_amount_results = %s", temp_target_amount_results); 
+                //檢查重複獎號，重複則不要回傳
+                if(strstr(temp_target_amount_results, target_amount_results[rand_num]) == NULL)
+                {
+                    strcat (temp_target_amount_results, target_amount_results[rand_num]);
+                }
             }
         }
         log_info("free every target_amount_results array.");

@@ -187,11 +187,11 @@ def submit():
                     logging.debug(row)
                     opencode = row.split(',')[0]
                     amount = row.split(',')[1]
-                    if not checkOpencodeExists(rows, opencode):
-                        rows.append({
-                            "TotalAmountSum": amount,
-                            "OpenCode": opencode
-                        }) 
+                    # if not checkOpencodeExists(rows, opencode): 把檢查重複丟給C語言
+                    rows.append({
+                        "TotalAmountSum": amount,
+                        "OpenCode": opencode
+                    }) 
         except Exception as e:
             error_class = e.__class__.__name__ #取得錯誤類型
             detail = e.args[0] #取得詳細內容
