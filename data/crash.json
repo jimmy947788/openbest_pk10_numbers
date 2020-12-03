@@ -1,0 +1,1 @@
+{"BuID":7,"ExpectID":"20200827120","KillRate":-1.0000,"Tolerance":-1.0000,"LotteryCode":"threepk10bu","OpenCodeCount":1000,"Bets":[{"BetTypePlayCode":"O_12Sum","UnitAmount":1.0000,"BetOn":"3","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"03\",\"Odds\":2.0000,\"BetCount\":0}]}"}],"ClientUpdateTime":"0001-01-01T00:00:00"}

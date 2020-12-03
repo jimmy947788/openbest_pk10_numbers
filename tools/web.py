@@ -106,6 +106,14 @@ def download(filename):
         logging.info(f"remote ip {request.remote_addr} not in white list")
         return Response(f"remote ip {request.remote_addr} not in white list")
 
+@app.route('/mem', methods=['GET'])
+def mem():
+    path = f"{currentPath}/tools/systemInfo.sh"
+    out, err = subprocess.Popen(['bash', path], stdout=subprocess.PIPE).communicate() 
+    out = out.decode(encoding='UTF-8').splitlines()
+    mem_usage = out[1].replace('%', '')
+    return Response(mem_usage, mimetype='text/plain')
+
 @app.route('/', methods=['GET'])
 def home():
     path = f"{currentPath}/tools/systemInfo.sh"

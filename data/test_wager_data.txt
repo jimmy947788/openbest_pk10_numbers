@@ -1,10 +1,10 @@
 {
-    "BuID":2,
-    "ExpectID":"20200619062",
-    "LotteryCode":"crownpk10",
-    "OpenCodeCount":5,
-    "KillRate" : 0.5,
-    "Tolerance" : 25,
+    "BuID":999, /*目前測試先代:999*/
+    "ExpectID":"20200619062", /*遊戲期號*/
+    "LotteryCode":"pk10", /*遊戲代碼 目前先代PK10*/
+    "OpenCodeCount":5, /* 預計要回傳的建議獎號數目 */
+    "KillRate" : -1,  /* 期望殺率 -1全咬(可以代入1~0~-1之間代小數點第3位數字)*/
+    "Tolerance" : -1 , /* 固定代-1*/
     "Bets":[
         {"BetTypePlayCode":"PK10_SUM_09","UnitAmount":500.0000,"BetOn":"09","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"09\",\"Odds\":10.8560,\"BetCount\":1}]}"},
         {"BetTypePlayCode":"PK10_SUMOE","UnitAmount":200.0000,"BetOn":"E","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"E\",\"Odds\":1.9300,\"BetCount\":1}]}"},
