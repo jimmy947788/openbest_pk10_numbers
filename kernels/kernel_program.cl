@@ -36,7 +36,7 @@ __kernel void sum_beton_total_amount(
 __kernel void calc_numbers_risk(
          __global const float* total_amount_vector,      /* 各beton加總陣列（本金）*/
          __global const float* total_amount_odds_vector, /* 各beton加總陣列（本金*賠率 - 本金）*/
-         __global const short* answers_matrix,
+         __global const uchar* answers_matrix,
          __global float* result,
          const int beton_length)
 {
@@ -53,11 +53,13 @@ __kernel void calc_numbers_risk(
       int index = (numbers_index * step) + i; 
       total_amount = total_amount_vector[i];
       total_amount_odds = total_amount_odds_vector[i];
-      if(answers_matrix[index]>0)
+      // miuns 45, plus 43 
+      //printf("answers_matrix[%d]=%d\n",index, answers_matrix[index]);
+      if(answers_matrix[index] == 43)
          sum += total_amount_odds; //有中獎就用乘上賠率的金額
       else
          sum += total_amount * -1; //沒中獎就用本金
-      //printf("answers_matrix[%d]=%f, total_amount=%f, total_amount_odds=%f, sum=%f\n", index, answers_matrix[index], total_amount, total_amount_odds, sum);
+         //printf("answers_matrix[%d]=%d, total_amount=%f, total_amount_odds=%f, sum=%f\n", index, answers_matrix[index], total_amount, total_amount_odds, sum);
    }
    //printf("\n");
    //printf("numbers_index=%d, numbers_size=%d, sum=%f\n", numbers_index, numbers_size, sum);

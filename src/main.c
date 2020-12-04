@@ -114,14 +114,14 @@ int main(int argc, char* argv[])
    
     // load opencode answer table
     //===================================================================================================
-    cl_short* opencode_answer_table[USE_GPU_NUM];
+    cl_uchar* opencode_answer_table[USE_GPU_NUM];
     cl_float* opencode_answer_table_result[USE_GPU_NUM];
     char** opencodeList[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         log_info("load opencode answer table from %s...%d/%d", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
-        opencode_answer_table[num] = (cl_short *)malloc(sizeof(cl_short) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num]);
+        opencode_answer_table[num] = (cl_uchar *)malloc(sizeof(cl_uchar) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num]);
         opencodeList[num] = (char**)malloc(sizeof(*opencodeList[num]) * GPU_HANDEL_COUNT[num]);
         memset(temp_path, '\0', MAX_LENGTH);
         sprintf(temp_path, "%s%s", work_folder, OPENCODE_ANSWER_TABLE_PATH[num]);
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
         opencode_answer_table_buffer[num] = clCreateBuffer(
             context, 
             CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-            sizeof(cl_short) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num], 
+            sizeof(cl_uchar) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num], 
             opencode_answer_table[num], 
             &errNum);    
         if(errNum < 0) {
