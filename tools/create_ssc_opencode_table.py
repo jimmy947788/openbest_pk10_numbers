@@ -710,7 +710,114 @@ def OBSOES_Check(opencode, beton):
     elif beton[1] == "E" :
         return 1 if  (num % 2) == 0  else -1
 
-enableOFiveStarZhiFu = False
+def ODragonTiger_Beton():
+    result = []
+    for b in [ "D", "T", "TT" ]:
+        result.append(b)
+    return (result, len(result))
+
+def ODragonTigerWQ_Check(opencode, beton):
+    a = int(opencode[0])
+    b = int(opencode[1])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1 
+
+def ODragonTigerWB_Check(opencode, beton):
+    a = int(opencode[0])
+    b = int(opencode[2])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerWS_Check(opencode, beton):
+    a = int(opencode[0])
+    b = int(opencode[3])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerWG_Check(opencode, beton):
+    a = int(opencode[0])
+    b = int(opencode[4])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerQB_Check(opencode, beton):
+    a = int(opencode[1])
+    b = int(opencode[2])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerQS_Check(opencode, beton):
+    a = int(opencode[1])
+    b = int(opencode[3])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerQG_Check(opencode, beton):
+    a = int(opencode[1])
+    b = int(opencode[4])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerBS_Check(opencode, beton):
+    a = int(opencode[2])
+    b = int(opencode[3])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerBG_Check(opencode, beton):
+    a = int(opencode[2])
+    b = int(opencode[4])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+def ODragonTigerSG_Check(opencode, beton):
+    a = int(opencode[3])
+    b = int(opencode[4])
+    if beton == "D":
+        return 1 if a > b  else -1 
+    elif beton == "T":
+        return 1 if a < b  else -1 
+    elif beton == "TT":
+        return 1 if a == b  else -1
+
+
+enableOFiveStarZhiFu = True
 def main():
     parser = ArgumentParser()
     parser.add_argument("--header", help="optional argument", dest="header", default=False)
@@ -728,254 +835,360 @@ def main():
         # header
         #====================================================================================
         header = "opencode,"
-        """
+        
         # O_FiveStar_ZhiFu 五星直選
         if enableOFiveStarZhiFu:
             (result, length ) = OFiveStarZhiFu_Beton()
             for beton in result:
                 header += f"O_FiveStar_ZhiFu_{beton[0]}{beton[1]}{beton[2]}{beton[3]}{beton[4]},"
+            print(f"O_FiveStar_ZhiFu length:{length}")
 
         # O_FiveStar_Zu120 五星組選120
         (result, length )= OFiveStarZu120_Beton()
         for beton in result:
             header += f"O_FiveStar_Zu120_{beton[0]}{beton[1]}{beton[2]}{beton[3]}{beton[4]},"
+        print(f"O_FiveStar_Zu120 length:{length}")
 
         # O_FiveStar_Zu60 五星組選60
         (result, length) = OFiveStarZu60_Beton()
         for beton in result:
             header += f"O_FiveStar_Zu60_{beton[0]}{beton[1]}{beton[2]}{beton[3]}{beton[4]},"
+        print(f"O_FiveStar_Zu60 length:{length}")
 
         # O_FiveStar_Zu30 五星組選30
         (result, length) = OFiveStarZu30_Beton()
         for beton in result:
             header += f"O_FiveStar_Zu30_{beton[0]}{beton[1]}{beton[2]}{beton[3]}{beton[4]},"
+        print(f"O_FiveStar_Zu30 length:{length}")
 
         # O_FiveStar_Zu20 五星組選20
         (result, length) = OFiveStarZu20_Beton()
         for beton in result:
             header += f"O_FiveStar_Zu20_{beton[0]}{beton[1]}{beton[2]}{beton[3]}{beton[4]},"
+        print(f"O_FiveStar_Zu20 length:{length}")
 
          # O_FiveStar_Zu10 五星組選10
         (result, length) = OFiveStarZu10_Beton()
         for beton in result:
             header += f"O_FiveStar_Zu10_{beton[0]}{beton[1]}{beton[2]}{beton[3]}{beton[4]},"
+        print(f"O_FiveStar_Zu10 length:{length}")
 
         # O_FiveStar_Zu5 五星組選5
         (result, length) = OFiveStarZu5_Beton()
         for beton in result:
             header += f"O_FiveStar_Zu5_{beton[0]}{beton[1]}{beton[2]}{beton[3]}{beton[4]},"
+        print(f"O_FiveStar_Zu5 length:{length}")
 
         # O_FiveStar_SpecialOne 一帆风顺
         (result, length) = OFiveStarSpecialOne_Beton()
         for beton in result:
             header += f"O_FiveStar_SpecialOne_{beton},"
-        
+        print(f"O_FiveStar_SpecialOne length:{length}")
+
         # O_FiveStar_SpecialTwo 好事成雙
         (result, length) = OFiveStarSpecialTwo_Beton()
         for beton in result:
             header += f"O_FiveStar_SpecialTwo_{beton},"
+        print(f"O_FiveStar_SpecialTwo length:{length}")
         
         # O_FiveStar_SpecialTwo 三星報喜
         (result, length) = OFiveStarSpecialThree_Beton()
         for beton in result:
             header += f"O_FiveStar_SpecialThree_{beton},"
+        print(f"O_FiveStar_SpecialThree length:{length}")
 
         # O_FiveStar_SpecialTwo 四季發財
         (result, length) = OFiveStarSpecialFour_Beton()
         for beton in result:
             header += f"O_FiveStar_SpecialFour_{beton},"
-
+        print(f"O_FiveStar_SpecialFour length:{length}")
+        
         # O_FourStar_ZhiFu 四星直選
         (result, length) = OFourStarZhiFu_Beton()
         for beton in result:
             header += f"O_FourStar_ZhiFu_{beton[0]}{beton[1]}{beton[2]}{beton[3]},"
+        print(f"O_FourStar_ZhiFu length:{length}")
 
         # O_FourStar_Zu24 四星組選24
         (result, length) = OFourStarZu24_Beton()
         for beton in result:
             header += f"O_FourStar_Zu24_{beton[0]}{beton[1]}{beton[2]}{beton[3]},"
+        print(f"O_FourStar_Zu24 length:{length}")
 
         # O_FourStar_Zu12 四星組選12
         (result, length) = OFourStarZu12_Beton()
         for beton in result:
             header += f"O_FourStar_Zu12_{beton[0]}{beton[1]}{beton[2]}{beton[3]},"
+        print(f"O_FourStar_Zu12 length:{length}")
 
         # O_FourStar_Zu6 四星組選6
         (result, length) = OFourStarZu6_Beton()
         for beton in result:
             header += f"O_FourStar_Zu6_{beton[0]}{beton[1]}{beton[2]}{beton[3]},"
+        print(f"O_FourStar_Zu6 length:{length}")
 
         # O_FourStar_Zu4 四星組選4
         (result, length) = OFourStarZu4_Beton()
         for beton in result:
             header += f"O_FourStar_Zu4_{beton[0]}{beton[1]}{beton[2]}{beton[3]},"
+        print(f"O_FourStar_Zu4 length:{length}")
 
         # O_ThreeStar_Zhi_Front3_S  三位直選前三
         (result, length) = OThreeStarZhiFront3S_Beton()
         for beton in result:
             header += f"O_ThreeStar_Zhi_Front3_S_{beton[0]}{beton[1]}{beton[2]},"
+        print(f"O_ThreeStar_Zhi_Front3_S length:{length}")
 
         # O_ThreeStar_Zhi_Front3_S  三位直選中三
         (result, length) = OThreeStarZhiMiddle3S_Beton()
         for beton in result:
             header += f"O_ThreeStar_Zhi_Middle3_S_{beton[0]}{beton[1]}{beton[2]},"
+        print(f"O_ThreeStar_Zhi_Middle3_S length:{length}")
 
         # O_ThreeStar_Zhi_Last3_S  三位直選後三
         (result, length) = OThreeStarZhiLast3S_Beton()
         for beton in result:
             header += f"O_ThreeStar_Zhi_Last3_S_{beton[0]}{beton[1]}{beton[2]},"
+        print(f"O_ThreeStar_Zhi_Last3_S length:{length}")
 
         # O_ThreeStar_Zu_Front3_S  三位組選前三
         (result, length) = OThreeStarZuFront3S_Beton()
         for beton in result:
             header += f"O_ThreeStar_Zu_Front3_S_{beton[0]}{beton[1]}{beton[2]},"
+        print(f"O_ThreeStar_Zu_Front3_S length:{length}")
 
         # O_ThreeStar_Zu_Middle3_S  三位組選前三
         (result, length) = OThreeStarZuMiddle3S_Beton()
         for beton in result:
             header += f"O_ThreeStar_Zu_Middle3_S_{beton[0]}{beton[1]}{beton[2]},"
+        print(f"O_ThreeStar_Zu_Middle3_S length:{length}")
 
         # O_ThreeStar_Zu_Last3_S  三位組選後三
         (result, length) = OThreeStarZuLast3S_Beton()
         for beton in result:
             header += f"O_ThreeStar_Zu_Last3_S_{beton[0]}{beton[1]}{beton[2]},"
-        """
+        print(f"O_ThreeStar_Zu_Last3_S length:{length}")
 
         # O_ThreeStar_Special_Front3 三位特殊號前三
         (result, length) =  OThreeStarSpecial3_Beton()
         for beton in result.keys():
             header += f"O_ThreeStar_Special_Front3_{beton},"
+        print(f"O_ThreeStar_Special_Front3 length:{length}")
         
         # O_ThreeStar_Special_Middle3 三位特殊號中三
         (result, length) =  OThreeStarSpecial3_Beton()
         for beton in result.keys():
             header += f"O_ThreeStar_Special_Middle3_{beton},"
-        
+        print(f"O_ThreeStar_Special_Middle3 length:{length}")
+
         # O_ThreeStar_Special_Last3 三位特殊號後三
         (result, length) =  OThreeStarSpecial3_Beton()
         for beton in result.keys():
             header += f"O_ThreeStar_Special_Last3_{beton},"
+        print(f"O_ThreeStar_Special_Last3 length:{length}")
 
         # O_TwoStar_Zhi_wq 二位直選萬千
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_wq_{beton[0]}{beton[1]},"
-        
+        print(f"O_TwoStar_Zhi_wq length:{length}")
+
         # O_TwoStar_Zhi_wb 二位直選萬百
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_wb_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_wb length:{length}")
 
         # O_TwoStar_Zhi_ws 二位直選萬十
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_ws_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_ws length:{length}")
 
         # O_TwoStar_Zhi_wg 二位直選萬個
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_wg_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_wg length:{length}")
 
          # O_TwoStar_Zhi_qb 二位直選千百
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_qb_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_qb length:{length}")
 
         # O_TwoStar_Zhi_qs 二位直選千十
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_qs_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_qs length:{length}")
 
         # O_TwoStar_Zhi_qg 二位直選千個
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_qg_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_qg length:{length}")
 
         # O_TwoStar_Zhi_bs 二位直選百十
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_bs_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_bs length:{length}")
 
         # O_TwoStar_Zhi_bg 二位直選百個
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_bg_{beton[0]}{beton[1]},"
-        
+        print(f"O_TwoStar_Zhi_bg length:{length}")
+
         # O_TwoStar_Zhi_sg 二位直選十個
         (result, length) =  OTwoStarZhi_Beton()
         for beton in result:
             header += f"O_TwoStar_Zhi_sg_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zhi_sg length:{length}")
 
         # O_TwoStar_Zu_wq 二位組選萬千
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_wq_{beton[0]}{beton[1]},"
-        
+        print(f"O_TwoStar_Zu_wq length:{length}")
+
         # O_TwoStar_Zu_wb 二位組選萬百
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_wb_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zu_wb length:{length}")
 
         # O_TwoStar_Zu_ws 二位組選萬十
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_ws_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zu_ws length:{length}")
 
         # O_TwoStar_Zu_wg 二位組選萬個
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_wg_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zu_wg length:{length}")
 
         # O_TwoStar_Zu_qb 二位組選千百
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_qb_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zu_qb length:{length}")
 
         # O_TwoStar_Zu_qs 二位組選千十
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_qs_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zu_qs length:{length}")
 
         # O_TwoStar_Zu_qg 二位組選千個
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_qg_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zu_qg length:{length}")
 
         # O_TwoStar_Zu_bs 二位組選百十
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_bs_{beton[0]}{beton[1]},"
-        
+        print(f"O_TwoStar_Zu_bs length:{length}")
+
         # O_TwoStar_Zu_bg 二位組選百個
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_bg_{beton[0]}{beton[1]},"
-        
+        print(f"O_TwoStar_Zu_bg length:{length}")
+
         # O_TwoStar_Zu_sg 二位組選十個
         (result, length) =  OTwoStarZu_Beton()
         for beton in result:
             header += f"O_TwoStar_Zu_sg_{beton[0]}{beton[1]},"
+        print(f"O_TwoStar_Zu_sg length:{length}")
 
         # O_DingWeiDan_S 定位膽
         (result, length) = ODingWeiDanS_Beton()
         for beton in result:
             header += f"O_DingWeiDan_S_{beton},"
+        print(f"O_DingWeiDan_S length:{length}")
 
         # O_BSOE_S 大小單雙
         (result, length) = OBSOES_Beton()
         for beton in result:
             header += f"O_BSOE_S_{beton},"
+        print(f"O_BSOE_S length:{length}")
+
+        # O_DragonTiger_wq 龍虎和萬千
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_wq_{beton},"
+        print(f"O_DragonTiger_wq length:{length}")
+
+        # O_DragonTiger_wb 龍虎和萬百
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_wb_{beton},"
+        print(f"O_DragonTiger_wb length:{length}")
+
+        # O_DragonTiger_ws 龍虎和萬十
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_ws_{beton},"
+        print(f"O_DragonTiger_ws length:{length}")
+
+        # O_DragonTiger_wg 龍虎和萬個
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_wg_{beton},"
+        print(f"O_DragonTiger_wq length:{length}")
+
+        # O_DragonTiger_qb 龍虎和千百
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_qb_{beton},"
+        print(f"O_DragonTiger_qb length:{length}")
+
+        # O_DragonTiger_qs 龍虎和千十
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_qs_{beton},"
+        print(f"O_DragonTiger_qs length:{length}")
+
+        # O_DragonTiger_qg 龍虎和千個
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_qg_{beton},"
+        print(f"O_DragonTiger_qg length:{length}")
+
+        # O_DragonTiger_bs 龍虎和百十
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_bs_{beton},"
+        print(f"O_DragonTiger_bs length:{length}")
+
+        # O_DragonTiger_bg 龍虎和百個
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_bg_{beton},"
+        print(f"O_DragonTiger_bg length:{length}")
+
+        # O_DragonTiger_sg 龍虎和十個
+        (result, length) = ODragonTiger_Beton()
+        for beton in result:
+            header += f"O_DragonTiger_sg_{beton},"
+        print(f"O_DragonTiger_sg length:{length}")
 
         f.write(header+ '\n')  
 
         # line
         #====================================================================================
+        """
         for opencode in itertools.product('0123456789', repeat = 5):
-        #for opencode in itertools.product('012345', repeat = 5):
+        # for opencode in itertools.product('012345', repeat = 5):
             print(f"opencode = {opencode[0]}, {opencode[1]}, {opencode[2]}, {opencode[3]}, {opencode[4]}")
             line = f"{opencode[0]}-{opencode[1]}-{opencode[2]}-{opencode[3]}-{opencode[4]},"
             
-            """
             # O_FiveStar_ZhiFu 五星直選
             if enableOFiveStarZhiFu:
                 (result, length ) = OFiveStarZhiFu_Beton()
@@ -1086,8 +1299,7 @@ def main():
             (result, length) = OThreeStarZuLast3S_Beton()
             for beton in result:
                 line += str(OThreeStarZuLast3S_Check(opencode, beton)) + ","
-            """
-
+            
             # O_ThreeStar_Special_Front3 三位特殊號前三
             (result, length) = OThreeStarSpecial3_Beton()
             for beton in result.keys():
@@ -1213,7 +1425,58 @@ def main():
             for beton in result:
                 line += str(OBSOES_Check(opencode, beton)) + ","
 
+            # O_DragonTiger_wq 龍虎和萬千
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerWQ_Check(opencode, beton)) + ","
+            
+            # O_DragonTiger_wb 龍虎和萬百
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerWB_Check(opencode, beton)) + ","
+            
+            # O_DragonTiger_ws 龍虎和萬十
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerWS_Check(opencode, beton)) + ","
+
+            # O_DragonTiger_wg 龍虎和萬個
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerWG_Check(opencode, beton)) + ","
+
+            # O_DragonTiger_qb 龍虎和千百
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerQB_Check(opencode, beton)) + ","
+
+            # O_DragonTiger_qs 龍虎和千十
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerQS_Check(opencode, beton)) + ","
+
+            # O_DragonTiger_qg 龍虎和千個
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerQG_Check(opencode, beton)) + ","
+
+            # O_DragonTiger_bs 龍虎和百十
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerBS_Check(opencode, beton)) + ","
+
+            # O_DragonTiger_bg 龍虎和百個
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerBG_Check(opencode, beton)) + ","
+
+            # O_DragonTiger_sg 龍虎和十個
+            (result, length) = ODragonTiger_Beton()
+            for beton in result:
+                line += str(ODragonTigerSG_Check(opencode, beton)) + ","
+
             f.write(line+ '\n')
+        """
 
     #print(rows)
 if __name__ == '__main__':
