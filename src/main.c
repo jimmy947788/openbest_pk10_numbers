@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     // load opencode answer table
     //===================================================================================================
     _Bool* opencode_answer_table[USE_GPU_NUM];
-    cl_float* opencode_answer_table_result[USE_GPU_NUM];
+    cl_short* opencode_answer_table_result[USE_GPU_NUM];
     char** opencodeList[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         log_info("alloc opencode_answer_table_result[%d] array (length: %d)", num, GPU_HANDEL_COUNT[num]);
-        opencode_answer_table_result[num] = (cl_float*)malloc(sizeof(cl_float) * GPU_HANDEL_COUNT[num]);
+        opencode_answer_table_result[num] = (cl_short*)malloc(sizeof(cl_short) * GPU_HANDEL_COUNT[num]);
     }
     
     char recv_buffer[MAX_BUFFER_SIZE] = {};
@@ -283,7 +283,7 @@ int main(int argc, char* argv[])
             };
 
             //create buffer result_buffer
-            result_buffer[num] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * GPU_HANDEL_COUNT[num] ,  NULL,  &errNum);
+            result_buffer[num] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_short) * GPU_HANDEL_COUNT[num] ,  NULL,  &errNum);
             if(errNum < 0) {
                 perror("Couldn't create a result_buffer");
                 exit(EXIT_FAILURE);
@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
         timeStart = clock();
         for(int num=0; num<=USE_GPU_NUM-1; num++)
         {
-            errNum = clEnqueueReadBuffer(queue_list[num], result_buffer[num], CL_FALSE, 0, sizeof(cl_float) * GPU_HANDEL_COUNT[num], opencode_answer_table_result[num], 0, NULL, &read_events[num]);
+            errNum = clEnqueueReadBuffer(queue_list[num], result_buffer[num], CL_FALSE, 0, sizeof(cl_short) * GPU_HANDEL_COUNT[num], opencode_answer_table_result[num], 0, NULL, &read_events[num]);
             if(errNum < 0) {
                 perror("Couldn't read the buffer");
                 exit(EXIT_FAILURE);
@@ -438,7 +438,7 @@ int main(int argc, char* argv[])
         {
             for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
             {
-                cl_float amount = opencode_answer_table_result[num][i];
+                cl_short amount = opencode_answer_table_result[num][i];
                 if(tolerance == 1)
                 {
                     if(target_amount <= amount ) //玩家贏錢
