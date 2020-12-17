@@ -44,6 +44,7 @@ void load_beton_amount_table(char* beton_amount_path, cl_float** beton_amount_ta
         for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
         {
             float ret = strtof(p, NULL);
+            //printf("csv_bet_amount_index[%d]=%f\n", csv_bet_amount_index, ret);
             *(*beton_amount_table + csv_bet_amount_index) = ret;
             csv_bet_amount_index ++;
         }
@@ -109,7 +110,7 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
 }
 
 
-int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list, cl_uchar** opencode_answer_table)
+int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list, _Bool** opencode_answer_table)
 {
     FILE * fp;
     char * line = NULL;
@@ -134,32 +135,44 @@ int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list
     {
         if(len <= 0)
             break;
-            
-        p = NULL;
-        csv_column_index = 0;
-        for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
+/*
+#ifdef DEBUG
+        printf("==========>csv_row_index[%d], ", csv_row_index );
+#endif
+*/
+        if (csv_row_index >0) //header不要
         {
-            if(csv_column_index == 0){
-                // Load opencode list 
-                // 把csv檔案的第1欄opencode存到opencode_list
-                *(*opencode_list + (csv_row_index)) = (char*) malloc(sizeof(char) * opencode_length);
-                strcpy(*(*opencode_list + (csv_row_index)), p);
-                //printf("opencode_list[%d] = %s \n",  (csv_row_index -1), *(*opencode_list + (csv_row_index -1))    );
-            }
-            else
+            p = NULL;
+            csv_column_index = 0;
+            for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
             {
-                // 把csv檔案第1欄後面的答案存到opencode_answer
-                //short ret = strtol(p, NULL, 10);
-                // miuns 45, plus 43 
-                if(strcmp(p, "-1") == 0)
-                    *(*opencode_answer_table + opencode_answer_index) = 45; //-
+                if(csv_column_index == 0){
+                    // Load opencode list 
+                    // 把csv檔案的第1欄opencode存到opencode_list
+                    *(*opencode_list + (csv_row_index-1)) = (char*) malloc(sizeof(char) * opencode_length);
+                    strcpy(*(*opencode_list + (csv_row_index-1)), p);
+                    //printf("opencode_list[%d] = %s \n", opencodeList  );
+                }
                 else
-                    *(*opencode_answer_table + opencode_answer_index) = 43;//+
-                //printf("=================>After: %d\n",  *(*opencode_answer_table + opencode_answer_index) );
-                opencode_answer_index ++;
+                {
+                    // 把csv檔案第1欄後面的答案存到opencode_answer
+                    //short ret = strtol(p, NULL, 10);
+                    // miuns 45, plus 43 
+                    if(strcmp(p, "-1") == 0)
+                        *(*opencode_answer_table + opencode_answer_index) = 0; //-
+                    else
+                        *(*opencode_answer_table + opencode_answer_index) = 1;//+
+                    //printf("=================>After: %d\n",  *(*opencode_answer_table + opencode_answer_index) );
+                    opencode_answer_index ++;
+                }
+                csv_column_index ++;
+                
             }
-            csv_column_index ++;
-            
+/*
+#ifdef DEBUG
+            printf("csv_column length=%d\n",  csv_column_index );
+#endif
+*/
         }
         csv_row_index++;
     }
@@ -170,5 +183,5 @@ int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list
 
     timeEnd = clock();
     printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-    return csv_row_index;
+    return csv_row_index -1; //header不要
 }

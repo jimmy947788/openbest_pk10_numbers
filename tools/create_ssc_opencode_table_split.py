@@ -1001,11 +1001,14 @@ def main():
     currentPath = os.path.dirname(os.path.abspath(__file__))
     currentPath = currentPath.replace("/tools", "")
 
-    f1 = open(f'{currentPath}/data/opencode_ssc_table.csv', 'w+', encoding='UTF-8')
+    f1 = open(f'{currentPath}/data/opencode_ssc_table_1.csv', 'w+', encoding='UTF-8')
     f1.write(header()+ '\n')  
 
+    f2 = open(f'{currentPath}/data/opencode_ssc_table_2.csv', 'w+', encoding='UTF-8')
+    f2.write(header()+ '\n')  
+
     rowIndex  = 0
-    for opencode in itertools.product('01', repeat = 5):
+    for opencode in itertools.product('0123456789', repeat = 5):
         # b百 s拾 q千 w萬 g個
         print(f"opencode = {opencode[0]}, {opencode[1]}, {opencode[2]}, {opencode[3]}, {opencode[4]}")
         line = f"{opencode[0]}-{opencode[1]}-{opencode[2]}-{opencode[3]}-{opencode[4]},"
@@ -1015,84 +1018,72 @@ def main():
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line +=  str(OFiveStarZhiFu_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarZhiFu_Beton length {length}")
         
         # O_FiveStar_Zu120 五星組選120
         (result, length )= A5_SSC.OFiveStarZu120_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line +=  str(OFiveStarZu120_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarZu120_Beton length {length}")
 
         # O_FiveStar_Zu60 五星組選60
         (result, length) = A5_SSC.OFiveStarZu60_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarZu60_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarZu60_Beton length {length}")
 
         # O_FiveStar_Zu30 五星組選30
         (result, length) =A5_SSC.OFiveStarZu30_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarZu30_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarZu30_Beton length {length}")
 
         # O_FiveStar_Zu20 五星組選20
         (result, length) = A5_SSC.OFiveStarZu20_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarZu20_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarZu20_Beton length {length}")
 
         # O_FiveStar_Zu10 五星組選10
         (result, length) =A5_SSC.OFiveStarZu10_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarZu10_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarZu10_Beton length {length}")
 
         # O_FiveStar_Zu5 五星組選5
         (result, length) = A5_SSC.OFiveStarZu5_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarZu5_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarZu5_Beton length {length}")
 
         # O_FiveStar_SpecialOne 一帆风顺
         (result, length) = A5_SSC.OFiveStarSpecialOne_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarSpecialOne_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarSpecialOne_Beton length {length}")
 
         # O_FiveStar_SpecialTwo 好事成雙
         (result, length) = A5_SSC.OFiveStarSpecialTwo_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarSpecialTwo_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarSpecialTwo_Beton length {length}")
 
         # O_FiveStar_SpecialTwo 三星報喜
         (result, length) = A5_SSC.OFiveStarSpecialThree_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarSpecialThree_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarSpecialThree_Beton length {length}")
 
         # O_FiveStar_SpecialTwo 四季發財
         (result, length) = A5_SSC.OFiveStarSpecialFour_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFiveStarSpecialFour_Check(opencode, tmp_beton)) + ","
-        print(f"OFiveStarSpecialFour_Beton length {length}")
 
         # O_FourStar_ZhiFu 四星直選
         (result, length) = A5_SSC.OFourStarZhiFu_Beton()
         for beton in result:
             tmp_beton = tuple(split(beton.split("_")[-1:][0]))
             line  += str(OFourStarZhiFu_Check(opencode, tmp_beton)) + ","
-        print(f"OFourStarZhiFu_Beton length {length}")
 
         # O_FourStar_Zu24 四星組選24
         (result, length) = A5_SSC.OFourStarZu24_Beton()
@@ -1407,12 +1398,17 @@ def main():
             #print(f"beton={beton}, tmp_beton={tmp_beton}")
             line += str(ODragonTigerSG_Check(opencode, tmp_beton)) + ","
 
-        line_len = len(line)
-        f1.write(line[:line_len-1]+ '\n') #移除最後一個逗號
+        if rowIndex < 50000:
+            line_len = len(line)
+            f1.write(line[:line_len-1]+ '\n') #移除最後一個逗號
+        else:
+            line_len = len(line)
+            f2.write(line[:line_len-1]+ '\n') #移除最後一個逗號
         
         rowIndex += 1
 
     f1.close()
+    f2.close()
     #print(rows)
 if __name__ == '__main__':
     main()

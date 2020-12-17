@@ -114,14 +114,14 @@ int main(int argc, char* argv[])
    
     // load opencode answer table
     //===================================================================================================
-    cl_uchar* opencode_answer_table[USE_GPU_NUM];
+    _Bool* opencode_answer_table[USE_GPU_NUM];
     cl_float* opencode_answer_table_result[USE_GPU_NUM];
     char** opencodeList[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         log_info("load opencode answer table from %s...%d/%d", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
-        opencode_answer_table[num] = (cl_uchar *)malloc(sizeof(cl_uchar) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num]);
+        opencode_answer_table[num] = (_Bool *)malloc(sizeof(_Bool) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num]);
         opencodeList[num] = (char**)malloc(sizeof(*opencodeList[num]) * GPU_HANDEL_COUNT[num]);
         memset(temp_path, '\0', MAX_LENGTH);
         sprintf(temp_path, "%s%s", work_folder, OPENCODE_ANSWER_TABLE_PATH[num]);
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
         opencode_answer_table_buffer[num] = clCreateBuffer(
             context, 
             CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-            sizeof(cl_uchar) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num], 
+            sizeof(_Bool) * PK10_BETON_COUNT * GPU_HANDEL_COUNT[num], 
             opencode_answer_table[num], 
             &errNum);    
         if(errNum < 0) {
@@ -233,10 +233,11 @@ int main(int argc, char* argv[])
         for(int i=0; i<=PK10_BETON_COUNT-1; i++)
         {
             sum += total_beton_amount_vector[i];
+            if(total_beton_amount_vector[i] > 0)
+                log_debug("total_beton_amount_vector[%d]= %f", i, total_beton_amount_vector[i]);
         }
         log_debug("====> sum total_beton_amount = %f", sum);
 #endif
-
         beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * PK10_BETON_COUNT * wager_length);
         load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
         total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * PK10_BETON_COUNT);
@@ -254,6 +255,8 @@ int main(int argc, char* argv[])
         for(int i=0; i<=PK10_BETON_COUNT-1; i++)
         {
             sum += total_beton_amount_with_odds_vector[i];
+            if(total_beton_amount_with_odds_vector[i] > 0)
+                log_debug("beton_amount_with_odds_table[%d]= %f", i, beton_amount_with_odds_table[i]);
         }
         log_debug("====> sum total beton amount with odds = %f", sum);
 #endif
@@ -326,10 +329,19 @@ int main(int argc, char* argv[])
         for(int num=0; num<=USE_GPU_NUM-1; num++)
         {
             int dim = 1;
-            const size_t global_offset[] = { 0 };
-            const size_t global_size[] = { GPU_HANDEL_COUNT[num] };
-            const size_t local_size[] = { 1 };
-            errNum = clEnqueueNDRangeKernel(queue_list[num], kCalcNumbersRisk[num], dim, global_offset, global_size, local_size, 0, NULL, &kernel_events[num]);
+            const size_t global_work_offset[] = { 0 };
+            const size_t global_work_size[] = { GPU_HANDEL_COUNT[num] };
+            const size_t local_work_size[] = { 1 };
+            errNum = clEnqueueNDRangeKernel(
+                queue_list[num], 
+                kCalcNumbersRisk[num], 
+                dim, 
+                global_work_offset, 
+                global_work_size, 
+                local_work_size, 
+                0, 
+                NULL, 
+                &kernel_events[num]);
             if(errNum < 0) {
                 perror("Couldn't enqueue kernel");
                 exit(EXIT_FAILURE);
@@ -426,7 +438,7 @@ int main(int argc, char* argv[])
         {
             for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
             {
-                float amount = opencode_answer_table_result[num][i];
+                cl_float amount = opencode_answer_table_result[num][i];
                 if(tolerance == 1)
                 {
                     if(target_amount <= amount ) //玩家贏錢
