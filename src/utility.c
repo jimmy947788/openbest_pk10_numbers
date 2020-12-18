@@ -161,7 +161,7 @@ void build_program_for_all_devices(
 void executionTime(cl_event event, double* elapsedTime)
 {
     cl_ulong start, end;
-    double total_time;
+    double total_time = 0;
     
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
     clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
@@ -244,7 +244,7 @@ int run_kernel_sum_beton_total_amount(
     errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  NULL);
 
     checkErr(errNum, "clEnqueueNDRangeKernel");    
-    printf("pass kernel code to GPU%d\n", 0);
+    printf("pass kernel code to GPU\n");
 
      /* Read and print the result */
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * BETON_COUNT, *result, 0, NULL, NULL);

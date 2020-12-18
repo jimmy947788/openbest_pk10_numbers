@@ -123,7 +123,9 @@ int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list
     uint32 opencode_answer_index = 0;
     clock_t timeStart, timeEnd;
     int opencode_length = strlen(OPENCODE_SAMPLE);
-    char* opencode_pointer = NULL;
+#ifdef DEBUG
+    printf("opencode sample length:%d\n", opencode_length );
+#endif   
 
     timeStart = clock();
     fp = fopen(opencode_answer_path, "r");
@@ -135,11 +137,12 @@ int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list
     {
         if(len <= 0)
             break;
-/*
+
+
 #ifdef DEBUG
-        printf("==========>csv_row_index[%d], ", csv_row_index );
+       
 #endif
-*/
+
         if (csv_row_index >0) //header不要
         {
             p = NULL;
@@ -171,13 +174,10 @@ int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list
                     opencode_answer_index ++;
                 }
                 csv_column_index ++;
-                
             }
-/*
 #ifdef DEBUG
-            printf("csv_column length=%d\n",  csv_column_index );
-#endif
-*/
+            //printf("==========>csv_row_index:%d, csv_column length:%d\n",  csv_row_index, csv_column_index );
+#endif   
         }
         csv_row_index++;
     }

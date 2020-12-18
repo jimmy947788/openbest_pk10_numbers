@@ -11,7 +11,7 @@
 #define SOCKET_PORT 8700
 #define _DATETIME_SIZE 32
 #define USE_GPU_NUM 2
-#define VERSION "1.01"
+#define VERSION "1.30"
 
 
 #ifdef PK10
@@ -24,7 +24,7 @@
     #define BETON_COUNT 1060
     #define OPENCODE_COUNT 3628800
 #elif defined SSC 
-    #define BETON_COUNT 10705  //117662
+    #define BETON_COUNT 117662
     #define OPENCODE_COUNT 100000
 #endif
 
@@ -39,7 +39,7 @@ static const char OPENCODE_ANSWER_TABLE_PATH[USE_GPU_NUM][MAX_LENGTH] = {
 };
 
 static const uint32 GPU_HANDEL_COUNT[USE_GPU_NUM] = {
-    BETON_COUNT / USE_GPU_NUM,
+    OPENCODE_COUNT / USE_GPU_NUM,
     OPENCODE_COUNT / USE_GPU_NUM,
 };
 

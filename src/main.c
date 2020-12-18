@@ -19,7 +19,6 @@ int main(int argc, char* argv[])
 {
     cl_int errNum;    
     char kernel_program_file[MAX_LENGTH] = "";
-    char opencode_answer_table_file[MAX_LENGTH] = "";
     char beton_amount_table_file[MAX_LENGTH] = "";
     char beton_amount_table_with_odds_file[MAX_LENGTH] = "";
     char work_folder[MAX_LENGTH] = "";
@@ -40,9 +39,9 @@ int main(int argc, char* argv[])
     }
 
 #ifdef PK10
-    log_info("this program was for PK10...\n");    
+    log_info("this program was for PK10 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...\n", OPENCODE_COUNT, BETON_COUNT);    
 #elif defined SSC 
-    log_info("this program was for SSC...\n");    
+    log_info("this program was for SSC (OPENCODE_COUNT=%d, BETON_COUNT=%d)...\n", OPENCODE_COUNT, BETON_COUNT);    
 #endif
 
     char log_file[MAX_LENGTH];
@@ -147,7 +146,6 @@ int main(int argc, char* argv[])
     }
     
     char recv_buffer[MAX_BUFFER_SIZE] = {};
-    char* send_buffer = NULL;
     int forClientSockfd = 0, sockfd = 0;
     struct sockaddr_in clientInfo;
     int addrlen = sizeof(clientInfo);
@@ -166,7 +164,7 @@ int main(int argc, char* argv[])
     cl_mem total_beton_amount_with_odds_buffer[USE_GPU_NUM];
     cl_mem opencode_answer_table_buffer[USE_GPU_NUM];
     cl_mem result_buffer[USE_GPU_NUM];
-    cl_buffer_region region;
+ 
     //opencl events
     cl_event kernel_events[USE_GPU_NUM];
     cl_event read_events[USE_GPU_NUM];
@@ -535,8 +533,7 @@ int main(int argc, char* argv[])
             for( int i = 0 ; i <= result_count-1 ; i++ ) {
                 rand_num = rand() % target_amount_counter;
 #ifdef DEBUG
-                log_debug("rand_num[%d] = %d", i, rand_num);
-                log_debug("target_amount_results[%d] = %s", rand_num, target_amount_results[rand_num]);
+                log_debug("rand_num[%d] = %d, target_amount_results[%d] = %s",  i, rand_num, rand_num, target_amount_results[rand_num]);
 #endif
                 //檢查重複獎號，重複則不要回傳
                 if(strstr(temp_target_amount_results, target_amount_results[rand_num]) == NULL)

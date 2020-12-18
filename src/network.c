@@ -39,9 +39,6 @@ void parser_data(char* data,
     float* tolerance,
     int* result_count)
 {
-    char * line = NULL;
-    size_t len = 0;
-    ssize_t read;
     char delim[] = ",";
     char *p = NULL;
 

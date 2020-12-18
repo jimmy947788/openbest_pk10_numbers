@@ -1,7 +1,8 @@
 #include "../header/argument.h"
 
-/* Flag set by ‘--verbose’. */
+/* Flag set by ‘--verbose’.
 static int verbose_flag;
+ */
 static struct option long_options[] =
 {
     /* These options set a flag. */
