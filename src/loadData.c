@@ -110,7 +110,7 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
 }
 
 
-int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list, _Bool** opencode_answer_table)
+int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list, cl_uchar** opencode_answer_table)
 {
     FILE * fp;
     char * line = NULL;
@@ -159,9 +159,14 @@ int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list
                     //short ret = strtol(p, NULL, 10);
                     // miuns 45, plus 43 
                     if(strcmp(p, "-1") == 0)
-                        *(*opencode_answer_table + opencode_answer_index) = 0; //-
+                    {
+                        *(*opencode_answer_table + opencode_answer_index) = 45; //-
+                    }
                     else
-                        *(*opencode_answer_table + opencode_answer_index) = 1;//+
+                    {
+                        *(*opencode_answer_table + opencode_answer_index) = 43;//+
+                        //printf("=================>After: %d\n",  *(*opencode_answer_table + opencode_answer_index) );
+                    }
                     //printf("=================>After: %d\n",  *(*opencode_answer_table + opencode_answer_index) );
                     opencode_answer_index ++;
                 }

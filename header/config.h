@@ -17,17 +17,17 @@ static const char OPENCODE_SAMPLE[] ="1-2-3-4-5";
 //#define PK10_BETON_COUNT 1060
 //#define PK10_OPENCODE_COUNT 3628800
 
-#define PK10_BETON_COUNT 117662
-#define PK10_OPENCODE_COUNT 100000
+#define SSC_BETON_COUNT 2032  //117662
+#define SSC_OPENCODE_COUNT 100000
 
 #define USE_GPU_NUM 2
 static const char OPENCODE_ANSWER_TABLE_PATH[USE_GPU_NUM][MAX_LENGTH] = {
-    "/data/opencode_ssc_table_1.csv",
-    "/data/opencode_ssc_table_2.csv"
+    "/data/ssc_opencode_table_1.csv",
+    "/data/ssc_opencode_table_2.csv"
 };
 static const uint32 GPU_HANDEL_COUNT[USE_GPU_NUM] = {
-    PK10_OPENCODE_COUNT / USE_GPU_NUM,
-    PK10_OPENCODE_COUNT / USE_GPU_NUM,
+    SSC_OPENCODE_COUNT / USE_GPU_NUM,
+    SSC_OPENCODE_COUNT / USE_GPU_NUM,
 };
 
 #endif

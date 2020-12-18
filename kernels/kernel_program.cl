@@ -32,39 +32,42 @@ __kernel void sum_beton_total_amount(
 __kernel void calc_numbers_risk(
     __global const float *total_amount_vector, /* 各beton加總陣列（本金）*/
     __global const float *total_amount_odds_vector, /* 各beton加總陣列（本金*賠率 - 本金）*/
-    __global const bool *answers_matrix, 
-    __global short *result,
+    __global const char *answers_matrix, 
+    __global float *result,
     const int beton_length) {
 
   int numbers_index = get_global_id(0);
   int numbers_size = get_global_size(0);
   //printf("numbers_index=%d, numbers_size=%d, beton_length=%d\n", numbers_index, numbers_size, beton_length);
   
-  float sum = 0.f;
-  float total_amount = 0;
-  float total_amount_odds = 0;
   int step = beton_length;
   unsigned int index = 0;
   for (int i = 0; i <= beton_length - 1; i++) {
     index = (numbers_index * step) + i;
-    total_amount = total_amount_vector[i];
-    total_amount_odds = total_amount_odds_vector[i];
     // miuns 45, plus 43
-    //printf("answers_matrix[%d]=%d\n",index, answers_matrix[index]);
-    if (answers_matrix[index])
+    int sign = (int)answers_matrix[index];
+    /*
+    if(total_amount_odds_vector[i] > 0)
+      printf("total_amount_odds_vector[%d]=%f\n", i, total_amount_odds_vector[i]);
+    
+    if(total_amount_vector[i] > 0)
+      printf("total_amount_vector[%d]=%f\n", i, total_amount_vector[i]);
+    */
+    if (sign== 43)
     {
-      sum += total_amount_odds; //有中獎就用乘上賠率的金額
-      //printf("bingo answers_matrix[%d]=%d\n",index, answers_matrix[index]);
+      result[numbers_index] += total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
     }
     else
     {
-      sum += total_amount * -1; //沒中獎就用本金
+      result[numbers_index] += total_amount_vector[i] * -1; //沒中獎就用本金
     }
     //printf("answers_matrix[%d]=%d, total_amount=%f, total_amount_odds=%f,sum=%f\n", 
     //  index, answers_matrix[index], total_amount, total_amount_odds, sum);
   }
 
   //printf("\n");
-  printf("numbers_index=%d, numbers_size=%d, sum=%f\n", numbers_index, numbers_size,  sum);
-  result[numbers_index] = (short)sum;
+  //printf("numbers_index=%d, numbers_size=%d, sum=%f\n", numbers_index, numbers_size,  result[numbers_index]);
+  
+  //debug用 
+  //result[numbers_index] = numbers_index; 
 }
