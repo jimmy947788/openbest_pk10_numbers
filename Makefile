@@ -50,6 +50,12 @@ ifeq ($(ver), debug)
 	CFLAGS += -g -DDEBUG
 endif
 
+ifeq ($(lotterycode), ssc)
+	CFLAGS += -DSSC
+else ifeq ($(lotterycode), pk10)
+	CFLAGS += -DPK10
+endif
+
 $(PROJ): src/*.c
 	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -DLOG_USE_COLOR
 	cp kernels/kernel_program.cl bin/

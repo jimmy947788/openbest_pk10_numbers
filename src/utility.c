@@ -186,7 +186,7 @@ int run_kernel_sum_beton_total_amount(
     /* Create a write-only buffer to hold the output data */
     cl_mem mask_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_ushort) * SSC_BETON_COUNT, 
+        sizeof(cl_ushort) * BETON_COUNT, 
         one_mask, 
         &errNum); 
     if(errNum < 0) {
@@ -197,7 +197,7 @@ int run_kernel_sum_beton_total_amount(
     printf("clCreateBuffer bet_amount_buffer\n");
     cl_mem bet_amount_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_float) * SSC_BETON_COUNT * wgaer_length, 
+        sizeof(cl_float) * BETON_COUNT * wgaer_length, 
         bet_amount, 
         &errNum);    
     if(errNum < 0) {
@@ -207,7 +207,7 @@ int run_kernel_sum_beton_total_amount(
 
     cl_mem result_buffer = clCreateBuffer(context,
         CL_MEM_WRITE_ONLY,
-        sizeof(cl_float) * SSC_BETON_COUNT, 
+        sizeof(cl_float) * BETON_COUNT, 
         NULL, 
         &errNum);
      if(errNum < 0) {
@@ -239,7 +239,7 @@ int run_kernel_sum_beton_total_amount(
 
     int dim = 1;
     const size_t global_offset[] = { 0 };
-    const size_t global_size[] = { SSC_BETON_COUNT };
+    const size_t global_size[] = { BETON_COUNT };
     const size_t local_size[] = { 1 };
     errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  NULL);
 
@@ -247,7 +247,7 @@ int run_kernel_sum_beton_total_amount(
     printf("pass kernel code to GPU%d\n", 0);
 
      /* Read and print the result */
-    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * SSC_BETON_COUNT, *result, 0, NULL, NULL);
+    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * BETON_COUNT, *result, 0, NULL, NULL);
     if(errNum < 0) {
         perror("Couldn't read the buffer");
         exit(EXIT_FAILURE);

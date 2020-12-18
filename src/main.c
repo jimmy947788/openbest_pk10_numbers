@@ -38,7 +38,13 @@ int main(int argc, char* argv[])
         printf("\tcalc_opencode_amount -h");
         exit(EXIT_SUCCESS);
     }
-    
+
+#ifdef PK10
+    log_info("this program was for PK10...\n");    
+#elif defined SSC 
+    log_info("this program was for SSC...\n");    
+#endif
+
     char log_file[MAX_LENGTH];
     sprintf(log_file, "%s/%scalc_opencode_amount.log", work_folder, log_dir);
     FILE *logfp = fopen(log_file, "a+");
@@ -58,7 +64,7 @@ int main(int argc, char* argv[])
     cl_program* program = NULL;
     cl_command_queue* queue_list = NULL;
 
-    int beton_count = SSC_BETON_COUNT;
+    int beton_count = BETON_COUNT;
     int wager_length = 0; 
     char expectId[MAX_LENGTH];
     cl_ushort* one_mask = NULL;
@@ -121,7 +127,7 @@ int main(int argc, char* argv[])
     {
         log_info("load opencode answer table from %s...%d/%d", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
-        opencode_answer_table[num] = (cl_uchar *)malloc(sizeof(cl_uchar) * SSC_BETON_COUNT * GPU_HANDEL_COUNT[num]);
+        opencode_answer_table[num] = (cl_uchar *)malloc(sizeof(cl_uchar) * BETON_COUNT * GPU_HANDEL_COUNT[num]);
         opencodeList[num] = (char**)malloc(sizeof(*opencodeList[num]) * GPU_HANDEL_COUNT[num]);
         memset(temp_path, '\0', MAX_LENGTH);
         sprintf(temp_path, "%s%s", work_folder, OPENCODE_ANSWER_TABLE_PATH[num]);
@@ -129,8 +135,8 @@ int main(int argc, char* argv[])
         log_info("opencodeList[%d] length:%ld", num, ret);
     }
 
-    one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * SSC_BETON_COUNT);
-    for(int i=0; i<=SSC_BETON_COUNT-1; i++ )
+    one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * BETON_COUNT);
+    for(int i=0; i<=BETON_COUNT-1; i++ )
     {
         one_mask[i] = 1;
     }
@@ -171,7 +177,7 @@ int main(int argc, char* argv[])
         opencode_answer_table_buffer[num] = clCreateBuffer(
             context, 
             CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-            sizeof(cl_uchar) * SSC_BETON_COUNT * GPU_HANDEL_COUNT[num], 
+            sizeof(cl_uchar) * BETON_COUNT * GPU_HANDEL_COUNT[num], 
             opencode_answer_table[num], 
             &errNum);    
         if(errNum < 0) {
@@ -216,9 +222,9 @@ int main(int argc, char* argv[])
 #ifdef DEBUG
         float sum = 0;
 #endif
-        beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * SSC_BETON_COUNT * wager_length);
+        beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT * wager_length);
         load_beton_amount_table(beton_amount_table_file, &beton_amount_table);
-        total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * SSC_BETON_COUNT);
+        total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT);
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
@@ -230,7 +236,7 @@ int main(int argc, char* argv[])
             free(beton_amount_table);
 #ifdef DEBUG
         sum = 0;
-        for(int i=0; i<=SSC_BETON_COUNT-1; i++)
+        for(int i=0; i<= BETON_COUNT-1; i++)
         {
             sum += total_beton_amount_vector[i];
             if(total_beton_amount_vector[i] > 0)
@@ -238,9 +244,9 @@ int main(int argc, char* argv[])
         }
         log_debug("====> sum total_beton_amount = %f", sum);
 #endif
-        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * SSC_BETON_COUNT * wager_length);
+        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT * wager_length);
         load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
-        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * SSC_BETON_COUNT);
+        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT);
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
@@ -252,7 +258,7 @@ int main(int argc, char* argv[])
             free(beton_amount_with_odds_table);
 #ifdef DEBUG
         sum = 0;
-        for(int i=0; i<=SSC_BETON_COUNT-1; i++)
+        for(int i=0; i<= BETON_COUNT-1; i++)
         {
             sum += total_beton_amount_with_odds_vector[i];
             if(total_beton_amount_with_odds_vector[i] > 0)
@@ -270,13 +276,13 @@ int main(int argc, char* argv[])
             log_info("calc total win/loss amount in opencode list ... %d/%d", (num+1), USE_GPU_NUM);
             memset(opencode_answer_table_result[num], 0.0f, GPU_HANDEL_COUNT[num]);
             // creater buffer total_beton_amount_buffer
-            total_beton_amount_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,  sizeof(cl_float) * SSC_BETON_COUNT, total_beton_amount_vector, &errNum); 
+            total_beton_amount_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,  sizeof(cl_float) * BETON_COUNT, total_beton_amount_vector, &errNum); 
             if(errNum < 0) {
                 perror("Couldn't create a total_beton_amount_buffer");
                 exit(EXIT_FAILURE);
             };
             //create buffer total_beton_amount_with_odds_buffer 
-            total_beton_amount_with_odds_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * SSC_BETON_COUNT, total_beton_amount_with_odds_vector, &errNum);    
+            total_beton_amount_with_odds_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * BETON_COUNT, total_beton_amount_with_odds_vector, &errNum);    
             if(errNum < 0) {
                 perror("Couldn't create a total_beton_amount_with_odds_buffer");
                 exit(EXIT_FAILURE);
