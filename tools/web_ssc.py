@@ -105,10 +105,12 @@ def submit():
         jdata = json.loads(raw_data)
         buId = jdata["BuID"]
         expectId = ""
+        
         start = time.time()
-        
         (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5_SSC.transferWager(logging, headers, jdata)    
-        
+        end = time.time()
+        logging.info(f"covert row wager to matrix spend time: {end - start} s, row length:{ len(beton_amount_table) }")
+
         wager_length = len(beton_amount_table)
         logging.info(f"wager_length={wager_length}")
         logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
@@ -128,10 +130,6 @@ def submit():
                 #logging.info(f"beton_amount_odds_length={len(amount)}")    
                 strAmountWithComma = ','.join(str(e) for e in amount)   
                 f.write(strAmountWithComma+"\n")
-
-        while not os.path.exists(beton_amount_csv_file) and not os.path.exists(beton_amount_with_odds_csv_file) :
-            logging.debug(f"wait beton_amount_csv_file and beton_amount_with_odds_csv_file write finished...")
-            time.sleep(0.003)
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect(("127.0.0.1", 8700))
@@ -157,7 +155,7 @@ def submit():
             # print("=================")
             for row in serverMessage.split("\n"):
                 if len(row) > 0:
-                    logging.debug(row)
+                    #logging.debug(row)
                     opencode = row.split(',')[0]
                     amount = row.split(',')[1]
                     # if not checkOpencodeExists(rows, opencode): 把檢查重複丟給C語言
@@ -217,7 +215,7 @@ if __name__ == "__main__":
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     logging.debug("current path : " + currentPath)
 
-    with open(f"{currentPath}/data/ssc_beton_list.txt") as f:
+    with open(f"{currentPath}/data/ssc_beton_list.csv") as f:
         one_line_headers = f.readline()
         headers = one_line_headers.split(',')
     print(f"headers length : {len(headers)}") # 120347

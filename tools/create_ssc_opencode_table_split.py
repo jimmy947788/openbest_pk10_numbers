@@ -643,7 +643,9 @@ def ODragonTigerSG_Check(opencode:tuple, beton:str):
         return 1 if a == b  else -1
 
 def header():
-    header = "opencode,"
+    opencode_header = "opencode,"
+    header = opencode_header
+    
     # O_FiveStar_ZhiFu 五星直選
     (result, length ) = A5_SSC.OFiveStarZhiFu_Beton()
     for beton in result:
@@ -709,7 +711,7 @@ def header():
     for beton in result:
         header += f"{beton},"
     print(f"O_FiveStar_SpecialFour length:{length}")
-    
+
     # O_FourStar_ZhiFu 四星直選
     (result, length) = A5_SSC.OFourStarZhiFu_Beton()
     for beton in result:
@@ -985,6 +987,11 @@ def header():
     for beton in result:
         header += f"{beton},"
     print(f"O_DragonTiger_sg length:{length}")
+    
+    with open(f'{currentPath}/data/ssc_beton_list.csv', 'w+', encoding='UTF-8') as f:
+        temp_header = header.replace(opencode_header, "")
+        temp_header_len = len(temp_header)
+        f.write(temp_header[:temp_header_len-1]) #移除最後一個逗號
 
     header_len = len(header)
     return header[:header_len-1] #移除最後一個逗號
@@ -998,13 +1005,14 @@ def main():
     print("header arg:", hasHeader)
     print("opencode arg:", args.opencode)
 
+    global currentPath
     currentPath = os.path.dirname(os.path.abspath(__file__))
     currentPath = currentPath.replace("/tools", "")
 
-    f1 = open(f'{currentPath}/data/opencode_ssc_table_1.csv', 'w+', encoding='UTF-8')
+    f1 = open(f'{currentPath}/data/ssc_opencode_table_1.csv', 'w+', encoding='UTF-8')
     f1.write(header()+ '\n')  
 
-    f2 = open(f'{currentPath}/data/opencode_ssc_table_2.csv', 'w+', encoding='UTF-8')
+    f2 = open(f'{currentPath}/data/ssc_opencode_table_2.csv', 'w+', encoding='UTF-8')
     f2.write(header()+ '\n')  
 
     rowIndex  = 0

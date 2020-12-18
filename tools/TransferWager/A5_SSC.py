@@ -1,5 +1,6 @@
 #!/usr/bin/python
  
+from argparse import ArgumentError
 import os
 import sys
 import json
@@ -16,6 +17,14 @@ def OFiveStarZhiFu_Beton(beton = "0 1 2 3 4 5 6 7 8 9,0 1 2 3 4 5 6 7 8 9,0 1 2 
     b = list(itertools.product(*a))
     for c in b:
         result.append("O_FiveStar_ZhiFu_" + "".join(c))
+    return (result, len(result))
+
+def OFiveStarZhiDan_Beton(beton):
+    if beton == "":
+        raise ArgumentError ("beton was not be null...")
+    result = []
+    for b in beton.split(","):
+        result.append(f"O_FiveStar_ZhiFu_{b}")
     return (result, len(result))
 
 def OFiveStarZu120_Beton(beton = "0 1 2 3 4 5 6 7 8 9"):
@@ -107,6 +116,14 @@ def OFourStarZhiFu_Beton(beton = "0 1 2 3 4 5 6 7 8 9,0 1 2 3 4 5 6 7 8 9,0 1 2 
     b = list(itertools.product(*a))
     for c in b:
         result.append("O_FourStar_ZhiFu_" + "".join(c))
+    return (result, len(result))
+
+def OFourStarZhiDan_Beton(beton):
+    if beton == "":
+        raise ArgumentError ("beton was not be null...")
+    result = []
+    for b in beton.split(","):
+        result.append(f"O_FourStar_ZhiFu_{b}")
     return (result, len(result))
 
 def OFourStarZu24_Beton(beton = "0 1 2 3 4 5 6 7 8 9"):
@@ -499,17 +516,22 @@ def transferWager(logging, headers, jdata):
         betOnCount  = int(bet["BetOnCount"])
         extraData = json.loads(bet["ExtraData"])
         betOn = []
-        # 賠率只有一筆的話，就取第一個
-        odds = extraData["ExtraBets"][0]["Odds"]
+        odds = []
+        for extraBet in extraData["ExtraBets"]:
+            odd = float(extraBet["Odds"])
+            odds.append(round(odd, 4))
 
         row_by_amount = []
         row_by_amount_odds = []
         betTypePlayCodeWithBetOnDic = []
+
         if betTypePlayCode == "O_FiveStar_ZhiFu":
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZhiFu_Beton(rawBetOn)
+        elif betTypePlayCode == "O_FiveStar_ZhiDan":
+           (betTypePlayCodeWithBetOnDic, length) = OFiveStarZhiDan_Beton(rawBetOn)
         elif betTypePlayCode == "O_FiveStar_Zu120":
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu120_Beton(rawBetOn)
-        elif betTypePlayCode == "OFiveStarZu60":
+        elif betTypePlayCode == "O_FiveStar_Zu60":
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu60_Beton(rawBetOn)
         elif betTypePlayCode == "O_FiveStar_Zu30":
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu30_Beton(rawBetOn)
@@ -529,6 +551,8 @@ def transferWager(logging, headers, jdata):
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialFour_Beton(rawBetOn)
         elif betTypePlayCode == "O_FourStar_ZhiFu":
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZhiFu_Beton(rawBetOn)
+        elif betTypePlayCode == "O_FourStar_ZhiDan":
+            (betTypePlayCodeWithBetOnDic, length) = OFourStarZhiDan_Beton(rawBetOn)
         elif betTypePlayCode == "O_FourStar_Zu24":
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZu24_Beton(rawBetOn)
         elif betTypePlayCode == "O_FourStar_Zu12":
@@ -620,13 +644,18 @@ def transferWager(logging, headers, jdata):
         elif betTypePlayCode == "O_DragonTiger_sg":
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerSG_Beton(rawBetOn)
 
+        odd_index = 0
         for header in  headers:
             if header in betTypePlayCodeWithBetOnDic:
                 #print(f"header={header}, odds={odds}")
                 row_by_amount.append(unitAmount) #本金
-                row_by_amount_odds.append((odds-1) * unitAmount) #此處賠率要扣掉1（本金）
+                if len(odds) > 1:
+                    row_by_amount_odds.append((odds[odd_index]-1) * unitAmount) #此處賠率要扣掉1（本金）
+                else:
+                    row_by_amount_odds.append((odds[0]-1) * unitAmount) #此處賠率要扣掉1（本金）
                 total_bet_count += 1
                 total_bet_amount += unitAmount
+                odd_index += 1
             else:
                 row_by_amount.append(0)
                 row_by_amount_odds.append(0)
