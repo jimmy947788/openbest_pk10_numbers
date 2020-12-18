@@ -50,9 +50,9 @@ ifeq ($(ver), debug)
 	CFLAGS += -g -DDEBUG
 endif
 
-ifeq ($(lotterycode), ssc)
+ifeq ($(lotterykind), ssc)
 	CFLAGS += -DSSC
-else ifeq ($(lotterycode), pk10)
+else ifeq ($(lotterykind), pk10)
 	CFLAGS += -DPK10
 endif
 
