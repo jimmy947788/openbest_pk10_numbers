@@ -1,5 +1,0 @@
-/*09,01,09,05,09 會員輸贏金額要0 */
-{"BuID":0,"ExpectID":"20201223204","KillRate":-0.2,"Tolerance":-1.0000,"LotteryCode":"dowayssc","OpenCodeCount":10,"Bets":[{"BetTypePlayCode":"O_DragonTiger_wq","UnitAmount":1.0,"BetOn":"D T","BetOnCount":2,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"D\",\"Odds\":2.0000,\"BetCount\":0},{\"BetOn\":\"T\",\"Odds\":3.0000,\"BetCount\":0}]}"}],"ClientUpdateTime":"0001-01-01T00:00:00"}
-
-/*08,08,05,07,09 會員輸贏金額要45 */
-{"BuID":0,"ExpectID":"20201223200","KillRate":-0.2,"Tolerance":-1.0000,"LotteryCode":"dowayssc","OpenCodeCount":10,"Bets":[{"BetTypePlayCode":"O_BSOE_S","UnitAmount":1.0,"BetOn":",,,,S","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"S\",\"Odds\":11.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_BSOE_S","UnitAmount":1.0,"BetOn":"E,O,S,B,","BetOnCount":4,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"B E O S\",\"Odds\":11.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_BSOE_S","UnitAmount":1.0,"BetOn":"B,S,O,E,O","BetOnCount":5,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"B E O O S\",\"Odds\":11.0000,\"BetCount\":0}]}"}],"ClientUpdateTime":"0001-01-01T00:00:00"}
