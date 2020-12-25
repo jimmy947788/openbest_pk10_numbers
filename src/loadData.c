@@ -190,3 +190,78 @@ int load_opnecode_answer_table(char* opencode_answer_path, char*** opencode_list
     printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return csv_row_index -1; //header不要
 }
+
+int strCharCount(char *str, char c)
+{
+    //計算element數量
+    int length = 1;
+    for(int i = 0; str[i] != '\0'; i++)
+    {
+        if(str[i] == c)
+            ++length;
+    }
+    //printf("===================>length=%d\n",length);
+    return length;
+}
+
+int strSplit(char *str, char *delim, char*** list)
+{
+    size_t len = 0;
+    char *p = NULL;
+    int row_index = 0;
+
+    //寫入element to list
+    p = NULL;
+    for(p = strtok(str, delim); p != NULL; p = strtok(NULL, delim))
+    {
+        //printf("%s, len:%d\n", p, strlen(p));
+        *(*list + row_index) = (char*) malloc(sizeof(char) * strlen(p)+1 );
+        strcpy(*(*list + row_index),  p); 
+        row_index ++;
+    }
+    return row_index; 
+}
+
+int contains(char *str, char** list, int len)
+{
+    int ret = -1;
+    for(int i =0; i<= len-1; i++)
+    {
+        if(strcmp(str, list[i]) ==0)
+            return 1;
+    }
+    return ret;
+}
+
+int load_beton_list(char* path, char*** beton_list)
+{
+    FILE * fp;
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    int csv_column_index = 0;
+    int csv_row_index = 0;
+    char* clean_text = NULL;
+
+    fp = fopen(path, "r");
+    if (fp == NULL){
+        printf("read file failed: %ld\n", (long)fp);
+        exit(EXIT_FAILURE);
+    }
+    
+    while ((read = getline(&line, &len, fp)) != -1) 
+    {
+        if(len <= 0)
+            break;
+
+        *(*beton_list + csv_row_index) = (char*) malloc(sizeof(char) * strlen(line) +1);
+        strncpy(*(*beton_list + csv_row_index),  line, strlen(line)-1); //不要copy結尾的\n
+        //printf("csv_row_index=%d, beton=%s\n", csv_row_index, *(*beton_list + csv_row_index) );
+        csv_row_index++;
+    }
+
+    fclose(fp);
+    if (line)
+        free(line);
+    return csv_row_index ; //header不要
+}

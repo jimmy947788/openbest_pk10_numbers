@@ -6,6 +6,7 @@ import sys
 import json
 import logging
 import itertools
+import time
 
 # 轉換betOn格式
 # =================================================
@@ -526,123 +527,300 @@ def transferWager(logging, headers, jdata):
         betTypePlayCodeWithBetOnDic = []
 
         if betTypePlayCode == "O_FiveStar_ZhiFu":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZhiFu_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZhiFu_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_ZhiDan":
-           (betTypePlayCodeWithBetOnDic, length) = OFiveStarZhiDan_Beton(rawBetOn)
+            tStart = time.time()#計時開始
+            (betTypePlayCodeWithBetOnDic, length) = OFiveStarZhiDan_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZhiDan_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_Zu120":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu120_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZu120_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_Zu60":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu60_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZu60_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_Zu30":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu30_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZu30_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_Zu20":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu20_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZu20_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_Zu10":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu10_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZu10_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_Zu5":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu5_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarZu5_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_SpecialOne":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialOne_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarSpecialOne_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_SpecialTwo":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialTwo_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarSpecialTwo_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_SpecialThree":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialThree_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarSpecialThree_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FiveStar_SpecialFour":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialFour_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFiveStarSpecialFour_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FourStar_ZhiFu":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZhiFu_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFourStarZhiFu_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FourStar_ZhiDan":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZhiDan_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFourStarZhiDan_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FourStar_Zu24":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZu24_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFourStarZu24_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FourStar_Zu12":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZu12_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFourStarZu12_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FourStar_Zu6":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZu6_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFourStarZu6_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_FourStar_Zu4":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OFourStarZu4_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OFourStarZu4_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Zhi_Front3_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarZhiFront3S_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarZhiFront3S_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Zhi_Middle3_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarZhiMiddle3S_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarZhiMiddle3S_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Zhi_Last3_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarZhiLast3S_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarZhiLast3S_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Zu_Front3_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarZuFront3S_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarZuFront3S_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Zu_Middle3_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarZuMiddle3S_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarZuMiddle3S_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Zu_Last3_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarZuLast3S_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarZuLast3S_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Special_Front3":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialFront3_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarSpecialFront3_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Special_Middle3":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialMiddle3_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarSpecialMiddle3_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_ThreeStar_Special_Last3":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialLast3_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OThreeStarSpecialLast3_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_wq":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWQ_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiWQ_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_wb":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWB_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiWB_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_ws":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiWS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_wg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiWG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_qb":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiQB_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiQB_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_qs":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiQS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiQS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_qg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiQG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiQG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_bs":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiBS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiBS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_bg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiBG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiBG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zhi_sg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiSG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZhiSG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_wq":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWQ_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuWQ_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_wb":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWB_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuWB_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_ws":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuWS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_wg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuWG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_qb":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuQB_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuQB_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_qs":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuQS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuQS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_qg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuQG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuQG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_bs":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuBS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuBS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_bg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuBG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuBG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_TwoStar_Zu_sg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuSG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OTwoStarZuSG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DingWeiDan_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODingWeiDanS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODingWeiDanS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_BSOE_S":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = OBSOES_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"OBSOES_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_wq":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWQ_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerWQ_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_wb":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWB_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerWB_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_ws":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerWS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_wg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerWG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_qb":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerQB_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerQB_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_qs":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerQS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerQS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_qg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerQG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerQG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_bs":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerBS_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerBS_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_bg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerBG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerBG_Beton use time {tEnd - tStart}")#會自動做近位
         elif betTypePlayCode == "O_DragonTiger_sg":
+            tStart = time.time()#計時開始
             (betTypePlayCodeWithBetOnDic, length) = ODragonTigerSG_Beton(rawBetOn)
+            tEnd = time.time()#計時結束
+            print(f"ODragonTigerSG_Beton use time {tEnd - tStart}")#會自動做近位
 
         odd_index = 0
         for header in  headers:
@@ -666,3 +844,148 @@ def transferWager(logging, headers, jdata):
     target_amount = total_bet_amount * killRate #* -1
     logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
     return (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount)
+
+def transferWager2(logging, jBets):
+    
+    result = []
+    betTypePlayCodeWithBetOnDic = []
+    betTypePlayCode = jBets['BetTypePlayCode']
+    unitAmount = jBets["UnitAmount"]
+    rawBetOn = jBets["BetOn"]
+    betOnCount  = int(jBets["BetOnCount"])
+    extraData = json.loads(jBets["ExtraData"])
+    length = 0
+
+    if betTypePlayCode == "O_FiveStar_ZhiFu":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZhiFu_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_ZhiDan":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZhiDan_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_Zu120":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu120_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_Zu60":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu60_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_Zu30":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu30_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_Zu20":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu20_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_Zu10":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu10_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_Zu5":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarZu5_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_SpecialOne":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialOne_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_SpecialTwo":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialTwo_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_SpecialThree":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialThree_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FiveStar_SpecialFour":
+        (betTypePlayCodeWithBetOnDic, length) = OFiveStarSpecialFour_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FourStar_ZhiFu":
+        (betTypePlayCodeWithBetOnDic, length) = OFourStarZhiFu_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FourStar_ZhiDan":
+        (betTypePlayCodeWithBetOnDic, length) = OFourStarZhiDan_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FourStar_Zu24":
+        (betTypePlayCodeWithBetOnDic, length) = OFourStarZu24_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FourStar_Zu12":
+        (betTypePlayCodeWithBetOnDic, length) = OFourStarZu12_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FourStar_Zu6":
+        (betTypePlayCodeWithBetOnDic, length) = OFourStarZu6_Beton(rawBetOn)
+    elif betTypePlayCode == "O_FourStar_Zu4":
+        (betTypePlayCodeWithBetOnDic, length) = OFourStarZu4_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Zhi_Front3_S":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarZhiFront3S_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Zhi_Middle3_S":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarZhiMiddle3S_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Zhi_Last3_S":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarZhiLast3S_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Zu_Front3_S":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarZuFront3S_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Zu_Middle3_S":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarZuMiddle3S_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Zu_Last3_S":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarZuLast3S_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Special_Front3":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialFront3_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Special_Middle3":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialMiddle3_Beton(rawBetOn)
+    elif betTypePlayCode == "O_ThreeStar_Special_Last3":
+        (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialLast3_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_wq":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWQ_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_wb":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWB_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_ws":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_wg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_qb":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiQB_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_qs":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiQS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_qg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiQG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_bs":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiBS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_bg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiBG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zhi_sg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiSG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_wq":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWQ_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_wb":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWB_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_ws":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_wg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_qb":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuQB_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_qs":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuQS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_qg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuQG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_bs":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuBS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_bg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuBG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_TwoStar_Zu_sg":
+        (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuSG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DingWeiDan_S":
+        (betTypePlayCodeWithBetOnDic, length) = ODingWeiDanS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_BSOE_S":
+        (betTypePlayCodeWithBetOnDic, length) = OBSOES_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_wq":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWQ_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_wb":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWB_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_ws":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_wg":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_qb":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerQB_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_qs":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerQS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_qg":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerQG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_bs":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerBS_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_bg":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerBG_Beton(rawBetOn)
+    elif betTypePlayCode == "O_DragonTiger_sg":
+        (betTypePlayCodeWithBetOnDic, length) = ODragonTigerSG_Beton(rawBetOn)
+    
+    odds = []
+    if len(extraData["ExtraBets"]) >1:
+        for extraBet in extraData["ExtraBets"]:
+            odd = float(extraBet["Odds"])
+            odds.append(round(odd, 4))
+    else:
+        for i in range(length):
+            odd = float(extraData["ExtraBets"][0]["Odds"])
+            odds.append(round(odd, 4))
+
+    return (betTypePlayCodeWithBetOnDic, odds, unitAmount, betOnCount)
+    #$target_amount = total_bet_amount * killRate #* -1
+    #logging.info(f"total_bet_count={total_bet_count}, total_bet_amount={total_bet_amount}")
+    #return (result, total_bet_count, expectId, target_amount, tolerance, opencodeCount)

@@ -11,13 +11,12 @@ import numpy as np
 import time
 from itertools import islice
 import socket
-import random
+
 import subprocess
 import TransferWager.A5 as A5
 import TransferWager.Redfire as Redfire
 import TransferWager.A5_SSC as A5_SSC
 import traceback
-import test
 from os import listdir
 from os.path import isfile, isdir, join
 from flask import send_from_directory
@@ -103,9 +102,24 @@ def submit():
         raw_data = request.get_data().decode("utf-8")
         logging.info(f"[Request] row data: {raw_data}")
         jdata = json.loads(raw_data)
-        buId = jdata["BuID"]
-        expectId = ""
+        buId = jdata["BuID"]    
+        expectId = jdata["ExpectID"]
+        wager_length = len(jdata["Bets"])
         
+        for jBet in jdata["Bets"]:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+                client.connect(("127.0.0.1", 8701))
+                
+                (betons, odds, unitAmount, betOnCount) = A5_SSC.transferWager2(logging, jBet) 
+                #print(betons)
+                #print(odds)
+                #print(f"unitAmount={unitAmount}, betOnCount={betOnCount}")
+                #print("==================================================")
+                client.sendall(",".join(betons).encode())
+
+                serverMessage = client.recv(1000000).decode("UTF-8").replace('\0', '')
+                logging.debug('Server:', serverMessage)
+        """
         start = time.time()
         (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5_SSC.transferWager(logging, headers, jdata)    
         end = time.time()
@@ -145,12 +159,13 @@ def submit():
             
             serverMessage = client.recv(1048576).decode("UTF-8").replace('\0', '')
             #logging.debug('Server:', serverMessage)
-        
+        """
         response = { }
         response["code"] = 0
         response["msg"] = "success"
         rows = [] 
-    
+
+        """
         try:
             # print("=================")
             for row in serverMessage.split("\n"):
@@ -179,7 +194,8 @@ def submit():
         end = time.time()
         #logging.debug(response)
         logging.info(f"[Response] buId:{buId}, expectId:{expectId}, spend time: {end - start} s, row length:{ len(rows) }")
-        
+        """
+
         """
         try:
             if os.path.exists(beton_amount_csv_file):
