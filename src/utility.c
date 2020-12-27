@@ -117,15 +117,25 @@ void create_queue_list(cl_context context,
 }
 
 void build_program_for_all_devices(
-    char* programPath, 
+    char* path, 
     cl_context context,
     cl_device_id* device_list,
     cl_program** program)
 {
     cl_int errNum;
+    char* kernel_program_fullpath = (char*)malloc(sizeof(char) * (strlen(gWorkerFolder) + strlen(path) + 2));
+    pathCombine(kernel_program_fullpath, gWorkerFolder, path);
+    log_debug("kernel_program_fullpath =%s", kernel_program_fullpath);
+
+    if(fileExists(kernel_program_fullpath) != 0)
+    {
+        log_error("Can't find kernel program file...(%s)", kernel_program_fullpath);
+        exit(EXIT_FAILURE);
+    }
+
     // Load the kernel source code into the array source_str
     char* programContent = (char*)malloc(MAX_SOURCE_SIZE);
-    size_t programSize = readFileContent(programPath, programContent);
+    size_t programSize = readContent(programContent, kernel_program_fullpath);
 
     // Create a program from the kernel source
     *program = clCreateProgramWithSource(context, 1, 
@@ -134,6 +144,8 @@ void build_program_for_all_devices(
     //printf("create OpenCL program from %s ........... successful!!\n", kernel_program_path);
     if(programContent)
         free(programContent);
+    if(kernel_program_fullpath)
+        free(kernel_program_fullpath);
 
     // Build the program
     //errNum = clBuildProgram(*program, num_devices, device_list, NULL, NULL, NULL);
@@ -186,7 +198,7 @@ int run_kernel_sum_beton_total_amount(
     /* Create a write-only buffer to hold the output data */
     cl_mem mask_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_ushort) * BETON_COUNT, 
+        sizeof(cl_ushort) * gBetonLenght, 
         one_mask, 
         &errNum); 
     if(errNum < 0) {
@@ -197,7 +209,7 @@ int run_kernel_sum_beton_total_amount(
     printf("clCreateBuffer bet_amount_buffer\n");
     cl_mem bet_amount_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-        sizeof(cl_float) * BETON_COUNT * wgaer_length, 
+        sizeof(cl_float) * gBetonLenght * wgaer_length, 
         bet_amount, 
         &errNum);    
     if(errNum < 0) {
@@ -207,7 +219,7 @@ int run_kernel_sum_beton_total_amount(
 
     cl_mem result_buffer = clCreateBuffer(context,
         CL_MEM_WRITE_ONLY,
-        sizeof(cl_float) * BETON_COUNT, 
+        sizeof(cl_float) * gBetonLenght, 
         NULL, 
         &errNum);
      if(errNum < 0) {
@@ -239,7 +251,7 @@ int run_kernel_sum_beton_total_amount(
 
     int dim = 1;
     const size_t global_offset[] = { 0 };
-    const size_t global_size[] = { BETON_COUNT };
+    const size_t global_size[] = { gBetonLenght };
     const size_t local_size[] = { 1 };
     errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  NULL);
 
@@ -247,7 +259,7 @@ int run_kernel_sum_beton_total_amount(
     printf("pass kernel code to GPU\n");
 
      /* Read and print the result */
-    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * BETON_COUNT, *result, 0, NULL, NULL);
+    errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * gBetonLenght, *result, 0, NULL, NULL);
     if(errNum < 0) {
         perror("Couldn't read the buffer");
         exit(EXIT_FAILURE);

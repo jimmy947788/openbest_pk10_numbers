@@ -1015,7 +1015,6 @@ def main():
     f2 = open(f'{currentPath}/data/ssc_opencode_table_2.csv', 'w+', encoding='UTF-8')
     f2.write(header()+ '\n')  
 
-    """
     rowIndex  = 0
     for opencode in itertools.product('0123456789', repeat = 5):
         # b百 s拾 q千 w萬 g個
@@ -1415,7 +1414,6 @@ def main():
             f2.write(line[:line_len-1]+ '\n') #移除最後一個逗號
         
         rowIndex += 1
-    """
 
     f1.close()
     f2.close()

@@ -145,6 +145,11 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     .level = level,
   };
 
+#if !defined(DEBUG)
+  if(strcmp(level_strings[level], "DEBUG") == 0)
+    return;
+#endif
+
   lock();
 
   if (!L.quiet && level >= L.level) {

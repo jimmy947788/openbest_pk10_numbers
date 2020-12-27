@@ -978,12 +978,12 @@ def transferWager2(logging, jBets):
     odds = []
     if len(extraData["ExtraBets"]) >1:
         for extraBet in extraData["ExtraBets"]:
-            odd = float(extraBet["Odds"])
-            odds.append(round(odd, 4))
+            odd = str(extraBet["Odds"])
+            odds.append(odd)
     else:
         for i in range(length):
-            odd = float(extraData["ExtraBets"][0]["Odds"])
-            odds.append(round(odd, 4))
+            odd = str(extraData["ExtraBets"][0]["Odds"])
+            odds.append(odd)
 
     return (betTypePlayCodeWithBetOnDic, odds, unitAmount, betOnCount)
     #$target_amount = total_bet_amount * killRate #* -1

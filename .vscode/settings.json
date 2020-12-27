@@ -1,6 +1,13 @@
 {
     "python.pythonPath": "C:\\Python38\\python.exe",
     "files.associations": {
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "functional": "c",
+        "system_error": "c",
+        "*.tcc": "c",
+        "array": "c",
+        "string": "c",
+        "string_view": "c",
+        "algorithm": "c"
     }
 }

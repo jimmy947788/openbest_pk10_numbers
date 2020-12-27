@@ -5,11 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "calc_opencode_amount (gdb) Launch",
+            "name": "optimize_opencode (gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/calc_opencode_amount",
+            "program": "${workspaceFolder}/bin/optimize_opencode",
             "args": [ 
+                "--worker-folder", "${workspaceFolder}",
                 "--kernel-program", "${workspaceFolder}/bin/kernel_program.cl", 
                 "--log", "${workspaceFolder}/log/"
             ],

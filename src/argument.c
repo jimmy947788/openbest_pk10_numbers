@@ -6,22 +6,22 @@ static int verbose_flag;
 static struct option long_options[] =
 {
     /* These options set a flag. */
-    {"version",                             no_argument,               0, 'V'},
-    {"kernel-program",               required_argument,      0, 'k'},
-    {"work-folder",                     required_argument,      0, 'w'},
-    {"log",                                   required_argument,      0, 'l'},
-    {"help",                                 no_argument,                0, 'h'},
-    {"show-gpu-info",                no_argument,                0, 's'},
+    {"version",                             no_argument,            0, 'V'},
+    {"kernel-program",                      required_argument,      0, 'k'},
+    {"worker-folder",                       required_argument,      0, 'w'},
+    {"log",                                 required_argument,      0, 'l'},
+    {"help",                                no_argument,            0, 'h'},
+    {"show-gpu-info",                       no_argument,            0, 's'},
 };
 
 void help()
 {
     printf("option\n");
-    printf("-V, -version                                               Show program version.\n");
+    printf("-V, -version                                  Show program version.\n");
     printf("-k, --kernel-program <path>                   Path to opencl kernel program.\n");
-    printf("-w, --work-folder <path>                         Path to opencode answer table .\n");
-    printf("-l, --log <path>                                        Path to program runtime log.\n");
-    printf("-s, --show-gpu-info                                  Show GPU info.\n");
+    printf("-w, --worker-folder <path>                    Path to opencode answer table .\n");
+    printf("-l, --log <path>                              Path to program runtime log.\n");
+    printf("-s, --show-gpu-info                           Show GPU info.\n");
 }
 
 void laod_args(int argc, char* argv[], 

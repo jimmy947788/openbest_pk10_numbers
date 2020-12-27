@@ -7,6 +7,7 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include "../header/common.h"
 #include "../header/loadData.h"
 #include "../header/config.h"
 #include "../header/argument.h"
@@ -14,6 +15,25 @@
 #include "../header/dateTime.h"
 #include "../header/network.h"
 #include "../header/logger.h"
+#include "../header/mystring.h"
+
+extern char     gWorkerFolder[MAX_LENGTH];
+extern char**   gBetonList;
+extern int      gBetonLenght;
+
+extern char**   gOpencodeList;
+extern int      gOpencodeLenght;
+
+extern uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
+
+
+void init_log(FILE **logfp, const char* log_dir)
+{
+    char log_file[MAX_LENGTH];
+    sprintf(log_file, "%s/%scalc_opencode_amount.log", gWorkerFolder, log_dir);
+    *logfp = fopen(log_file, "a+");
+    log_add_fp(*logfp, LOG_TRACE);
+}
 
 int main(int argc, char* argv[])
 {
@@ -21,38 +41,42 @@ int main(int argc, char* argv[])
     char kernel_program_file[MAX_LENGTH] = "";
     char beton_amount_table_file[MAX_LENGTH] = "";
     char beton_amount_table_with_odds_file[MAX_LENGTH] = "";
-    char work_folder[MAX_LENGTH] = "";
+    FILE *logfp;
     char log_dir[MAX_LENGTH];
-    strcpy(log_dir, "log/");
-    char temp_path[MAX_LENGTH] = "";
+    clock_t timeStart, timeEnd;
 
-    laod_args(argc, argv, &kernel_program_file, &work_folder, &log_dir);
+    laod_args(argc, argv, &kernel_program_file, &gWorkerFolder, &log_dir);
     
-    if(strlen(kernel_program_file) == 0 || strlen(work_folder) == 0)
+    printf("log_dir=%s", log_dir);
+    strcpy(log_dir, "log/");
+
+    if(strlen(kernel_program_file) == 0 || strlen(gWorkerFolder) == 0)
     {
         printf("must be support argument...");
         printf("\t--kernel-program <path>");
-        printf("\t--work-folder  <path>");
+        printf("\t--worker-folder  <path>");
         printf("show help");
         printf("\tcalc_opencode_amount -h");
         exit(EXIT_SUCCESS);
     }
+    log_debug("kernel_program_file: %s", kernel_program_file);
+    //log_debug("log_file: %s", log_file);
+    log_debug("worker folder: %s", gWorkerFolder);
+
+    init_log(&logfp, log_dir);
+    loadBetonList();
+    loadOpencodeList();
+    for(int num=0; num<=USE_GPU_NUM-1; num++)
+    {
+        GPU_HANDEL_COUNT[num] = gOpencodeLenght / USE_GPU_NUM;
+        log_info("GPU_HANDEL_COUNT[%d]=%d\n", num, GPU_HANDEL_COUNT[num]);
+    }
+
 
 #ifdef PK10
-    log_info("this program was for PK10 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...\n", OPENCODE_COUNT, BETON_COUNT);    
+    log_info("this program was for PK10 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
 #elif defined SSC 
-    log_info("this program was for SSC (OPENCODE_COUNT=%d, BETON_COUNT=%d)...\n", OPENCODE_COUNT, BETON_COUNT);    
-#endif
-
-    char log_file[MAX_LENGTH];
-    sprintf(log_file, "%s/%scalc_opencode_amount.log", work_folder, log_dir);
-    FILE *logfp = fopen(log_file, "a+");
-    log_add_fp(logfp, LOG_TRACE);
-
-#ifdef DEBUG
-    log_debug("kernel_program_file: %s", kernel_program_file);
-    log_debug("log_file: %s", log_file);
-    log_debug("work folder: %s", work_folder);
+    log_info("this program was for SSC (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
 #endif
 
     int total_platforms = 0;
@@ -62,15 +86,6 @@ int main(int argc, char* argv[])
     cl_context context = NULL;
     cl_program* program = NULL;
     cl_command_queue* queue_list = NULL;
-
-    int beton_count = BETON_COUNT;
-    int wager_length = 0; 
-    char expectId[MAX_LENGTH];
-    cl_ushort* one_mask = NULL;
-    cl_float* beton_amount_table = NULL;
-    cl_float* beton_amount_with_odds_table = NULL;
-    cl_float* total_beton_amount_vector = NULL;
-    cl_float* total_beton_amount_with_odds_vector = NULL;
 
     log_info("get OpenCL platforms");
     total_platforms = get_platforms(&platforms);
@@ -91,11 +106,9 @@ int main(int argc, char* argv[])
     log_info(" ........... successful!!(total command queue=%d)", total_devices);
 
     log_info("build OpenCL program from");
-    memset(temp_path, '\0', MAX_LENGTH);
-    sprintf(temp_path, "%s%s", work_folder, kernel_program_file);
     //log_info("full kernel_program_file:%s", temp_path);
     // build an OpenCL program
-    build_program_for_all_devices(temp_path, context, device_list, &program);
+    build_program_for_all_devices(kernel_program_file, context, device_list, &program);
     log_info(".......... successful!!");
 
     // Create OpenCL Kernel function
@@ -116,49 +129,42 @@ int main(int argc, char* argv[])
     clReleaseProgram(program);
     log_info(".......... successful!!");
     //============================================================================
-   
+
     // load opencode answer table
     //===================================================================================================
-    cl_uchar* opencode_answer_table[USE_GPU_NUM];
-    cl_float* opencode_answer_table_result[USE_GPU_NUM];
+    cl_uchar* opencodeAnswerTable[USE_GPU_NUM];
+    unsigned long long opencodeAnswerTableLength = gBetonLenght * GPU_HANDEL_COUNT[0];
     char** opencodeList[USE_GPU_NUM];
+    
+    cl_float* opencodeAnswerTableResult[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         log_info("load opencode answer table from %s...%d/%d", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
-        opencode_answer_table[num] = (cl_uchar *)malloc(sizeof(cl_uchar) * BETON_COUNT * GPU_HANDEL_COUNT[num]);
-        opencodeList[num] = (char**)malloc(sizeof(*opencodeList[num]) * GPU_HANDEL_COUNT[num]);
-        memset(temp_path, '\0', MAX_LENGTH);
-        sprintf(temp_path, "%s%s", work_folder, OPENCODE_ANSWER_TABLE_PATH[num]);
-        int ret = load_opnecode_answer_table(temp_path, &opencodeList[num], &opencode_answer_table[num]);
+        opencodeAnswerTable[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableLength);
+        opencodeList[num] = (char**)malloc(sizeof(char*) * GPU_HANDEL_COUNT[num]);
+
+        int ret = loadOpencodeAnswerTable(
+            opencodeAnswerTable[num], 
+            opencodeList[num],
+            OPENCODE_ANSWER_TABLE_PATH[num]);
         log_info("opencodeList[%d] length:%ld", num, ret);
     }
 
-    one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * BETON_COUNT);
-    for(int i=0; i<=BETON_COUNT-1; i++ )
-    {
-        one_mask[i] = 1;
-    }
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         log_info("alloc opencode_answer_table_result[%d] array (length: %d)", num, GPU_HANDEL_COUNT[num]);
-        opencode_answer_table_result[num] = (cl_float*)malloc(sizeof(cl_float) * GPU_HANDEL_COUNT[num]);
+        opencodeAnswerTableResult[num] = (cl_float*)malloc(sizeof(cl_float) * GPU_HANDEL_COUNT[num]);
     }
+ 
     
-    char recv_buffer[MAX_BUFFER_SIZE] = {};
-    int forClientSockfd = 0, sockfd = 0;
-    struct sockaddr_in clientInfo;
-    int addrlen = sizeof(clientInfo);
-    char dateTime[_DATETIME_SIZE];
+    //openc input & output
+    cl_ushort* one_mask = NULL;
+    cl_float* betsAmountOnehot = NULL;
+    cl_float* betsAmountWithOddsOnehot = NULL;
+    cl_float* totalBetsAmountVector = NULL;
+    cl_float* totalBetsAmountWithOddsVector = NULL;
 
-    sockfd = create_socket();
-    //cl_uint* result = NULL;
-    //float target_amount_range1 = 0;
-    //float target_amount_range2 = 0;
-    float target_amount = 0;
-    float tolerance = 0;
-    int  result_count = 0;
-    
     //opencl buffer
     cl_mem total_beton_amount_buffer[USE_GPU_NUM];
     cl_mem total_beton_amount_with_odds_buffer[USE_GPU_NUM];
@@ -175,8 +181,8 @@ int main(int argc, char* argv[])
         opencode_answer_table_buffer[num] = clCreateBuffer(
             context, 
             CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-            sizeof(cl_uchar) * BETON_COUNT * GPU_HANDEL_COUNT[num], 
-            opencode_answer_table[num], 
+            sizeof(cl_uchar) * opencodeAnswerTableLength, 
+            opencodeAnswerTable[num], 
             &errNum);    
         if(errNum < 0) {
             perror("Couldn't create a opencode_answer_table_buffer[]");
@@ -186,387 +192,330 @@ int main(int argc, char* argv[])
     
     //while 重複直行
     //===================================================================================================
+    int     forClientSockfd = 0, sockfd = 0;
+    struct  sockaddr_in clientInfo;
+    int     addrlen = sizeof(clientInfo);
+    char    dateTime[_DATETIME_SIZE];
+    char*   recvBuffer;
+    int     recvBufferSize = MAX_BUFFER_SIZE;
+    char*   recvBufferStrip = NULL;
+    char**  recvRows = NULL;
+    int     recvRowLength = 0;
+    char**  recvColumns = NULL;
+    int     recvColumnLength = 0;
+    char**  rawDatalist = NULL;
+    int     rawDatalistLength = 0; 
+    int     wagerLength = 0;
+    char    expectId[MAX_LENGTH];
+    int     direction = 0;
+    float   killRate = 0;
+    int     resultLength=0;
+    float   totalBetsAmount;
+    float   targetAmount = 0;
+    sockfd = create_socket();
+
+    log_info("init one_mask ...");
+    one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * gBetonLenght);
+    for(int i = 0; i< gBetonLenght-1; i++)
+    {
+        one_mask[i] = 1;
+    }
+
     while(true)
     {
-        log_info("ready to recv data...");
+        log_info("ready to recv data...(recv buffer size:%d)", recvBufferSize);
         forClientSockfd = accept(sockfd,(struct sockaddr*) &clientInfo, &addrlen);
-        memset(recv_buffer, '\0', MAX_BUFFER_SIZE);
-        recv(forClientSockfd, recv_buffer, sizeof(recv_buffer), 0);
-        log_info("======> %s", recv_buffer);
-        parser_data(recv_buffer, 
-            beton_amount_table_file, 
-            beton_amount_table_with_odds_file, 
-            &wager_length, 
-            expectId,
-            &target_amount,
-            &tolerance,
-            &result_count);
-        log_info("beton_amount_table_file = %s", beton_amount_table_file);
-        log_info("beton_amount_table_with_odds_file = %s", beton_amount_table_with_odds_file);
-        log_info("wager_length = %d", wager_length);
-        log_info("expectId = %s", expectId);
-        log_info("target_amount = %f", target_amount);
-        log_info("tolerance = %f", tolerance);
-        log_info("result_count = %d", result_count);
         
-        //target_amount_range1 = target_amount - (target_amount * tolerance);
-        //target_amount_range2 = target_amount + (target_amount * tolerance);
-        //log_info("target_amount_range1 = %f, target_amount_range2= %f ", target_amount_range1, target_amount_range2);
-        if(tolerance ==1 )
-            log_info("user winner target_amount=%f", target_amount);
-        else //if(tolerance ==-1)
-            log_info("banker winner target_amount=%f", target_amount);
+        recvBuffer = (char*)malloc(sizeof(char) * recvBufferSize);
+        memset(recvBuffer, '\0', recvBufferSize);
+        recv(forClientSockfd, recvBuffer, sizeof(char) * recvBufferSize , 0);
+        //log_debug("======> %s", recv_buffer);
+
+        if(strstr(recvBuffer, "LEN:") != NULL)
+        {
+            //取得下一次封包大小
+            log_debug("recv raw data: %s", recvBuffer);
+            recvBufferStrip = substring(recvBuffer, strlen("LEN:"), strlen(recvBuffer) -1);
+            recvBufferSize = strtol(recvBufferStrip, NULL, 10);
+            log_info("data length:%d", recvBufferSize);
+
+            send(forClientSockfd, "LEN,OK", sizeof("LEN,OK"), 0);
+            log_info("send back LEN process done!");
+        }
+        else if(strstr(recvBuffer, "DATA:") != NULL)
+        {
+            log_debug("recv raw data: %s", recvBuffer);
+            timeStart = clock();
+            recvBufferStrip = substring(recvBuffer, strlen("DATA:"), strlen(recvBuffer) -1);
+            log_debug("recvBufferStrip=%s", recvBufferStrip);
+            
+            //把資料切分出行
+            recvRowLength = strCharCount(recvBufferStrip, '^') + 1;
+            log_debug("recvRowLength=%d", recvRowLength);
+            char** recvRows = (char**)malloc(sizeof(char*) * recvRowLength);
+            split(&recvRows, recvBufferStrip, "^");
+
+            //第一行是運算參數
+            loadParmeters(&wagerLength, &expectId, &direction, &killRate, &resultLength, recvRows[0]);
+            log_debug("wager_length=%d, expectId=%s, direction=%d, killRate=%f, resultLength=%d", 
+                wagerLength, 
+                expectId, 
+                direction, 
+                killRate,
+                resultLength);
+
+            rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
+            rawDatalistLength = recvRowLength - 1; //少一筆因為第比是計算參數  
+            log_debug("betsAmountOnehot length is %d", gBetonLenght * wagerLength);
+            betsAmountOnehot = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
+            memset(betsAmountOnehot, 0, gBetonLenght * wagerLength);
+            
+            betsAmountWithOddsOnehot = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
+            memset(betsAmountWithOddsOnehot, 0, gBetonLenght * wagerLength);
+
+            loadBetsAmountOnehot(
+                betsAmountOnehot,
+                betsAmountWithOddsOnehot,
+                &totalBetsAmount,
+                rawDatalist, 
+                rawDatalistLength
+            );
+            
+            timeEnd = clock();
+            log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "bets_to_onehot", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+            
+            targetAmount = totalBetsAmount * killRate;
+            log_info("totalBetsAmount=%0.6f, targetAmount=%0.6f, direction=%d", totalBetsAmount, targetAmount, direction);
+
+            if(direction ==1 )
+                log_info("user winner target_amount=%f", targetAmount);
+            else //if(tolerance ==-1)
+                log_info("banker winner target_amount=%f", targetAmount);
+
 
 #ifdef DEBUG
-        float sum = 0;
+            float sum = 0;
 #endif
-        beton_amount_table = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT * wager_length);
-        load_beton_amount_table(beton_amount_table_file, &beton_amount_table);
-        total_beton_amount_vector = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT);
-        run_kernel_sum_beton_total_amount(
-            context, 
-            queue_list[0], 
-            kSumBetonTotalAmount, 
-            wager_length,
-            one_mask, beton_amount_table,
-            &total_beton_amount_vector);
-        if(beton_amount_table)
-            free(beton_amount_table);
+            totalBetsAmountVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+            run_kernel_sum_beton_total_amount(
+                context, 
+                queue_list[0], 
+                kSumBetonTotalAmount, 
+                wagerLength,
+                one_mask, 
+                betsAmountOnehot,
+                &totalBetsAmountVector);
+            if(betsAmountOnehot)
+                free(betsAmountOnehot);
 #ifdef DEBUG
-        sum = 0;
-        for(int i=0; i<= BETON_COUNT-1; i++)
-        {
-            sum += total_beton_amount_vector[i];
-            if(total_beton_amount_vector[i] > 0)
-                log_debug("total_beton_amount_vector[%d]= %f", i, total_beton_amount_vector[i]);
-        }
-        log_debug("====> sum total_beton_amount = %f", sum);
-#endif
-        beton_amount_with_odds_table = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT * wager_length);
-        load_beton_amount_table(beton_amount_table_with_odds_file, &beton_amount_with_odds_table);
-        total_beton_amount_with_odds_vector = (cl_float*)malloc(sizeof(cl_float) * BETON_COUNT);
-        run_kernel_sum_beton_total_amount(
-            context, 
-            queue_list[0], 
-            kSumBetonTotalAmount, 
-            wager_length,
-            one_mask, beton_amount_with_odds_table, 
-            &total_beton_amount_with_odds_vector);
-        if(beton_amount_with_odds_table)
-            free(beton_amount_with_odds_table);
-#ifdef DEBUG
-        sum = 0;
-        for(int i=0; i<= BETON_COUNT-1; i++)
-        {
-            sum += total_beton_amount_with_odds_vector[i];
-            if(total_beton_amount_with_odds_vector[i] > 0)
-                log_debug("total_beton_amount_with_odds_vector[%d]= %f", i, total_beton_amount_with_odds_vector[i]);
-        }
-        log_debug("====> sum total beton amount with odds = %f", sum);
-#endif
-
-        clock_t timeStart, timeEnd;
-        //計算獎號開出金額 (建立buffer & 設定參數)
-        //===================================================================
-        timeStart = clock();
-        for(int num=0; num<=USE_GPU_NUM-1; num++)
-        {
-            log_info("calc total win/loss amount in opencode list ... %d/%d", (num+1), USE_GPU_NUM);
-            memset(opencode_answer_table_result[num], 0.0f, GPU_HANDEL_COUNT[num]);
-            // creater buffer total_beton_amount_buffer
-            total_beton_amount_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,  sizeof(cl_float) * BETON_COUNT, total_beton_amount_vector, &errNum); 
-            if(errNum < 0) {
-                perror("Couldn't create a total_beton_amount_buffer");
-                exit(EXIT_FAILURE);
-            };
-            //create buffer total_beton_amount_with_odds_buffer 
-            total_beton_amount_with_odds_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * BETON_COUNT, total_beton_amount_with_odds_vector, &errNum);    
-            if(errNum < 0) {
-                perror("Couldn't create a total_beton_amount_with_odds_buffer");
-                exit(EXIT_FAILURE);
-            };
-
-            //create buffer result_buffer
-            result_buffer[num] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * GPU_HANDEL_COUNT[num] ,  NULL,  &errNum);
-            if(errNum < 0) {
-                perror("Couldn't create a result_buffer");
-                exit(EXIT_FAILURE);
-            };
-
-            /* Create kernel argument */
-            errNum = clSetKernelArg(kCalcNumbersRisk[num], 0, sizeof(cl_mem), &total_beton_amount_buffer[num]);
-            if(errNum < 0) {
-                perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
-                exit(EXIT_FAILURE);
-            };
-
-            errNum = clSetKernelArg(kCalcNumbersRisk[num], 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[num]);
-            if(errNum < 0) {
-                perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
-                exit(EXIT_FAILURE);
-            };
-
-            errNum = clSetKernelArg(kCalcNumbersRisk[num], 2, sizeof(cl_mem), &opencode_answer_table_buffer[num]);
-            if(errNum < 0) {
-                perror("Couldn't set a kernel argument (opencode_answer_table_buffer[0])");
-                exit(EXIT_FAILURE);
-            };
-
-            errNum = clSetKernelArg(kCalcNumbersRisk[num], 3, sizeof(cl_mem), &result_buffer[num]);
-            if(errNum < 0) {
-                perror("Couldn't set a kernel argument (result_buffer)");
-                exit(EXIT_FAILURE);
-            };
-
-            errNum = clSetKernelArg(kCalcNumbersRisk[num], 4, sizeof(cl_int), &beton_count);
-            if(errNum < 0) {
-                perror("Couldn't set a kernel argument (beton_count)");
-                exit(EXIT_FAILURE);
-            };
-        }
-        timeEnd = clock();
-        log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clSetKernelArg", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-
-        //計算獎號開出金額 (enqueue task)
-        //===================================================================
-        timeStart = clock();
-        for(int num=0; num<=USE_GPU_NUM-1; num++)
-        {
-            int dim = 1;
-            const size_t global_work_offset[] = { 0 };
-            const size_t global_work_size[] = { GPU_HANDEL_COUNT[num] };
-            const size_t local_work_size[] = { 1 };
-            errNum = clEnqueueNDRangeKernel(
-                queue_list[num], 
-                kCalcNumbersRisk[num], 
-                dim, 
-                global_work_offset, 
-                global_work_size, 
-                local_work_size, 
-                0, 
-                NULL, 
-                &kernel_events[num]);
-            if(errNum < 0) {
-                perror("Couldn't enqueue kernel");
-                exit(EXIT_FAILURE);
-            }
-        }
-        clWaitForEvents(2, kernel_events);
-        timeEnd = clock();
-        log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clEnqueueNDRangeKernel", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-        
-        //計算獎號開出金額 (reqd result from buffer)
-        //===================================================================
-        timeStart = clock();
-        for(int num=0; num<=USE_GPU_NUM-1; num++)
-        {
-            errNum = clEnqueueReadBuffer(queue_list[num], result_buffer[num], CL_FALSE, 0, sizeof(cl_float) * GPU_HANDEL_COUNT[num], opencode_answer_table_result[num], 0, NULL, &read_events[num]);
-            if(errNum < 0) {
-                perror("Couldn't read the buffer");
-                exit(EXIT_FAILURE);
-            }
-        }
-        clWaitForEvents(2, read_events);
-        timeEnd = clock();
-        log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clEnqueueReadBuffer", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-
-
-#ifdef DEBUG
-        double dddd = 0;
-        executionTime(kernel_events[0], &dddd);
-        log_debug("kernel_events[0] time is %0.3f", dddd);
-        executionTime(kernel_events[1], &dddd);
-        log_debug("kernel_events[1] time is %0.3f", dddd);
-        executionTime(read_events[0], &dddd);
-        log_debug("read_events[0] time is %0.3f", dddd);
-        executionTime(read_events[1], &dddd);
-        log_debug("read_events[1] time is %0.3f", dddd);
-#endif
-        for(int num=0; num<=USE_GPU_NUM-1; num++)
-        {
-            log_info("release total_beton_amount_buffer[%d]", num);
-            clReleaseMemObject(total_beton_amount_buffer[num]);
-            log_info("release total_beton_amount_with_odds_buffer[%d]", num);
-            clReleaseMemObject(total_beton_amount_with_odds_buffer[num]);
-        }
-        
-        log_info("release kernel_events");
-        for(int num=0; num<=USE_GPU_NUM-1; num++)
-            clReleaseEvent(kernel_events[num]);
-        
-        log_info("release read_events");
-        for(int num=0; num<=USE_GPU_NUM-1; num++)
-            clReleaseEvent(read_events[num]);
-        
-        log_info("release result_buffer");
-        for(int num=0; num<=USE_GPU_NUM-1; num++)
-            clReleaseEvent(result_buffer[num]);
-
-#ifdef DEBUG
-        for(int i=0; i<=20 - 1; i++)
-        {
-            log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencode_answer_table_result[0][i]);
-        }
-
-        for(int i= GPU_HANDEL_COUNT[0] - 1; i>=GPU_HANDEL_COUNT[0] -20; i--)
-        {
-            log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencode_answer_table_result[0][i]);
-        }
-        for(int i=0; i<=20 - 1; i++)
-        {
-            log_debug("%s, result[%d]=%0.6f ",opencodeList[1][i], i, opencode_answer_table_result[1][i]);
-        }
-        for(int i=GPU_HANDEL_COUNT[1]-1; i>=GPU_HANDEL_COUNT[1] -20; i--)
-        {
-            log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencode_answer_table_result[1][i]);
-        }
-#endif
-
-/*
-#ifdef DEBUG
-        log_debug("==================================");
-        log_debug("=\tshow win opencode\t=");
-        log_debug("==================================");
-        char debug_result_file[MAX_LENGTH];
-        char debug_tmp[MAX_LENGTH];
-        sprintf(debug_result_file, "%s/data/opencode_result_%s.csv", work_folder, expectId);
-        //check result file exist
-        FILE* debug_fp = fopen(debug_result_file, "r");
-        if (debug_fp) {
-            // file exists
-            remove(debug_result_file);
-            fclose(debug_fp);
-        }
-        debug_fp = fopen(debug_result_file, "a");
-        for(int num=0; num<=USE_GPU_NUM - 1; num++)
-        {
-            for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
+            sum = 0;
+            for(int i=0; i<=gBetonLenght-1; i++)
             {
-                cl_float amount = opencode_answer_table_result[num][i];
-                if(amount > 0)
-                    log_debug("%s, result[%d]=%0.6f ", opencodeList[num][i], i, amount);
-                    
-                memset(debug_tmp, '\0', MAX_LENGTH);
-                sprintf(debug_tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
-                fputs(debug_tmp, debug_fp);
+                sum += totalBetsAmountVector[i];
+                if(totalBetsAmountVector[i] > 0)
+                    log_debug("totalBetsAmountResult[%d]= %f", i, totalBetsAmountVector[i]);
             }
-        }  
-        fclose(debug_fp);
+            log_debug("====> sum total_beton_amount = %f", sum);
 #endif
-*/
-        //clock_t timeStart, timeEnd;
-        timeStart = clock();
-        char result_file[MAX_LENGTH];
-        memset(result_file, '\0', MAX_LENGTH);
-        sprintf(result_file, "%s/data/opencode_amount_result_%s.csv", work_folder, expectId);
-        //check result file exist
-        FILE* fp = fopen(result_file, "r");
-        if (fp) {
-            // file exists
-            remove(result_file);
-            fclose(fp);
-        }
-
-        int target_amount_counter = 0;
-        char tmp[MAX_LENGTH];
-        //將到達條件金額寫入檔案 
-        fp = fopen(result_file, "a");
-        for(int num=0; num<=USE_GPU_NUM - 1; num++)
-        {
-            for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
-            {
-                cl_float amount = opencode_answer_table_result[num][i];
-                if(tolerance == 1)
-                {
-                    if(target_amount <= amount ) //玩家贏錢
-                    {
-                        memset(tmp, '\0', MAX_LENGTH);
-                        sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
-                        fputs(tmp, fp);
-                        target_amount_counter++;
-                    }
-                }
-                else
-                {
-                    if(amount <= target_amount) //莊家贏錢
-                    {
-                        memset(tmp, '\0', MAX_LENGTH);
-                        sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
-                        fputs(tmp, fp);
-                        target_amount_counter++;
-                    }
-                }
-            }
-        }
-        fclose(fp);
-        timeEnd = clock();
-        log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "save result to csv", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-
-        //讀取所有符合開獎結果CSV
-        log_info("read data from csv file");
-        int target_amount_result_index = 0;
-        char** target_amount_results;
-        target_amount_results = (char**)malloc(sizeof(*target_amount_results) * target_amount_counter);
-        fp = fopen(result_file, "r");
-        while( fgets(tmp, MAX_LENGTH, fp) ) {
-            //log_info("%s",line);
-            *(target_amount_results + target_amount_result_index) = (char*) malloc(sizeof(char) * MAX_LENGTH);
-            memset(*(target_amount_results + target_amount_result_index), '\0', MAX_LENGTH);
-            strcpy(*(target_amount_results + target_amount_result_index), tmp);
-            target_amount_result_index++;
-        }
-        log_info("target_amount_counter = %d", target_amount_counter );
-
-        // 亂數讀取 result_count 筆所有符合開獎結果
-        // 把所有結果組成很長的字串透過socket回傳 > temp_target_amount_results
-        // target_amount_results[rand_num] : 1-3-7-2-9-4-10-8-5-6,0.000000\n
-        // target_amount_results[rand_num] : {獎號},{金額}\n
-        // temp_target_amount_results : {獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n
-        int rand_num = 0;
-        time_t t;
-        char temp_target_amount_results[MAX_SOURCE_SIZE];
-        memset(temp_target_amount_results, '\0', MAX_SOURCE_SIZE);
-        log_info("randam %d data to temp_target_amount_results array.", result_count);
-        if( target_amount_counter > 0)
-        {
-            srand((unsigned) time(&t));
-            for( int i = 0 ; i <= result_count-1 ; i++ ) {
-                rand_num = rand() % target_amount_counter;
+            totalBetsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+            run_kernel_sum_beton_total_amount(
+                context, 
+                queue_list[0], 
+                kSumBetonTotalAmount, 
+                wagerLength,
+                one_mask, 
+                betsAmountWithOddsOnehot, 
+                &totalBetsAmountWithOddsVector);
+            if(betsAmountWithOddsOnehot)
+                free(betsAmountWithOddsOnehot);
 #ifdef DEBUG
-                log_debug("rand_num[%d] = %d, target_amount_results[%d] = %s",  i, rand_num, rand_num, target_amount_results[rand_num]);
+            sum = 0;
+            for(int i=0; i<= gBetonLenght-1; i++)
+            {
+                sum += totalBetsAmountWithOddsVector[i];
+                if(totalBetsAmountWithOddsVector[i] > 0)
+                    log_debug("totalBetsAmountWithOddsVector[%d]= %f", i, totalBetsAmountWithOddsVector[i]);
+            }
+            log_debug("====> sum total beton amount with odds = %f", sum);
 #endif
-                //檢查重複獎號，重複則不要回傳
-                if(strstr(temp_target_amount_results, target_amount_results[rand_num]) == NULL)
-                {
-                    strcat (temp_target_amount_results, target_amount_results[rand_num]);
+            clock_t timeStart, timeEnd;
+            //計算獎號開出金額 (建立buffer & 設定參數)
+            //===================================================================
+            timeStart = clock();
+            for(int num=0; num<=USE_GPU_NUM-1; num++)
+            {
+                log_info("clSetKernelArg... %d/%d", (num+1), USE_GPU_NUM);
+                //memset(opencodeAnswerTableResult[num], 0.0f, GPU_HANDEL_COUNT[num]);
+                // creater buffer total_beton_amount_buffer
+                total_beton_amount_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,  sizeof(cl_float) * gBetonLenght, totalBetsAmountVector, &errNum); 
+                if(errNum < 0) {
+                    perror("Couldn't create a total_beton_amount_buffer");
+                    exit(EXIT_FAILURE);
+                };
+                //create buffer total_beton_amount_with_odds_buffer 
+                total_beton_amount_with_odds_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, sizeof(cl_float) * gBetonLenght, totalBetsAmountWithOddsVector, &errNum);    
+                if(errNum < 0) {
+                    perror("Couldn't create a total_beton_amount_with_odds_buffer");
+                    exit(EXIT_FAILURE);
+                };
+
+                //create buffer result_buffer
+                result_buffer[num] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * GPU_HANDEL_COUNT[num] ,  NULL,  &errNum);
+                if(errNum < 0) {
+                    perror("Couldn't create a result_buffer");
+                    exit(EXIT_FAILURE);
+                };
+
+                /* Create kernel argument */
+                errNum = clSetKernelArg(kCalcNumbersRisk[num], 0, sizeof(cl_mem), &total_beton_amount_buffer[num]);
+                if(errNum < 0) {
+                    perror("Couldn't set a kernel argument (total_beton_amount_buffer)");
+                    exit(EXIT_FAILURE);
+                };
+
+                errNum = clSetKernelArg(kCalcNumbersRisk[num], 1, sizeof(cl_mem), &total_beton_amount_with_odds_buffer[num]);
+                if(errNum < 0) {
+                    perror("Couldn't set a kernel argument (total_beton_amount_with_odds_buffer)");
+                    exit(EXIT_FAILURE);
+                };
+
+                errNum = clSetKernelArg(kCalcNumbersRisk[num], 2, sizeof(cl_mem), &opencode_answer_table_buffer[num]);
+                if(errNum < 0) {
+                    perror("Couldn't set a kernel argument (opencode_answer_table_buffer[0])");
+                    exit(EXIT_FAILURE);
+                };
+
+                errNum = clSetKernelArg(kCalcNumbersRisk[num], 3, sizeof(cl_mem), &result_buffer[num]);
+                if(errNum < 0) {
+                    perror("Couldn't set a kernel argument (result_buffer)");
+                    exit(EXIT_FAILURE);
+                };
+
+                errNum = clSetKernelArg(kCalcNumbersRisk[num], 4, sizeof(cl_int), &gBetonLenght);
+                if(errNum < 0) {
+                    perror("Couldn't set a kernel argument (beton_count)");
+                    exit(EXIT_FAILURE);
+                };
+            }
+            timeEnd = clock();
+            log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clSetKernelArg", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+
+            //計算獎號開出金額 (enqueue task)
+            //===================================================================
+            timeStart = clock();
+            for(int num=0; num<=USE_GPU_NUM-1; num++)
+            {
+                log_info("clEnqueueNDRangeKernel... %d/%d", (num+1), USE_GPU_NUM);
+                int dim = 1;
+                const size_t global_work_offset[] = { 0 };
+                const size_t global_work_size[] = { GPU_HANDEL_COUNT[num] };
+                const size_t local_work_size[] = { 1 };
+                errNum = clEnqueueNDRangeKernel(
+                    queue_list[num], 
+                    kCalcNumbersRisk[num], 
+                    dim, 
+                    global_work_offset, 
+                    global_work_size, 
+                    local_work_size, 
+                    0, 
+                    NULL, 
+                    &kernel_events[num]);
+                if(errNum < 0) {
+                    perror("Couldn't enqueue kernel");
+                    exit(EXIT_FAILURE);
                 }
             }
-        }
-        log_info("free every target_amount_results array.");
-        for(int i=0; i<=target_amount_result_index-1; i++)
-        {
-            if(*(target_amount_results + i))
-                free(*(target_amount_results + i));
-        }
-        if(target_amount_results)
-            free(target_amount_results);
+            clWaitForEvents(2, kernel_events);
+            timeEnd = clock();
+            log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clEnqueueNDRangeKernel", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+            
+            //計算獎號開出金額 (reqd result from buffer)
+            //===================================================================
+            timeStart = clock();
+            for(int num=0; num<=USE_GPU_NUM-1; num++)
+            {
+                log_info("clEnqueueReadBuffer... %d/%d", (num+1), USE_GPU_NUM);
+                
+                errNum = clEnqueueReadBuffer(queue_list[num], result_buffer[num], CL_FALSE, 0, sizeof(cl_float) * GPU_HANDEL_COUNT[num], opencodeAnswerTableResult[num], 0, NULL, &read_events[num]);
+                if(errNum < 0) {
+                    perror("Couldn't read the buffer");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            clWaitForEvents(2, read_events);
+            timeEnd = clock();
+            log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clEnqueueReadBuffer", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 
-        /* 獲取系統當前日期時間 */
-        memset(dateTime, 0, sizeof(dateTime));
-        GetDateTime(dateTime);
-        log_info("The Local date and time is %s", dateTime);
 
-        send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
+    #ifdef DEBUG
+            double dddd = 0;
+            executionTime(kernel_events[0], &dddd);
+            log_debug("kernel_events[0] time is %0.3f", dddd);
+            executionTime(kernel_events[1], &dddd);
+            log_debug("kernel_events[1] time is %0.3f", dddd);
+            executionTime(read_events[0], &dddd);
+            log_debug("read_events[0] time is %0.3f", dddd);
+            executionTime(read_events[1], &dddd);
+            log_debug("read_events[1] time is %0.3f", dddd);
+    #endif
+            for(int num=0; num<=USE_GPU_NUM-1; num++)
+            {
+                log_info("release total_beton_amount_buffer[%d]", num);
+                clReleaseMemObject(total_beton_amount_buffer[num]);
+                log_info("release total_beton_amount_with_odds_buffer[%d]", num);
+                clReleaseMemObject(total_beton_amount_with_odds_buffer[num]);
+            }
+            
+            log_info("release kernel_events");
+            for(int num=0; num<=USE_GPU_NUM-1; num++)
+                clReleaseEvent(kernel_events[num]);
+            
+            log_info("release read_events");
+            for(int num=0; num<=USE_GPU_NUM-1; num++)
+                clReleaseEvent(read_events[num]);
+            
+            log_info("release result_buffer");
+            for(int num=0; num<=USE_GPU_NUM-1; num++)
+                clReleaseEvent(result_buffer[num]);
+
+    #ifdef DEBUG
+    /*
+            for(int i=0; i<=20 - 1; i++)
+            {
+                log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeAnswerTableResult[0][i]);
+            }
+
+            for(int i= GPU_HANDEL_COUNT[0] - 1; i>=GPU_HANDEL_COUNT[0] -20; i--)
+            {
+                log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeAnswerTableResult[0][i]);
+            }
+            for(int i=0; i<=20 - 1; i++)
+            {
+                log_debug("%s, result[%d]=%0.6f ",opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
+            }
+            for(int i=GPU_HANDEL_COUNT[1]-1; i>=GPU_HANDEL_COUNT[1] -20; i--)
+            {
+                log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
+            }
+            */
+            for(int i=0; i<= GPU_HANDEL_COUNT[1] - 1; i++)
+            {
+                //08,08,05,07,09
+                if(strcmp(opencodeList[1][i], "8-8-5-7-9") == 0)
+                {
+                    log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
+                }
+            }
+    #endif
+            send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
+            log_info("send back LEN process done!");
+        }
+        
+        if(recvRows)
+            free(recvRows);
+        if(recvBuffer)
+            free(recvBuffer);
     }
-    
-    if(total_beton_amount_vector)
-        free(total_beton_amount_vector);
-    if(total_beton_amount_with_odds_vector)
-        free(total_beton_amount_with_odds_vector);
 
-    //release opencode_answer_table Buffer
-    clReleaseMemObject(opencode_answer_table_buffer); 
-
-    fclose(logfp);
     exit(EXIT_SUCCESS);
 }

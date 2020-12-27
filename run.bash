@@ -1,10 +1,11 @@
 #!/bin/bash
 
-#currentPath="$(pwd)"
+currentPath="$(pwd)"
 #printf "current path : %s\n" $currentPath
-WORKFOLDER="/home/matrix/openbest_pk10_numbers"
+#WORKFOLDER="/home/matrix/openbest_pk10_numbers"
+WORKFOLDER="$currentPath"
 
-SERVICE="calc_opencode_amount"
+SERVICE="optimize_opencode"
 if ps ax | grep -v grep | grep $SERVICE > /dev/null
 then
     echo "$SERVICE is running"
@@ -13,7 +14,7 @@ else
     #"$currentPath"/bin/calc_opencode_amount \
     #    --work-folder "$currentPath" \
     #    --kernel-program /bin/kernel_program.cl
-    "$WORKFOLDER"/bin/calc_opencode_amount \
-        --work-folder  "$WORKFOLDER" \
-        --kernel-program /bin/kernel_program.cl
+    "$WORKFOLDER"/bin/$SERVICE \
+        --worker-folder  "$WORKFOLDER" \
+        --kernel-program bin/kernel_program.cl
 fi

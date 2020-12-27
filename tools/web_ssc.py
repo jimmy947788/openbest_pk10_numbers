@@ -105,20 +105,38 @@ def submit():
         buId = jdata["BuID"]    
         expectId = jdata["ExpectID"]
         wager_length = len(jdata["Bets"])
-        
+        opencodeCount = jdata["OpenCodeCount"]
+        tolerance = jdata["Tolerance"]
+        killRate = jdata["KillRate"]
+    
+        sendData = "DATA:"
+        sendData += f"{wager_length}|"
+        sendData += f"{expectId}|"
+        sendData += f"{tolerance}|"
+        sendData += f"{killRate}|"
+        sendData += f"{opencodeCount}"
         for jBet in jdata["Bets"]:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-                client.connect(("127.0.0.1", 8701))
-                
-                (betons, odds, unitAmount, betOnCount) = A5_SSC.transferWager2(logging, jBet) 
-                #print(betons)
-                #print(odds)
-                #print(f"unitAmount={unitAmount}, betOnCount={betOnCount}")
-                #print("==================================================")
-                client.sendall(",".join(betons).encode())
+            (betons, odds, unitAmount, betOnCount) = A5_SSC.transferWager2(logging, jBet) 
+            sendData += "^"
+            sendData += ",".join(betons) + "|"
+            sendData += ",".join(odds) + "|"  
+            sendData += str(unitAmount)  
 
-                serverMessage = client.recv(1000000).decode("UTF-8").replace('\0', '')
-                logging.debug('Server:', serverMessage)
+        #sendData = sendData[:len(sendData)-1]
+        print(sendData)
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+            client.connect(("127.0.0.1", 8700))
+            client.sendall(f"LEN:{len(sendData)}".encode())
+            recv_msg = client.recv(1024).decode("UTF-8").replace('\0', '')
+            logging.debug(f"Server:{recv_msg}")
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+            client.connect(("127.0.0.1", 8700))
+            client.sendall(sendData.encode())
+            recv_msg = client.recv(1024).decode("UTF-8").replace('\0', '')
+            logging.debug(f"Server:{recv_msg}")
+        
         """
         start = time.time()
         (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5_SSC.transferWager(logging, headers, jdata)    
@@ -213,7 +231,6 @@ def submit():
     return render_template('bestopen.html', title=title)
 
 if __name__ == "__main__":
-    global headers, one_line_headers
     global currentPath
 
     currentPath = os.path.dirname(os.path.abspath(__file__))
@@ -230,11 +247,6 @@ if __name__ == "__main__":
             filename=log_fliename)
     logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
     logging.debug("current path : " + currentPath)
-
-    with open(f"{currentPath}/data/ssc_beton_list.csv") as f:
-        one_line_headers = f.readline()
-        headers = one_line_headers.split(',')
-    print(f"headers length : {len(headers)}") # 120347
     
     app.config["DEBUG"] = True
     app.run(host='0.0.0.0', port=5000)

@@ -32,7 +32,7 @@ __kernel void sum_beton_total_amount(
 __kernel void calc_numbers_risk(
     __global const float *total_amount_vector, /* 各beton加總陣列（本金）*/
     __global const float *total_amount_odds_vector, /* 各beton加總陣列（本金*賠率 - 本金）*/
-    __global const char *answers_matrix, 
+    __global const uchar *answers_matrix, 
     __global float *result,
     const int beton_length) {
 
@@ -41,7 +41,7 @@ __kernel void calc_numbers_risk(
   //printf("numbers_index=%d, numbers_size=%d, beton_length=%d\n", numbers_index, numbers_size, beton_length);
   
   int step = beton_length;
-  unsigned int index = 0;
+  ulong index = 0;
   for (int i = 0; i <= beton_length - 1; i++) {
     index = (numbers_index * step) + i;
     // miuns 45, plus 43
@@ -53,7 +53,7 @@ __kernel void calc_numbers_risk(
     if(total_amount_vector[i] > 0)
       printf("total_amount_vector[%d]=%f\n", i, total_amount_vector[i]);
     */
-    if (sign== 43)
+    if (sign == 43)
     {
       result[numbers_index] += total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
     }
@@ -61,8 +61,13 @@ __kernel void calc_numbers_risk(
     {
       result[numbers_index] += total_amount_vector[i] * -1; //沒中獎就用本金
     }
-    //printf("answers_matrix[%d]=%d, total_amount=%f, total_amount_odds=%f,sum=%f\n", 
-    //  index, answers_matrix[index], total_amount, total_amount_odds, sum);
+    /*
+    printf("answers_matrix[%llu]=%d, result[%d]=%f\n", 
+      index, 
+      answers_matrix[index], 
+      numbers_index, 
+      result[numbers_index]);
+      */
   }
 
   //printf("\n");

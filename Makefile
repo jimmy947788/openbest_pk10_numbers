@@ -1,4 +1,4 @@
-PROJ=calc_opencode_amount
+PROJ=optimize_opencode
 
 CC=gcc
 

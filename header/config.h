@@ -7,7 +7,7 @@
 #define MAX_SOURCE_SIZE (0x100000)
 #define MAX_DEVICE_SIZE 256
 #define MAX_LENGTH 255
-#define MAX_BUFFER_SIZE 1000
+#define MAX_BUFFER_SIZE 1024
 #define SOCKET_PORT 8700
 #define _DATETIME_SIZE 32
 #define USE_GPU_NUM 2
@@ -20,14 +20,6 @@
     static const char OPENCODE_SAMPLE[] ="1-2-3-4-5";
 #endif
 
-#ifdef PK10
-    #define BETON_COUNT 1060
-    #define OPENCODE_COUNT 3628800
-#elif defined SSC 
-    #define BETON_COUNT 117662
-    #define OPENCODE_COUNT 100000
-#endif
-
 static const char OPENCODE_ANSWER_TABLE_PATH[USE_GPU_NUM][MAX_LENGTH] = {
     #ifdef PK10
         "/data/pk10_opencode_table_1.csv",
@@ -38,9 +30,20 @@ static const char OPENCODE_ANSWER_TABLE_PATH[USE_GPU_NUM][MAX_LENGTH] = {
     #endif
 };
 
-static const uint32 GPU_HANDEL_COUNT[USE_GPU_NUM] = {
-    OPENCODE_COUNT / USE_GPU_NUM,
-    OPENCODE_COUNT / USE_GPU_NUM,
+static const char BETON_LIST_PATH[] = {
+    #ifdef PK10
+        "data/pk10_beton_list.txt",
+    #elif defined SSC 
+        "data/ssc_beton_list.txt",
+    #endif
+};
+
+static const char OPENCODE_LIST_PATH[] = {
+    #ifdef PK10
+        "data/pk10_opencode_list.txt",
+    #elif defined SSC 
+        "data/ssc_opencode_list.txt",
+    #endif
 };
 
 #endif

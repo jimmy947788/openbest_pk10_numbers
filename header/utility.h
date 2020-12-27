@@ -11,6 +11,10 @@
 #include <stdio.h>
 #include <time.h>
 #include "config.h"
+#include "common.h"
+#include "loadData.h"
+#include "logger.h"
+#include "myfile.h"
 
 void checkErr(cl_int err, const char* name);
 void CL_CALLBACK contextCallback(const char * errInfo, const void * private_info, size_t cb, void * user_data);
