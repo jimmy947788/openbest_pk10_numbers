@@ -34,45 +34,46 @@ __kernel void calc_numbers_risk(
     __global const float *total_amount_odds_vector, /* 各beton加總陣列（本金*賠率 - 本金）*/
     __global const uchar *answers_matrix, 
     __global float *result,
-    const int beton_length) {
+    const uint beton_length) {
 
-  int numbers_index = get_global_id(0);
-  int numbers_size = get_global_size(0);
+  size_t numbers_index = get_global_id(0);
+  size_t numbers_size = get_global_size(0);
   //printf("numbers_index=%d, numbers_size=%d, beton_length=%d\n", numbers_index, numbers_size, beton_length);
   
-  int step = beton_length;
-  ulong index = 0;
+  uint step = beton_length;
+  ulong index = 0; //5883099999;
+  //printf("numbers_index=%d, answers_matrix[0]=%d, answers_matrix[%lu]=%d\n", numbers_index, answers_matrix[0], index, answers_matrix[index]);
+  //printf("total_amount_vector[%d]=%f, total_amount_odds_vector[%d]=%f\n", 
+  //  beton_length-1, total_amount_vector[beton_length-1], 
+  //  beton_length-1, total_amount_odds_vector[beton_length-1]);
+
+  float sum = 0;
   for (int i = 0; i <= beton_length - 1; i++) {
-    index = (numbers_index * step) + i;
-    // miuns 45, plus 43
-    int sign = (int)answers_matrix[index];
+    index = (numbers_index * step) + i; 　//千萬不要動！！　只要有任何轉型或優先調整都會跑掉
     /*
-    if(total_amount_odds_vector[i] > 0)
-      printf("total_amount_odds_vector[%d]=%f\n", i, total_amount_odds_vector[i]);
-    
-    if(total_amount_vector[i] > 0)
-      printf("total_amount_vector[%d]=%f\n", i, total_amount_vector[i]);
+    //debug 用
+    if(index >= 5883099990)
+      printf("numbers_index=%d, answers_matrix[%lu]=%d\n", 
+        numbers_index, index, answers_matrix[index]);
     */
-    if (sign == 43)
+
+    if (answers_matrix[index] == 43)// miuns 45, plus 43
     {
       result[numbers_index] += total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
+      //sum+= total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
     }
     else
     {
       result[numbers_index] += total_amount_vector[i] * -1; //沒中獎就用本金
+      //sum += total_amount_vector[i] * -1; //沒中獎就用本金
     }
-    /*
-    printf("answers_matrix[%llu]=%d, result[%d]=%f\n", 
-      index, 
-      answers_matrix[index], 
-      numbers_index, 
-      result[numbers_index]);
-      */
+    //printf("answers_matrix[%lu]=%d, sum=%f\n",  index,  answers_matrix[index],  sum);
   }
 
   //printf("\n");
-  //printf("numbers_index=%d, numbers_size=%d, sum=%f\n", numbers_index, numbers_size,  result[numbers_index]);
+  //printf("numbers_index=%d, numbers_size=%d, result[%d]=%f\n", numbers_index, numbers_size,  numbers_index, result[numbers_index]);
   
   //debug用 
   //result[numbers_index] = numbers_index; 
+  //result[numbers_index] = sum;
 }
