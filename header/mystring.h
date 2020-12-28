@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include "config.h"
 #include "common.h"
+#include "logger.h"
 
 #ifndef MYSTRING_H_   /* Include guard */
 #define MYSTRING_H_
@@ -36,7 +37,7 @@ int split(char*** list, const char *str, const char *delim);
  * @param len:[IN] 陣列長度
  * @retval 1:存在 2.不存在 
  */
-int contains(const char *str, const char** list, int len);
+int contains(const char *str, const  char** list, int len);
 
 /** 
  * @brief 擷取字串。

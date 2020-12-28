@@ -5,10 +5,10 @@
 
 char     gWorkerFolder[MAX_LENGTH];
 char**   gBetonList;
-int      gBetonLenght;
+uint32      gBetonLenght;
 
 char**   gOpencodeList;
-int      gOpencodeLenght;
+uint32      gOpencodeLenght;
 
 uint32 GPU_HANDEL_COUNT[USE_GPU_NUM];
 

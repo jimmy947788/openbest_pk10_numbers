@@ -19,10 +19,10 @@
 
 extern char     gWorkerFolder[MAX_LENGTH];
 extern char**   gBetonList;
-extern int      gBetonLenght;
+extern uint32      gBetonLenght;
 
 extern char**   gOpencodeList;
-extern int      gOpencodeLenght;
+extern uint32      gOpencodeLenght;
 
 extern uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         GPU_HANDEL_COUNT[num] = gOpencodeLenght / USE_GPU_NUM;
-        log_info("GPU_HANDEL_COUNT[%d]=%d\n", num, GPU_HANDEL_COUNT[num]);
+        log_info("GPU_HANDEL_COUNT[%d]=%d", num, GPU_HANDEL_COUNT[num]);
     }
 
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
         //fflush(stdout); //不給就不給輸出,flush強制輸出
         opencodeAnswerTable[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableLength);
         opencodeList[num] = (char**)malloc(sizeof(char*) * GPU_HANDEL_COUNT[num]);
-
+        
         int ret = loadOpencodeAnswerTable(
             opencodeAnswerTable[num], 
             opencodeList[num],
@@ -175,6 +175,16 @@ int main(int argc, char* argv[])
     cl_event kernel_events[USE_GPU_NUM];
     cl_event read_events[USE_GPU_NUM];
 
+    log_debug("opencodeAnswerTable[0][0]=%d", opencodeAnswerTable[0][0]);
+    log_debug("opencodeAnswerTable[0][1]=%d", opencodeAnswerTable[0][1]);
+    log_debug("opencodeAnswerTable[0][5883099999]=%d", opencodeAnswerTable[0][5883099999]);
+    log_debug("opencodeAnswerTable[0][5883100000]=%d", opencodeAnswerTable[0][5883100000]);
+
+    log_debug("opencodeAnswerTable[1][0]=%d", opencodeAnswerTable[1][0]);
+    log_debug("opencodeAnswerTable[1][1]=%d", opencodeAnswerTable[1][1]);
+    log_debug("opencodeAnswerTable[1][5883099999]=%d", opencodeAnswerTable[1][5883099999]);
+    log_debug("opencodeAnswerTable[1][5883100000]=%d", opencodeAnswerTable[1][5883100000]);
+    //
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         //create opencode_answer_table Buffer
@@ -280,6 +290,13 @@ int main(int argc, char* argv[])
                 rawDatalist, 
                 rawDatalistLength
             );
+
+            /*
+            for(int i=0; i<= gBetonList-1; i++ )
+            {
+                if(betsAmountOnehot[i] > 0)
+                    log_debug("betsAmountOnehot[%d]= %f", i, betsAmountOnehot[i]);
+            }*/
             
             timeEnd = clock();
             log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "bets_to_onehot", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
@@ -311,10 +328,12 @@ int main(int argc, char* argv[])
             sum = 0;
             for(int i=0; i<=gBetonLenght-1; i++)
             {
+                //printf("%f,", totalBetsAmountVector[i]);
                 sum += totalBetsAmountVector[i];
-                if(totalBetsAmountVector[i] > 0)
-                    log_debug("totalBetsAmountResult[%d]= %f", i, totalBetsAmountVector[i]);
+                //if(totalBetsAmountVector[i] > 0)
+                //    log_debug("totalBetsAmountVector[%d]= %f", i, totalBetsAmountVector[i]);
             }
+            //printf("\n");
             log_debug("====> sum total_beton_amount = %f", sum);
 #endif
             totalBetsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
@@ -332,11 +351,13 @@ int main(int argc, char* argv[])
             sum = 0;
             for(int i=0; i<= gBetonLenght-1; i++)
             {
+               // printf("%f,", totalBetsAmountWithOddsVector[i]);
                 sum += totalBetsAmountWithOddsVector[i];
-                if(totalBetsAmountWithOddsVector[i] > 0)
-                    log_debug("totalBetsAmountWithOddsVector[%d]= %f", i, totalBetsAmountWithOddsVector[i]);
+                //if(totalBetsAmountWithOddsVector[i] > 0)
+                //    log_debug("totalBetsAmountWithOddsVector[%d]= %f", i, totalBetsAmountWithOddsVector[i]);
             }
             log_debug("====> sum total beton amount with odds = %f", sum);
+            //printf("\n");
 #endif
             clock_t timeStart, timeEnd;
             //計算獎號開出金額 (建立buffer & 設定參數)
@@ -391,7 +412,7 @@ int main(int argc, char* argv[])
                     exit(EXIT_FAILURE);
                 };
 
-                errNum = clSetKernelArg(kCalcNumbersRisk[num], 4, sizeof(cl_int), &gBetonLenght);
+                errNum = clSetKernelArg(kCalcNumbersRisk[num], 4, sizeof(cl_uint), &gBetonLenght);
                 if(errNum < 0) {
                     perror("Couldn't set a kernel argument (beton_count)");
                     exit(EXIT_FAILURE);
@@ -436,7 +457,16 @@ int main(int argc, char* argv[])
             {
                 log_info("clEnqueueReadBuffer... %d/%d", (num+1), USE_GPU_NUM);
                 
-                errNum = clEnqueueReadBuffer(queue_list[num], result_buffer[num], CL_FALSE, 0, sizeof(cl_float) * GPU_HANDEL_COUNT[num], opencodeAnswerTableResult[num], 0, NULL, &read_events[num]);
+                errNum = clEnqueueReadBuffer(
+                    queue_list[num], 
+                    result_buffer[num], 
+                    CL_FALSE, 
+                    0, 
+                    sizeof(cl_float) * GPU_HANDEL_COUNT[num], 
+                    opencodeAnswerTableResult[num], 
+                    0, 
+                    NULL, 
+                    &read_events[num]);
                 if(errNum < 0) {
                     perror("Couldn't read the buffer");
                     exit(EXIT_FAILURE);
@@ -479,7 +509,6 @@ int main(int argc, char* argv[])
                 clReleaseEvent(result_buffer[num]);
 
     #ifdef DEBUG
-    /*
             for(int i=0; i<=20 - 1; i++)
             {
                 log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeAnswerTableResult[0][i]);
@@ -497,17 +526,131 @@ int main(int argc, char* argv[])
             {
                 log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
             }
-            */
+           /*
             for(int i=0; i<= GPU_HANDEL_COUNT[1] - 1; i++)
             {
                 //08,08,05,07,09
-                if(strcmp(opencodeList[1][i], "8-8-5-7-9") == 0)
+                if( opencodeAnswerTableResult[0][i] != 0)
+                {
+                    log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeAnswerTableResult[0][i]);
+                }
+            }
+            for(int i=0; i<= GPU_HANDEL_COUNT[1] - 1; i++)
+            {
+                //08,08,05,07,09
+                if( opencodeAnswerTableResult[1][i] != 0)
                 {
                     log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
                 }
-            }
+            }*/
     #endif
-            send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
+
+            //clock_t timeStart, timeEnd;
+            timeStart = clock();
+            char result_file[MAX_LENGTH];
+            memset(result_file, '\0', MAX_LENGTH);
+            sprintf(result_file, "%s/data/opencode_amount_result_%s.csv", gWorkerFolder, expectId);
+            //check result file exist
+            FILE* fp = fopen(result_file, "r");
+            if (fp) {
+                // file exists
+                remove(result_file);
+                fclose(fp);
+            }
+
+            int target_amount_counter = 0;
+            char tmp[MAX_LENGTH];
+            //將到達條件金額寫入檔案 
+            fp = fopen(result_file, "a");
+            for(int num=0; num<=USE_GPU_NUM - 1; num++)
+            {
+                for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
+                {
+                    cl_float amount = opencodeAnswerTableResult[num][i];
+                    if(direction == 1)
+                    {
+                        if(targetAmount <= amount ) //玩家贏錢
+                        {
+                            memset(tmp, '\0', MAX_LENGTH);
+                            sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
+                            fputs(tmp, fp);
+                            target_amount_counter++;
+                        }
+                    }
+                    else
+                    {
+                        if(amount <= targetAmount) //莊家贏錢
+                        {
+                            memset(tmp, '\0', MAX_LENGTH);
+                            sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
+                            fputs(tmp, fp);
+                            target_amount_counter++;
+                        }
+                    }
+                }
+            }
+            fclose(fp);
+            timeEnd = clock();
+            log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "save result to csv", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+
+
+            //讀取所有符合開獎結果CSV
+            log_info("read data from csv file");
+            int target_amount_result_index = 0;
+            char** target_amount_results;
+            target_amount_results = (char**)malloc(sizeof(*target_amount_results) * target_amount_counter);
+            fp = fopen(result_file, "r");
+            while( fgets(tmp, MAX_LENGTH, fp) ) {
+                //log_info("%s",line);
+                *(target_amount_results + target_amount_result_index) = (char*) malloc(sizeof(char) * MAX_LENGTH);
+                memset(*(target_amount_results + target_amount_result_index), '\0', MAX_LENGTH);
+                strcpy(*(target_amount_results + target_amount_result_index), tmp);
+                target_amount_result_index++;
+            }
+            log_info("target_amount_counter = %d", target_amount_counter );
+
+            // 亂數讀取 result_count 筆所有符合開獎結果
+            // 把所有結果組成很長的字串透過socket回傳 > temp_target_amount_results
+            // target_amount_results[rand_num] : 1-3-7-2-9-4-10-8-5-6,0.000000\n
+            // target_amount_results[rand_num] : {獎號},{金額}\n
+            // temp_target_amount_results : {獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n
+            int rand_num = 0;
+            time_t t;
+            char temp_target_amount_results[MAX_SOURCE_SIZE];
+            memset(temp_target_amount_results, '\0', MAX_SOURCE_SIZE);
+            log_info("randam %d data to temp_target_amount_results array.", resultLength);
+            if( target_amount_counter > 0)
+            {
+                srand((unsigned) time(&t));
+                for( int i = 0 ; i <= resultLength-1 ; i++ ) {
+                    rand_num = rand() % target_amount_counter;
+    #ifdef DEBUG
+                    log_debug("rand_num[%d] = %d, target_amount_results[%d] = %s",  i, rand_num, rand_num, target_amount_results[rand_num]);
+    #endif
+                    //檢查重複獎號，重複則不要回傳
+                    if(strstr(temp_target_amount_results, target_amount_results[rand_num]) == NULL)
+                    {
+                        strcat (temp_target_amount_results, target_amount_results[rand_num]);
+                    }
+                }
+            }
+            log_info("free every target_amount_results array.");
+            for(int i=0; i<=target_amount_result_index-1; i++)
+            {
+                if(*(target_amount_results + i))
+                    free(*(target_amount_results + i));
+            }
+            if(target_amount_results)
+                free(target_amount_results);
+
+            /* 獲取系統當前日期時間 */
+            memset(dateTime, 0, sizeof(dateTime));
+            GetDateTime(dateTime);
+            log_info("The Local date and time is %s", dateTime);
+
+            //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
+            send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
+            recvBufferSize = MAX_BUFFER_SIZE;
             log_info("send back LEN process done!");
         }
         

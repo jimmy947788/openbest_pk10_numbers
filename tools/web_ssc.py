@@ -97,6 +97,7 @@ def home():
 def submit():
     title = '最佳化開獎策略'
     if request.method == 'POST':
+        start = time.time()
         #print('request.form', request.data)
         betOn_rows = []
         raw_data = request.get_data().decode("utf-8")
@@ -134,59 +135,17 @@ def submit():
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect(("127.0.0.1", 8700))
             client.sendall(sendData.encode())
-            recv_msg = client.recv(1024).decode("UTF-8").replace('\0', '')
+            recv_msg = client.recv(32767).decode("UTF-8").replace('\0', '')
             logging.debug(f"Server:{recv_msg}")
         
-        """
-        start = time.time()
-        (beton_amount_table, beton_amount_odds_table, total_bet_count, expectId, target_amount, tolerance, opencodeCount) = A5_SSC.transferWager(logging, headers, jdata)    
-        end = time.time()
-        logging.info(f"covert row wager to matrix spend time: {end - start} s, row length:{ len(beton_amount_table) }")
-
-        wager_length = len(beton_amount_table)
-        logging.info(f"wager_length={wager_length}")
-        logging.info(f"total_bet_count={total_bet_count}, expectId={expectId}, target_amount={target_amount}, tolerance={tolerance}")
-
-        beton_amount_csv_file = f"{currentPath}/data/beton_amount_{expectId}.csv"
-        beton_amount_with_odds_csv_file = f"{currentPath}/data/beton_amount_with_odds_{expectId}.csv"
-        start = time.time()
-        
-        with open(beton_amount_csv_file, "w+") as f:
-            for amount in beton_amount_table:
-                #logging.info(f"beton_amount_lenght={len(amount)}")    
-                strAmountWithComma = ','.join(str(e) for e in amount)
-                f.write(strAmountWithComma+"\n")
-
-        with open(beton_amount_with_odds_csv_file, "w+") as f:
-            for amount in beton_amount_odds_table:
-                #logging.info(f"beton_amount_odds_length={len(amount)}")    
-                strAmountWithComma = ','.join(str(e) for e in amount)   
-                f.write(strAmountWithComma+"\n")
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
-            client.connect(("127.0.0.1", 8700))
-            #sendData = str(expectId)
-            sendData = f"{beton_amount_csv_file},"
-            sendData += f"{beton_amount_with_odds_csv_file},"
-            sendData += f"{wager_length},"
-            sendData += f"{expectId},"
-            sendData += f"{target_amount},"
-            sendData += f"{tolerance},"
-            sendData += f"{opencodeCount},"
-            client.sendall(sendData.encode())
-            
-            serverMessage = client.recv(1048576).decode("UTF-8").replace('\0', '')
-            #logging.debug('Server:', serverMessage)
-        """
         response = { }
         response["code"] = 0
         response["msg"] = "success"
         rows = [] 
 
-        """
         try:
             # print("=================")
-            for row in serverMessage.split("\n"):
+            for row in recv_msg.split("\n"):
                 if len(row) > 0:
                     #logging.debug(row)
                     opencode = row.split(',')[0]
@@ -212,7 +171,7 @@ def submit():
         end = time.time()
         #logging.debug(response)
         logging.info(f"[Response] buId:{buId}, expectId:{expectId}, spend time: {end - start} s, row length:{ len(rows) }")
-        """
+
 
         """
         try:

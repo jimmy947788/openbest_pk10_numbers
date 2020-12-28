@@ -188,7 +188,7 @@ int loadOpencodeAnswerTable(cl_uchar* opencodeAnswerTable, char*** opencodeList,
         free(line);
 
     timeEnd = clock();
-    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+    log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return rowIndex -1; //header不要
 }
 
@@ -216,8 +216,8 @@ int loadListFromFile(const char* path, char*** list)
         if(list){
             *(*list + rowIndex) = (char*) malloc(sizeof(char) * strlen(line));
             memset(*(*list + rowIndex), '\0', strlen(line));
-            strncpy(*(*list + rowIndex), line, (strlen(line) - 1)); //不要結尾的'\n'斷行
-            //printf("rowIndex=%d, beton=%s\n", rowIndex, *(*list + rowIndex) );
+            strncpy(*(*list + rowIndex), line, (strlen(line) - 2)); //不要結尾的'\n'斷行
+            //printf("rowIndex=%d, beton=%s, len=%d<=====\n", rowIndex, *(*list + rowIndex), strlen(*(*list + rowIndex)));
         }
         rowIndex++;
     }
@@ -246,6 +246,11 @@ int bets2onehot(
             float tmp_odds = strtof(odds[odds_index], NULL);
             betsAmountWithOddsOnehot[startIndex + i] = (tmp_odds - 1) * unitAmount; //此處賠率要扣掉1（本金
             odds_index ++;
+            /*
+            log_debug("========> betsAmountOnehot[%d]=%f, betsAmountWithOddsOnehot[%d]=%f ", 
+                startIndex + i, betsAmountOnehot[startIndex + i] ,
+                startIndex + i, betsAmountWithOddsOnehot[startIndex + i]);
+                */
         }
         else
         {
@@ -320,10 +325,9 @@ int loadBetsAmountOnehot(
             *totalBetsAmount += unitAmount;
         }
         
-        //log_debug("start index = %d", index);
+        log_debug("start index = %d", index);
         bets2onehot(betsAmountOnehot, betsAmountWithOddsOnehot, index, bets, odds, unitAmount, betsLength);
         index += gBetonLenght;
-    }
-    
+    }  
     return 0;
 }

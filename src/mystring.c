@@ -37,11 +37,15 @@ int split(char*** list, const char *str, const char *delim)
 int contains(const char *str, const char** list, int len)
 {
     int ret = -1;
+    char* tmp;
     for(int i =0; i<= len-1; i++)
     {
-        //printf("cmp %s, %s\n", str, list[i]);
-        if(strcmp(str, list[i]) ==0)
+        //log_debug("str=%s, len=%d", str, strlen(str));
+        //log_debug("lsit[%d]=%s,  len=%d", i, list[i], strlen(list[i]));
+        if(strcmp(str, list[i]) ==0){
+            //log_debug("=============>find %s in list", str);
             return 1;
+        }
     }
     return ret;
 }

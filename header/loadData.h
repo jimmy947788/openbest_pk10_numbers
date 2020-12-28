@@ -10,6 +10,7 @@
 #include "mytype.h"
 #include "myfile.h"
 #include "mystring.h"
+#include "logger.h"
 
 #ifndef LOADDATA_H_   /* Include guard */
 #define LOADDATA_H_

@@ -56,7 +56,13 @@ __kernel void calc_numbers_risk(
       printf("numbers_index=%d, answers_matrix[%lu]=%d\n", 
         numbers_index, index, answers_matrix[index]);
     */
-
+    /*
+    //debug 用
+    if( total_amount_odds_vector[i] > 0 ||  total_amount_vector[i] > 0)
+      printf("total_amount_odds_vector[%d]=%f,  total_amount_vector[%d]=%f\n", 
+        i, total_amount_odds_vector[i],
+        i, total_amount_vector[i]);
+  */
     if (answers_matrix[index] == 43)// miuns 45, plus 43
     {
       result[numbers_index] += total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
