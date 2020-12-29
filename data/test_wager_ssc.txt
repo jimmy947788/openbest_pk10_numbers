@@ -5,3 +5,12 @@
 
 /*08,08,05,07,09 會員輸贏金額要45 */
 {"BuID":0,"ExpectID":"20201223200","KillRate":-0.2,"Tolerance":-1.0000,"LotteryCode":"dowayssc","OpenCodeCount":10,"Bets":[{"BetTypePlayCode":"O_BSOE_S","UnitAmount":1.0,"BetOn":",,,,S","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"S\",\"Odds\":11.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_BSOE_S","UnitAmount":1.0,"BetOn":"E,O,S,B,","BetOnCount":4,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"B E O S\",\"Odds\":11.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_BSOE_S","UnitAmount":1.0,"BetOn":"B,S,O,E,O","BetOnCount":5,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"B E O O S\",\"Odds\":11.0000,\"BetCount\":0}]}"}],"ClientUpdateTime":"0001-01-01T00:00:00"}
+
+/*程式creah*/
+{"BuID":0,"ExpectID":"20201228223","KillRate":-1.0,"Tolerance":-1.0000,"LotteryCode":"dowayssc","OpenCodeCount":10,"Bets":[{"BetTypePlayCode":"O_FiveStar_Zu20","UnitAmount":1.0,"BetOn":"0,0 1 2","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"0 0 1 2\",\"Odds\":7.0000,\"BetCount\":0}]}"}],"ClientUpdateTime":"0001-01-01T00:00:00"}
+
+/*1-5-8-3-3 應該要 -4*/
+ {"BuID":0,"ExpectID":"20201228230","KillRate":-0.01,"Tolerance":-1.0000,"LotteryCode":"dowayssc","OpenCodeCount":10,"Bets":[{"BetTypePlayCode":"O_ThreeStar_Special_Front3","UnitAmount":10.0,"BetOn":"SIX","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"SIX\",\"Odds\":6.0000,\"BetCount\":0}]}"}],"ClientUpdateTime":"0001-01-01T00:00:00"}
+
+/*3-3-5-5-5  應該要 -8*/
+{"BuID":0,"ExpectID":"20201228229","KillRate":-1.0,"Tolerance":-1.0000,"LotteryCode":"dowayssc","OpenCodeCount":10,"Bets":[{"BetTypePlayCode":"O_FiveStar_SpecialOne","UnitAmount":1.0,"BetOn":"7 9","BetOnCount":2,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"7 9\",\"Odds\":2.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_FiveStar_SpecialOne","UnitAmount":1.0,"BetOn":"8","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"8\",\"Odds\":2.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_FiveStar_SpecialOne","UnitAmount":1.0,"BetOn":"4 6 7","BetOnCount":3,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"4 6 7\",\"Odds\":2.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_FiveStar_SpecialOne","UnitAmount":1.0,"BetOn":"5","BetOnCount":1,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"5\",\"Odds\":2.0000,\"BetCount\":0}]}"},{"BetTypePlayCode":"O_FiveStar_SpecialOne","UnitAmount":1.0,"BetOn":"0 1 2","BetOnCount":3,"ExtraData":"{\"ExtraBets\":[{\"BetOn\":\"0 1 2\",\"Odds\":2.0000,\"BetCount\":0}]}"}],"ClientUpdateTime":"0001-01-01T00:00:00"}

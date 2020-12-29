@@ -2,7 +2,8 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <string.h>
-#include "mytype.h"
+#include <stdint.h>
+//#include "mytype.h"
 #include "config.h"
 #include "utility.h"
 

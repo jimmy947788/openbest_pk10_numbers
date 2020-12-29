@@ -6,7 +6,6 @@
 #include <math.h>
 #include <string.h>
 #include <sys/types.h>
-
 #include "../header/common.h"
 #include "../header/loadData.h"
 #include "../header/config.h"
@@ -17,15 +16,15 @@
 #include "../header/logger.h"
 #include "../header/mystring.h"
 
+
 extern char     gWorkerFolder[MAX_LENGTH];
 extern char**   gBetonList;
-extern uint32      gBetonLenght;
+extern uint32_t      gBetonLenght;
 
 extern char**   gOpencodeList;
-extern uint32      gOpencodeLenght;
+extern uint32_t      gOpencodeLenght;
 
-extern uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
-
+extern uint32_t   GPU_HANDEL_COUNT[USE_GPU_NUM];
 
 void init_log(FILE **logfp, const char* log_dir)
 {
@@ -133,8 +132,9 @@ int main(int argc, char* argv[])
     // load opencode answer table
     //===================================================================================================
     cl_uchar* opencodeAnswerTable[USE_GPU_NUM];
-    unsigned long long opencodeAnswerTableLength = gBetonLenght * GPU_HANDEL_COUNT[0];
+    uint64_t opencodeAnswerTableLength = gBetonLenght * GPU_HANDEL_COUNT[0];
     char** opencodeList[USE_GPU_NUM];
+    int opencodeListLength = 0;
     
     cl_float* opencodeAnswerTableResult[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
@@ -144,11 +144,13 @@ int main(int argc, char* argv[])
         opencodeAnswerTable[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableLength);
         opencodeList[num] = (char**)malloc(sizeof(char*) * GPU_HANDEL_COUNT[num]);
         
-        int ret = loadOpencodeAnswerTable(
+        loadOpencodeAnswerTable(
             opencodeAnswerTable[num], 
+            &opencodeAnswerTableLength,
             opencodeList[num],
+            &opencodeListLength,
             OPENCODE_ANSWER_TABLE_PATH[num]);
-        log_info("opencodeList[%d] length:%ld", num, ret);
+        log_info("opencodeAnswerTable[%d] length:%llu, opencodeList[%d] length:%ld\n", num, opencodeAnswerTableLength, num, opencodeListLength);
     }
 
     for(int num=0; num<=USE_GPU_NUM-1; num++)
@@ -160,8 +162,8 @@ int main(int argc, char* argv[])
     
     //openc input & output
     cl_ushort* one_mask = NULL;
-    cl_float* betsAmountOnehot = NULL;
-    cl_float* betsAmountWithOddsOnehot = NULL;
+    cl_float* betsAmountVector = NULL;
+    cl_float* betsAmountWithOddsVector = NULL;
     cl_float* totalBetsAmountVector = NULL;
     cl_float* totalBetsAmountWithOddsVector = NULL;
 
@@ -184,9 +186,11 @@ int main(int argc, char* argv[])
     log_debug("opencodeAnswerTable[1][1]=%d", opencodeAnswerTable[1][1]);
     log_debug("opencodeAnswerTable[1][5883099999]=%d", opencodeAnswerTable[1][5883099999]);
     log_debug("opencodeAnswerTable[1][5883100000]=%d", opencodeAnswerTable[1][5883100000]);
-    //
+    
+    timeStart = clock();
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
+        log_info("clCreateBuffer opencode_answer_table_buffer ... %d/%d", (num+1), USE_GPU_NUM);
         //create opencode_answer_table Buffer
         opencode_answer_table_buffer[num] = clCreateBuffer(
             context, 
@@ -199,6 +203,8 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         };
     }
+    timeEnd = clock();
+    log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clCreateBuffer(opencode_answer_table_buffer)", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     
     //while 重複直行
     //===================================================================================================
@@ -225,11 +231,13 @@ int main(int argc, char* argv[])
     sockfd = create_socket();
 
     log_info("init one_mask ...");
+    timeStart = clock();
     one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * gBetonLenght);
     for(int i = 0; i< gBetonLenght-1; i++)
     {
         one_mask[i] = 1;
     }
+    log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "clCreateBuffer(opencode_answer_table_buffer)", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 
     while(true)
     {
@@ -265,7 +273,7 @@ int main(int argc, char* argv[])
             char** recvRows = (char**)malloc(sizeof(char*) * recvRowLength);
             split(&recvRows, recvBufferStrip, "^");
 
-            //第一行是運算參數
+            //陣列０是運算參數
             loadParmeters(&wagerLength, &expectId, &direction, &killRate, &resultLength, recvRows[0]);
             log_debug("wager_length=%d, expectId=%s, direction=%d, killRate=%f, resultLength=%d", 
                 wagerLength, 
@@ -274,39 +282,35 @@ int main(int argc, char* argv[])
                 killRate,
                 resultLength);
 
+            //陣列１開始是注單資料
             rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
             rawDatalistLength = recvRowLength - 1; //少一筆因為第比是計算參數  
-            log_debug("betsAmountOnehot length is %d", gBetonLenght * wagerLength);
-            betsAmountOnehot = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
-            memset(betsAmountOnehot, 0, gBetonLenght * wagerLength);
+            log_debug("betsAmountVector length is %d", gBetonLenght * wagerLength);
             
-            betsAmountWithOddsOnehot = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
-            memset(betsAmountWithOddsOnehot, 0, gBetonLenght * wagerLength);
-
-            loadBetsAmountOnehot(
-                betsAmountOnehot,
-                betsAmountWithOddsOnehot,
+            //初始化本金向量
+            betsAmountVector = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
+            memset(betsAmountVector, 0, gBetonLenght * wagerLength);
+            //初始化包含賠率的本金向量
+            betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
+            memset(betsAmountWithOddsVector, 0, gBetonLenght * wagerLength);
+            //轉換所有住單資料到本金向量
+            loadBetsAmountVector(
+                betsAmountVector,
+                betsAmountWithOddsVector,
                 &totalBetsAmount,
                 rawDatalist, 
                 rawDatalistLength
             );
 
-            /*
-            for(int i=0; i<= gBetonList-1; i++ )
-            {
-                if(betsAmountOnehot[i] > 0)
-                    log_debug("betsAmountOnehot[%d]= %f", i, betsAmountOnehot[i]);
-            }*/
-            
             timeEnd = clock();
-            log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "bets_to_onehot", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+            log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "loadBetsAmountVector", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
             
             targetAmount = totalBetsAmount * killRate;
             log_info("totalBetsAmount=%0.6f, targetAmount=%0.6f, direction=%d", totalBetsAmount, targetAmount, direction);
 
             if(direction ==1 )
                 log_info("user winner target_amount=%f", targetAmount);
-            else //if(tolerance ==-1)
+            else //if(direction ==-1)
                 log_info("banker winner target_amount=%f", targetAmount);
 
 
@@ -320,10 +324,10 @@ int main(int argc, char* argv[])
                 kSumBetonTotalAmount, 
                 wagerLength,
                 one_mask, 
-                betsAmountOnehot,
+                betsAmountVector,
                 &totalBetsAmountVector);
-            if(betsAmountOnehot)
-                free(betsAmountOnehot);
+            if(betsAmountVector)
+                free(betsAmountVector);
 #ifdef DEBUG
             sum = 0;
             for(int i=0; i<=gBetonLenght-1; i++)
@@ -343,10 +347,10 @@ int main(int argc, char* argv[])
                 kSumBetonTotalAmount, 
                 wagerLength,
                 one_mask, 
-                betsAmountWithOddsOnehot, 
+                betsAmountWithOddsVector, 
                 &totalBetsAmountWithOddsVector);
-            if(betsAmountWithOddsOnehot)
-                free(betsAmountWithOddsOnehot);
+            if(betsAmountWithOddsVector)
+                free(betsAmountWithOddsVector);
 #ifdef DEBUG
             sum = 0;
             for(int i=0; i<= gBetonLenght-1; i++)

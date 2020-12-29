@@ -26,8 +26,7 @@ int strCharCount(const char *str, char c);
  * @param delim:[IN] 分割的字元
  * @retval 陣列的長度
  */
-int split(char*** list, const char *str, const char *delim);
-
+int split(char* list[], const char str[], const char delim[]);
 
 /** 
  * @brief 檢查字串是否存在陣列。
@@ -37,7 +36,7 @@ int split(char*** list, const char *str, const char *delim);
  * @param len:[IN] 陣列長度
  * @retval 1:存在 2.不存在 
  */
-int contains(const char *str, const  char** list, int len);
+int contains(const char str[], const  char* list[], int len);
 
 /** 
  * @brief 擷取字串。

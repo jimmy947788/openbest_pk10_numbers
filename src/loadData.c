@@ -2,6 +2,9 @@
 
 int loadBetonList()
 {
+    clock_t timeStart, timeEnd;
+    timeStart = clock();
+
     int fullpathLength = strlen(gWorkerFolder) + strlen(BETON_LIST_PATH) + 2;
     char* fullpath = (char*)malloc(sizeof(char) * fullpathLength);
     memset(fullpath, '\0', fullpathLength);
@@ -22,11 +25,17 @@ int loadBetonList()
     log_debug("gBetonList[%d]=%s", 1, gBetonList[1]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-2, gBetonList[gBetonLenght-2]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-1, gBetonList[gBetonLenght-1]);
+    
+    timeEnd = clock();
+    log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return gBetonLenght;
 }
 
 int loadOpencodeList()
 {
+    clock_t timeStart, timeEnd;
+    timeStart = clock();
+    
     int fullpathLength = strlen(gWorkerFolder) + strlen(OPENCODE_LIST_PATH) + 2;
     char* fullpath = (char*)malloc(sizeof(char) * fullpathLength);
     memset(fullpath, '\0', fullpathLength);
@@ -49,11 +58,18 @@ int loadOpencodeList()
     log_debug("gOpencodeList[%d]=%s", 1, gOpencodeList[1]);
     log_debug("gOpencodeList[%d]=%s", gOpencodeLenght-2, gOpencodeList[gOpencodeLenght-2]);
     log_debug("gOpencodeList[%d]=%s", gOpencodeLenght-1, gOpencodeList[gOpencodeLenght-1]);
+
+    timeEnd = clock();
+    log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return gOpencodeLenght;
 }
 
-
-void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLength, uint32* opencodeLength)
+uint32_t loadOpencodeAnswerTable(
+    cl_uchar* opencodeAnswerTable,  
+    uint64_t* opencodeAnswerTableLength, 
+    char* opencodeList[], 
+    uint32_t* opencodeListLength, 
+    const char* path)
 {
     FILE * fp;
     char * line = NULL;
@@ -61,74 +77,26 @@ void get_opnecode_answer_table_shape(char* opencode_answer_path, int* betonLengt
     ssize_t read;
     char delim[] = ",";
     char *p = NULL;
-    int csv_row_index = 0;
-    int csv_column_index = 0;
+    uint32_t columnIndex = 0;
+    uint32_t rowIndex = 0;
     clock_t timeStart, timeEnd;
+    uint64_t opencodeAnswerTableIndex = 0;
+    uint32_t opencodeListIndex = 0;
+    int opencodeLength;
 
-    timeStart = clock();
-    fp = fopen(opencode_answer_path, "r");
-    if (fp == NULL){
-        printf("read file failed: %ld\n", (long)fp);
+    if(gOpencodeLenght <= 0)
+    {
+        log_error("load opencode ist first...");
         exit(EXIT_FAILURE);
     }
-
-    while ((read = getline(&line, &len, fp)) != -1) 
-    {
-        if(len <= 0)
-            break;
-
-        if(csv_row_index == 0){
-            p = NULL;
-            csv_column_index = 0;
-            for(p = strtok(line, delim); p != NULL; p = strtok(NULL, delim))
-            {
-                if(csv_row_index == 0){
-                    //all beton
-                    if(csv_column_index >= 1)
-                    {
-                        (*betonLength)++;
-                    }
-                    csv_column_index++;
-                }
-            }
-        }else
-        {
-            (*opencodeLength)++;
-        }
-        csv_row_index++;
-    }
-    if (line)
-        free(line);
-    fclose(fp);
-
-    timeEnd = clock();
-    printf("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms\n", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-}
-
-
-int loadOpencodeAnswerTable(cl_uchar* opencodeAnswerTable, char*** opencodeList, const char* path)
-{
-    FILE * fp;
-    char * line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    char delim[] = ",";
-    char *p = NULL;
-    int columnIndex = 0;
-    int rowIndex = 0;
-    uint32 opencode_answer_index = 0;
-    clock_t timeStart, timeEnd;
-    int opencodeListIndex = 0;
-    unsigned long long opencodeAnswerTableIndex = 0;
-
-    int opencodeLength = strlen(gOpencodeList[0]);
-    //log_debug("opencode length:%d", opencodeLength );
+    opencodeLength = strlen(gOpencodeList[0]);
+    log_debug("opencode length:%d", opencodeLength);
 
     int fullpathLength = strlen(gWorkerFolder) + strlen(path) + 2;
     char* fullpath = (char*)malloc(sizeof(char) * fullpathLength);
     memset(fullpath, '\0', fullpathLength);
     pathCombine(fullpath, gWorkerFolder, path);
-    //log_info("load file full path:%s", fullpath);
+    log_info("load opencode answer table from :%s", fullpath);
 
     timeStart = clock();
     fp = fopen(fullpath, "r");
@@ -153,32 +121,35 @@ int loadOpencodeAnswerTable(cl_uchar* opencodeAnswerTable, char*** opencodeList,
                     // Load opencode list 
                     // 把csv檔案的第1欄opencode存到opencode_list
                     opencodeListIndex = rowIndex - 1;
-                    //*(*opencodeList + opencodeListIndex) = (char*) malloc(sizeof(char) * opencodeLength);
-                    opencodeList[opencodeListIndex] = (char*) malloc(sizeof(char) * opencodeLength);
-                    //strcpy(*(*opencodeList + opencodeListIndex), p);
-                    strcpy(opencodeList[opencodeListIndex], p);
-                    //printf("opencodeList[%d]= %s \n", opencodeListIndex, *(*opencodeList + opencodeListIndex));
-                    //log_debug("opencodeList[%d]=%s",  opencodeListIndex, opencodeList[opencodeListIndex]);
+                    if(opencodeList){
+                        //*(*opencodeList + opencodeListIndex) = (char*) malloc(sizeof(char) * opencodeLength);
+                        opencodeList[opencodeListIndex] = (char*) malloc(sizeof(char) * opencodeLength);
+                        //strcpy(*(*opencodeList + opencodeListIndex), p);
+                        strcpy(opencodeList[opencodeListIndex], p);
+                        //printf("opencodeList[%d]= %s \n", opencodeListIndex, opencodeList[opencodeListIndex]);
+                        //log_debug("opencodeList[%d]=%s",  opencodeListIndex, opencodeList[opencodeListIndex]);
+                    }
                 }
                 else
                 {
-                    // 把csv檔案第1欄後面的答案存到opencode_answer
-                    short ret = strtol(p, NULL, 10);
-                    if(ret > 0){
-                        opencodeAnswerTable[opencodeAnswerTableIndex] = 43;  
+                    if(opencodeAnswerTable){
+                        // 把csv檔案第1欄後面的答案存到opencode_answer
+                        short ret = strtol(p, NULL, 10);
+                        if(ret > 0){
+                            opencodeAnswerTable[opencodeAnswerTableIndex] = 43;  
+                        }
+                        else
+                        {
+                            opencodeAnswerTable[opencodeAnswerTableIndex] = 45;  
+                        }
+                        //opencodeAnswerTable[opencodeAnswerTableIndex] = ret;
+                       //printf("opencodeAnswerTable[%d]=%d\n",opencodeAnswerTableIndex, opencodeAnswerTable[opencodeAnswerTableIndex]);
                     }
-                    else
-                    {
-                        opencodeAnswerTable[opencodeAnswerTableIndex] = 45;  
-                    }
-                    
-                    //opencodeAnswerTable[opencodeAnswerTableIndex] = ret;
-                    //printf("opencodeAnswerTable[%d]=%d\n",opencodeAnswerTableIndex, opencodeAnswerTable[opencodeAnswerTableIndex]);
                     opencodeAnswerTableIndex ++;
                 }
                 columnIndex ++;
             }
-            //log_debug("==========>rowIndex:%d, column length:%d, opencodeAnswerTableIndex=%llu",  rowIndex, columnIndex-1, opencodeAnswerTableIndex);
+            log_debug("rowIndex:%d, column length:%d, opencodeAnswerTableIndex=%llu",  rowIndex, columnIndex-1, opencodeAnswerTableIndex);
         }
         rowIndex++;
     }
@@ -187,12 +158,12 @@ int loadOpencodeAnswerTable(cl_uchar* opencodeAnswerTable, char*** opencodeList,
     if (line)
         free(line);
 
+    *opencodeAnswerTableLength = opencodeAnswerTableIndex;
+    *opencodeListLength = opencodeListIndex + 1; 
     timeEnd = clock();
     log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
-    return rowIndex -1; //header不要
+    return *opencodeListLength;
 }
-
-
 
 int loadListFromFile(const char* path, char*** list)
 {
@@ -228,13 +199,13 @@ int loadListFromFile(const char* path, char*** list)
     return rowIndex; //header不要
 }
 
-int bets2onehot(
-    cl_float*       betsAmountOnehot, 
-    cl_float*       betsAmountWithOddsOnehot,
-    int             startIndex,
-    const char**    bets, 
-    const char**    odds, 
-    float           unitAmount, 
+int betsAmountVectorAppend(
+    cl_float*           betsAmountVector, 
+    cl_float*           betsAmountWithOddsVector,
+    int                    startIndex,
+    const char*     bets[], 
+    const char*     odds[], 
+    float                 unitAmount, 
     int             len)
 {
     int odds_index = 0;
@@ -242,23 +213,23 @@ int bets2onehot(
     {
         if(contains(gBetonList[i], bets, len) == 1)
         {
-            betsAmountOnehot[startIndex + i] = unitAmount;
+            betsAmountVector[startIndex + i] = unitAmount;
             float tmp_odds = strtof(odds[odds_index], NULL);
-            betsAmountWithOddsOnehot[startIndex + i] = (tmp_odds - 1) * unitAmount; //此處賠率要扣掉1（本金
+            betsAmountWithOddsVector[startIndex + i] = (tmp_odds - 1) * unitAmount; //此處賠率要扣掉1（本金
             odds_index ++;
             /*
-            log_debug("========> betsAmountOnehot[%d]=%f, betsAmountWithOddsOnehot[%d]=%f ", 
-                startIndex + i, betsAmountOnehot[startIndex + i] ,
-                startIndex + i, betsAmountWithOddsOnehot[startIndex + i]);
+            log_debug("========> betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f ", 
+                startIndex + i, betsAmountVector[startIndex + i] ,
+                startIndex + i, betsAmountWithOddsVector[startIndex + i]);
                 */
         }
         else
         {
-            betsAmountOnehot[startIndex + i] = 0;
-            betsAmountWithOddsOnehot[startIndex + i] = 0;
+            betsAmountVector[startIndex + i] = 0;
+            betsAmountWithOddsVector[startIndex + i] = 0;
         }
     }
-    return 0;
+    return gBetonLenght;
 }
 
 int loadParmeters(
@@ -271,7 +242,7 @@ int loadParmeters(
 {   
     int columnLength = strCharCount(strRawData, '|') + 1;
     char** columns = (char**)malloc(sizeof(char*) * columnLength);
-    split(&columns, strRawData, "|");
+    split(columns, strRawData, "|");
     *wagerLength = strtol(columns[0], NULL, 10);   //0: wager_length
     strcpy(expectId, columns[1]);                   //1: expectId
     *direction = strtol(columns[2], NULL, 10);      //2: direction
@@ -284,35 +255,42 @@ int loadParmeters(
 }
 
 
-int loadBetsAmountOnehot(
-    cl_float*       betsAmountOnehot,
-    cl_float*       betsAmountWithOddsOnehot,
-    float*          totalBetsAmount,
-    const char**    rawDatalist,
+int loadBetsAmountVector(
+    cl_float*       betsAmountVector,
+    cl_float*       betsAmountWithOddsVector,
+    float*              totalBetsAmount,
+    const char*    rawDatalist[],
     int             rawDatalistLength)
 {
     int recvColumnLength = 0;
-    char** recvColumns;
+    char** recvColumns = NULL;
     *totalBetsAmount = 0;
     int index = 0;
+    int vectorLength = 0;
+    char** bets = NULL;
+    int betsLength = 0;
+    char** odds= NULL;
+    int oddsLength = 0;
+    clock_t timeStart, timeEnd;
+    timeStart = clock();
+
     for(int i=0; i<=rawDatalistLength-1; i++)
     {
-        //log_debug("recvRows[%d]=%s", i, rawDatalist[i]);
         recvColumnLength = strCharCount(rawDatalist[i], '|') + 1;
         recvColumns = (char**)malloc(sizeof(char*) * recvColumnLength + 1);
-        split(&recvColumns, rawDatalist[i], "|");
+        split(recvColumns, rawDatalist[i], "|");
 
         //recvColumns[0]: 下注內容
-        int betsLength = strCharCount(recvColumns[0], ',') + 1;
-        char** bets = (char**)malloc(sizeof(char*) * betsLength);
-        split(&bets, recvColumns[0], ",");
+        betsLength = strCharCount(recvColumns[0], ',') + 1;
+        bets = (char**)malloc(sizeof(char*) * betsLength);
+        split(bets, recvColumns[0], ",");
         //log_debug("bets[0]=%s", bets[0]);
         //log_debug("bets[%d]=%s", betsLength -1, bets[betsLength-1]);
         
         //recvColumns[1]: 下注賠率
-        int oddsLength = strCharCount(recvColumns[1], ',') + 1;
-        char** odds = (char**)malloc(sizeof(char*) * oddsLength);
-        split(&odds, recvColumns[1], ","); 
+        oddsLength = strCharCount(recvColumns[1], ',') + 1;
+        odds = (char**)malloc(sizeof(char*) * oddsLength);
+        split(odds, recvColumns[1], ","); 
         //log_debug("odds[0]=%s", odds[0]);
         //log_debug("odds[%d]=%s", oddsLength -1, odds[oddsLength-1]);
 
@@ -325,9 +303,24 @@ int loadBetsAmountOnehot(
             *totalBetsAmount += unitAmount;
         }
         
-        log_debug("start index = %d", index);
-        bets2onehot(betsAmountOnehot, betsAmountWithOddsOnehot, index, bets, odds, unitAmount, betsLength);
+        //log_debug("start index = %d", index);
+        vectorLength += betsAmountVectorAppend(
+            betsAmountVector, 
+            betsAmountWithOddsVector, 
+            index, 
+            bets, 
+            odds, 
+            unitAmount, 
+            betsLength);
         index += gBetonLenght;
-    }  
-    return 0;
+
+        if(bets)
+            free(bets);
+        if(odds)
+            free(odds);
+    } 
+    
+    timeEnd = clock();
+    log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
+    return vectorLength;
 }

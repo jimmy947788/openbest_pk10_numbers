@@ -1,4 +1,4 @@
-#include "mytype.h"
+//#include "mytype.h"
 
 #ifndef CONFIG_H_   /* Include guard */
 #define CONFIG_H_

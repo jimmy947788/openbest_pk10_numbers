@@ -1,0 +1,1 @@
+gcc  src/logger.c src/mystring.c src/myfile.c src/loadData.c  src/test.c -o bin/test -DSSC -lOpenCL -m64 -std=c99 -Wall -DUNIX -g -DDEBUG -DLOG_USE_COLOR

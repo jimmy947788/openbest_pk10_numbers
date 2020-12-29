@@ -1,0 +1,149 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdint.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <CL/cl.h>
+#include "../header/common.h"
+#include "../header/config.h"
+//#include "../header/mytype.h"
+#include "../header/mystring.h"
+#include "../header/loadData.h"
+#include "../header/logger.h"
+
+int betonIndexOf(char* str)
+{
+    for (int i=0; i<= gBetonLenght -1; i++)
+    {
+        if(strcmp(gBetonList[i], str) ==0)
+            return i;
+    }
+    return -1;
+}
+
+void showBetsAmountVector(const rowIndex,  const char* beton, const  cl_float* betsAmountVector, const cl_float* betsAmountWithOddsVector)
+{
+    int index = (gBetonLenght * rowIndex) +  betonIndexOf(beton);
+    //printf("index=%d\n", index);
+    cl_float ret = betsAmountVector[index];
+    log_debug("%s, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", beton,  index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+}
+
+int main(int argc, char const *argv[])
+{
+    strcpy(gWorkerFolder,"/home/matrix/openbest_pk10_numbers");
+    printf("gWorkerFolder=%s\n", gWorkerFolder);
+    char log_file[MAX_LENGTH];
+    sprintf(log_file, "%s/%stest.log", gWorkerFolder, "log/");
+    FILE *logfp = fopen(log_file, "a+");
+    log_add_fp(logfp, LOG_TRACE);
+
+    loadBetonList();
+    log_info("gBetonLenght=%d", gBetonLenght);
+    loadOpencodeList();
+    log_info("gOpencodeLenght=%d", gOpencodeLenght);
+   
+    char recvBufferStrip[] = "5|20201229219|-1.0|-0.2|10^O_TwoStar_Zhi_wb_34|3.0|10.0^O_TwoStar_Zhi_wb_45,O_TwoStar_Zhi_wb_46,O_TwoStar_Zhi_wb_47,O_TwoStar_Zhi_wb_48,O_TwoStar_Zhi_wb_49|3.0,3.0,3.0,3.0,3.0|10.0^O_TwoStar_Zhi_wb_64,O_TwoStar_Zhi_wb_74,O_TwoStar_Zhi_wb_84,O_TwoStar_Zhi_wb_94|3.0,3.0,3.0,3.0|10.0^O_TwoStar_Zhi_wb_22,O_TwoStar_Zhi_wb_23,O_TwoStar_Zhi_wb_62,O_TwoStar_Zhi_wb_63|3.0,3.0,3.0,3.0|10.0^O_TwoStar_Zhi_wb_00,O_TwoStar_Zhi_wb_01,O_TwoStar_Zhi_wb_02|3.0,3.0,3.0|10.0";
+    printf("recvBufferStrip=%s\n", recvBufferStrip);
+    //把資料切分出行
+    int recvRowLength = strCharCount(recvBufferStrip, '^') + 1;
+    log_debug("recvRowLength=%d", recvRowLength);
+    char** recvRows = (char**)malloc(sizeof(char*) * recvRowLength);
+    split(recvRows, recvBufferStrip, "^");
+
+    for(size_t i =0; i<= recvRowLength-1; i++ )
+    {
+        log_debug("recvRows[%d]=%s", i, recvRows[i]);
+    }
+
+    /*
+    //陣列０是運算參數
+    loadParmeters(&wagerLength, &expectId, &direction, &killRate, &resultLength, recvRows[0]);
+    log_debug("wager_length=%d, expectId=%s, direction=%d, killRate=%f, resultLength=%d", 
+        wagerLength, 
+        expectId, 
+        direction, 
+        killRate,
+        resultLength);
+    */
+    int wagerLength = recvRowLength - 1;
+    log_info("wager length =%d", wagerLength );
+    //陣列１開始是注單資料
+    char** rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
+    int rawDatalistLength = recvRowLength - 1; //少一筆因為第比是計算參數  
+    log_debug("betsAmountVector length is %d", gBetonLenght * wagerLength);
+    
+    float totalBetsAmount =0;
+    //初始化本金向量
+    cl_float* betsAmountVector = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
+    memset(betsAmountVector, 0, gBetonLenght * wagerLength);
+    //初始化包含賠率的本金向量
+    cl_float* betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
+    memset(betsAmountWithOddsVector, 0, gBetonLenght * wagerLength);
+    //轉換所有住單資料到本金向量
+    int totalVectorLength = loadBetsAmountVector(
+        betsAmountVector,
+        betsAmountWithOddsVector,
+        &totalBetsAmount,
+        rawDatalist, 
+        rawDatalistLength
+    );
+    
+    //showBetsAmountVector();
+    /*
+    //驗證資料
+    //i=0
+    int index = betonIndexOf("O_FourStar_Zu24_2367");
+    //printf("index=%d\n", index);
+    cl_float ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_2367, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+    //i=1
+    index = (gBetonLenght * 1) + betonIndexOf("O_FourStar_Zu24_5678") ; 
+    //printf("index=%d\n", index);
+    ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_5678, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+    index = (gBetonLenght * 1) + betonIndexOf("O_FourStar_Zu24_5679") ; 
+    ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_5679, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+    index = (gBetonLenght * 1) + betonIndexOf("O_FourStar_Zu24_5689") ; 
+    ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_5689, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+    index = (gBetonLenght * 1) + betonIndexOf("O_FourStar_Zu24_5789") ; 
+    ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_5789, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+    index = (gBetonLenght * 1) + betonIndexOf("O_FourStar_Zu24_6789") ; 
+    ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_6789, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+
+    //i=2
+    index = (gBetonLenght * 2) + betonIndexOf("O_FourStar_Zu24_4789") ; 
+    ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_4789, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+
+    //i=3
+    index = (gBetonLenght * 3) + betonIndexOf("O_FourStar_Zu24_0123") ; 
+    ret = betsAmountVector[index];
+    printf("O_FourStar_Zu24_0123, betsAmountVector[%d]=%f, betsAmountWithOddsVector[%d]=%f\n", index, betsAmountVector[index], index, betsAmountWithOddsVector[index]);
+
+    printf("totalBetsAmount=%f\n", totalBetsAmount);
+    printf("totalVectorLength=%d\n", totalVectorLength);
+    */
+
+   /*
+    cl_uchar* opencodeAnswerTable;
+    uint64_t opencodeAnswerTableLength = 0; //gBetonLenght * GPU_HANDEL_COUNT[0];
+    char** opencodeList;
+    int opencodeListLength = 0;
+    char path[] = "data/ssc_opencode_table_1.csv";
+    uint32_t ret = loadOpencodeAnswerTable(
+        NULL,/*opencodeAnswerTable* /
+        &opencodeAnswerTableLength,
+        NULL, /*opencodeList* /
+        &opencodeListLength,
+        path);
+    log_info("opencodeAnswerTable length:%llu, opencodeList length:%d, ret=%d",  opencodeAnswerTableLength,  opencodeListLength, ret);
+    */
+    return 0;
+}

@@ -14,7 +14,7 @@ else
     #"$currentPath"/bin/calc_opencode_amount \
     #    --work-folder "$currentPath" \
     #    --kernel-program /bin/kernel_program.cl
-    "$WORKFOLDER"/bin/$SERVICE \
+    gdb "$WORKFOLDER"/bin/$SERVICE \
         --worker-folder  "$WORKFOLDER" \
         --kernel-program bin/kernel_program.cl
 fi

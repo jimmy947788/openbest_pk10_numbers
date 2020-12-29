@@ -4,10 +4,11 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <stdint.h>
 #include "utility.h"
 #include "config.h"
 #include "dateTime.h"
-#include "mytype.h"
+//#include "mytype.h"
 #include "myfile.h"
 #include "mystring.h"
 #include "logger.h"
@@ -26,26 +27,31 @@ int loadListFromFile(const char* path, char*** list);
 
 int loadBetonList();
 int loadOpencodeList();
-int loadOpencodeAnswerTable(cl_uchar* opencodeAnswerTable, char*** opencodeList, const char* path);
+uint32_t loadOpencodeAnswerTable(
+    cl_uchar* opencodeAnswerTable,  
+    uint64_t* opencodeAnswerTableLength, 
+    char* opencodeList[], 
+    uint32_t* opencodeListLength, 
+    const char* path);
 
 /** 
- * @brief 轉換注單和賠率變成成opencl要處理的matrix  
+ * @brief 轉換注單和賠率變成成opencl要處理的Vector
  * @note   
- * @param betsAmountOnehot:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額]未下注內容是0。
- * @param betsAmountWithOddsOnehot:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額] * [賠率]未下注內容是0。
- * @param startIndex:[IN] Onehot起始位址 
+ * @param betsAmountVector:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額]未下注內容是0。
+ * @param betsAmountWithOddsVector:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額] * [賠率]未下注內容是0。
+ * @param startIndex:[IN] Vector起始位址 
  * @param bets:[IN]所下注的玩法陣列 
  * @param odds:[IN]所下注的賠率陣列
  * @param unitAmount:[IN]單注金額
  * @param len:[IN]玩法&賠率陣列長度
  * @retval None
  */
-int bets2onehot(
-    cl_float*       betsAmountOnehot, 
-    cl_float*       betsAmountWithOddsOnehot,
+int betsAmountVectorAppend(
+    cl_float*       betsAmountVector, 
+    cl_float*       betsAmountWithOddsVector,
     int             startIndex,
-    const char**    bets, 
-    const char**    odds, 
+    const char*    bets[], 
+    const char*    odds[], 
     float           unitAmount, 
     int             len);
 
@@ -69,10 +75,10 @@ int loadParmeters(
     const char* strRawData);
 
 
-int loadBetsAmountOnehot(
-    cl_float*       betsAmountOnehot,
-    cl_float*       betsAmountWithOddsOnehot,
+int loadBetsAmountVector(
+    cl_float*       betsAmountVector,
+    cl_float*       betsAmountWithOddsVector,
     float*          totalBetsAmount,
-    const char**    rawDatalist,
+    const char*    rawDatalist[],
     int             rawDatalistLength);
 #endif
