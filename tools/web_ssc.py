@@ -117,7 +117,7 @@ def submit():
         sendData += f"{killRate}|"
         sendData += f"{opencodeCount}"
         for jBet in jdata["Bets"]:
-            (betons, odds, unitAmount, betOnCount) = A5_SSC.transferWager2(logging, jBet) 
+            (betons, odds, unitAmount, betOnCount) = A5_SSC.transferWager(logging, jBet) 
             sendData += "^"
             sendData += ",".join(betons) + "|"
             sendData += ",".join(odds) + "|"  
