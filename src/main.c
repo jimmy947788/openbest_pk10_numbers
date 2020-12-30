@@ -132,20 +132,20 @@ int main(int argc, char* argv[])
 
     // load opencode answer table
     //===================================================================================================
-    cl_uchar* opencodeAnswerTable[USE_GPU_NUM];
-    unsigned long long opencodeAnswerTableLength = gBetonLenght * GPU_HANDEL_COUNT[0];
+    cl_uchar* opencodeAnswerTableVector[USE_GPU_NUM];
+    unsigned long long opencodeAnswerTableVectorLength = gBetonLenght * GPU_HANDEL_COUNT[0];
     char** opencodeList[USE_GPU_NUM];
     
-    cl_float* opencodeAnswerTableResult[USE_GPU_NUM];
+    cl_float* opencodeResultVector[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         log_info("load opencode answer table from %s...%d/%d", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
-        opencodeAnswerTable[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableLength);
+        opencodeAnswerTableVector[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableVectorLength);
         opencodeList[num] = (char**)malloc(sizeof(char*) * GPU_HANDEL_COUNT[num]);
         
-        int ret = loadOpencodeAnswerTable(
-            opencodeAnswerTable[num], 
+        int ret = loadOpencodeAnswerTableVector(
+            opencodeAnswerTableVector[num], 
             opencodeList[num],
             OPENCODE_ANSWER_TABLE_PATH[num]);
         log_info("opencodeList[%d] length:%ld", num, ret);
@@ -154,14 +154,14 @@ int main(int argc, char* argv[])
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
         log_info("alloc opencode_answer_table_result[%d] array (length: %d)", num, GPU_HANDEL_COUNT[num]);
-        opencodeAnswerTableResult[num] = (cl_float*)malloc(sizeof(cl_float) * GPU_HANDEL_COUNT[num]);
+        opencodeResultVector[num] = (cl_float*)malloc(sizeof(cl_float) * GPU_HANDEL_COUNT[num]);
     }
  
     
     //openc input & output
     cl_ushort* one_mask = NULL;
-    cl_float* betsAmountOnehot = NULL;
-    cl_float* betsAmountWithOddsOnehot = NULL;
+    cl_float* betsAmountVector = NULL;
+    cl_float* betsAmountWithOddsVector = NULL;
     cl_float* totalBetsAmountVector = NULL;
     cl_float* totalBetsAmountWithOddsVector = NULL;
 
@@ -175,15 +175,15 @@ int main(int argc, char* argv[])
     cl_event kernel_events[USE_GPU_NUM];
     cl_event read_events[USE_GPU_NUM];
 
-    log_debug("opencodeAnswerTable[0][0]=%d", opencodeAnswerTable[0][0]);
-    log_debug("opencodeAnswerTable[0][1]=%d", opencodeAnswerTable[0][1]);
-    log_debug("opencodeAnswerTable[0][5883099999]=%d", opencodeAnswerTable[0][5883099999]);
-    log_debug("opencodeAnswerTable[0][5883100000]=%d", opencodeAnswerTable[0][5883100000]);
+    log_debug("opencodeAnswerTableVector[0][0]=%d", opencodeAnswerTableVector[0][0]);
+    log_debug("opencodeAnswerTableVector[0][1]=%d", opencodeAnswerTableVector[0][1]);
+    log_debug("opencodeAnswerTableVector[0][5883099999]=%d", opencodeAnswerTableVector[0][5883099999]);
+    log_debug("opencodeAnswerTableVector[0][5883100000]=%d", opencodeAnswerTableVector[0][5883100000]);
 
-    log_debug("opencodeAnswerTable[1][0]=%d", opencodeAnswerTable[1][0]);
-    log_debug("opencodeAnswerTable[1][1]=%d", opencodeAnswerTable[1][1]);
-    log_debug("opencodeAnswerTable[1][5883099999]=%d", opencodeAnswerTable[1][5883099999]);
-    log_debug("opencodeAnswerTable[1][5883100000]=%d", opencodeAnswerTable[1][5883100000]);
+    log_debug("opencodeAnswerTableVector[1][0]=%d", opencodeAnswerTableVector[1][0]);
+    log_debug("opencodeAnswerTableVector[1][1]=%d", opencodeAnswerTableVector[1][1]);
+    log_debug("opencodeAnswerTableVector[1][5883099999]=%d", opencodeAnswerTableVector[1][5883099999]);
+    log_debug("opencodeAnswerTableVector[1][5883100000]=%d", opencodeAnswerTableVector[1][5883100000]);
     //
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
@@ -191,8 +191,8 @@ int main(int argc, char* argv[])
         opencode_answer_table_buffer[num] = clCreateBuffer(
             context, 
             CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
-            sizeof(cl_uchar) * opencodeAnswerTableLength, 
-            opencodeAnswerTable[num], 
+            sizeof(cl_uchar) * opencodeAnswerTableVectorLength, 
+            opencodeAnswerTableVector[num], 
             &errNum);    
         if(errNum < 0) {
             perror("Couldn't create a opencode_answer_table_buffer[]");
@@ -276,16 +276,16 @@ int main(int argc, char* argv[])
 
             rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
             rawDatalistLength = recvRowLength - 1; //少一筆因為第比是計算參數  
-            log_debug("betsAmountOnehot length is %d", gBetonLenght * wagerLength);
-            betsAmountOnehot = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
-            memset(betsAmountOnehot, 0, gBetonLenght * wagerLength);
+            log_debug("betsAmountVector length is %d", gBetonLenght * wagerLength);
+            betsAmountVector = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
+            memset(betsAmountVector, 0, gBetonLenght * wagerLength);
             
-            betsAmountWithOddsOnehot = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
-            memset(betsAmountWithOddsOnehot, 0, gBetonLenght * wagerLength);
+            betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
+            memset(betsAmountWithOddsVector, 0, gBetonLenght * wagerLength);
 
-            loadBetsAmountOnehot(
-                betsAmountOnehot,
-                betsAmountWithOddsOnehot,
+            loadRowData2BetsAmountVector(
+                betsAmountVector,
+                betsAmountWithOddsVector,
                 &totalBetsAmount,
                 rawDatalist, 
                 rawDatalistLength
@@ -294,8 +294,8 @@ int main(int argc, char* argv[])
             /*
             for(int i=0; i<= gBetonList-1; i++ )
             {
-                if(betsAmountOnehot[i] > 0)
-                    log_debug("betsAmountOnehot[%d]= %f", i, betsAmountOnehot[i]);
+                if(betsAmountVector[i] > 0)
+                    log_debug("betsAmountVector[%d]= %f", i, betsAmountVector[i]);
             }*/
             
             timeEnd = clock();
@@ -320,10 +320,10 @@ int main(int argc, char* argv[])
                 kSumBetonTotalAmount, 
                 wagerLength,
                 one_mask, 
-                betsAmountOnehot,
+                betsAmountVector,
                 &totalBetsAmountVector);
-            if(betsAmountOnehot)
-                free(betsAmountOnehot);
+            if(betsAmountVector)
+                free(betsAmountVector);
 #ifdef DEBUG
             sum = 0;
             for(int i=0; i<=gBetonLenght-1; i++)
@@ -343,10 +343,10 @@ int main(int argc, char* argv[])
                 kSumBetonTotalAmount, 
                 wagerLength,
                 one_mask, 
-                betsAmountWithOddsOnehot, 
+                betsAmountWithOddsVector, 
                 &totalBetsAmountWithOddsVector);
-            if(betsAmountWithOddsOnehot)
-                free(betsAmountWithOddsOnehot);
+            if(betsAmountWithOddsVector)
+                free(betsAmountWithOddsVector);
 #ifdef DEBUG
             sum = 0;
             for(int i=0; i<= gBetonLenght-1; i++)
@@ -366,7 +366,7 @@ int main(int argc, char* argv[])
             for(int num=0; num<=USE_GPU_NUM-1; num++)
             {
                 log_info("clSetKernelArg... %d/%d", (num+1), USE_GPU_NUM);
-                //memset(opencodeAnswerTableResult[num], 0.0f, GPU_HANDEL_COUNT[num]);
+                //memset(opencodeResultVector[num], 0.0f, GPU_HANDEL_COUNT[num]);
                 // creater buffer total_beton_amount_buffer
                 total_beton_amount_buffer[num] = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,  sizeof(cl_float) * gBetonLenght, totalBetsAmountVector, &errNum); 
                 if(errNum < 0) {
@@ -463,7 +463,7 @@ int main(int argc, char* argv[])
                     CL_FALSE, 
                     0, 
                     sizeof(cl_float) * GPU_HANDEL_COUNT[num], 
-                    opencodeAnswerTableResult[num], 
+                    opencodeResultVector[num], 
                     0, 
                     NULL, 
                     &read_events[num]);
@@ -511,36 +511,36 @@ int main(int argc, char* argv[])
     #ifdef DEBUG
             for(int i=0; i<=20 - 1; i++)
             {
-                log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeAnswerTableResult[0][i]);
+                log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeResultVector[0][i]);
             }
 
             for(int i= GPU_HANDEL_COUNT[0] - 1; i>=GPU_HANDEL_COUNT[0] -20; i--)
             {
-                log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeAnswerTableResult[0][i]);
+                log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeResultVector[0][i]);
             }
             for(int i=0; i<=20 - 1; i++)
             {
-                log_debug("%s, result[%d]=%0.6f ",opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
+                log_debug("%s, result[%d]=%0.6f ",opencodeList[1][i], i, opencodeResultVector[1][i]);
             }
             for(int i=GPU_HANDEL_COUNT[1]-1; i>=GPU_HANDEL_COUNT[1] -20; i--)
             {
-                log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
+                log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeResultVector[1][i]);
             }
            /*
             for(int i=0; i<= GPU_HANDEL_COUNT[1] - 1; i++)
             {
                 //08,08,05,07,09
-                if( opencodeAnswerTableResult[0][i] != 0)
+                if( opencodeResultVector[0][i] != 0)
                 {
-                    log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeAnswerTableResult[0][i]);
+                    log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeResultVector[0][i]);
                 }
             }
             for(int i=0; i<= GPU_HANDEL_COUNT[1] - 1; i++)
             {
                 //08,08,05,07,09
-                if( opencodeAnswerTableResult[1][i] != 0)
+                if( opencodeResultVector[1][i] != 0)
                 {
-                    log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeAnswerTableResult[1][i]);
+                    log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeResultVector[1][i]);
                 }
             }*/
     #endif
@@ -566,7 +566,7 @@ int main(int argc, char* argv[])
             {
                 for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
                 {
-                    cl_float amount = opencodeAnswerTableResult[num][i];
+                    cl_float amount = opencodeResultVector[num][i];
                     if(direction == 1)
                     {
                         if(targetAmount <= amount ) //玩家贏錢

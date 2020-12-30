@@ -26,23 +26,23 @@ int loadListFromFile(const char* path, char*** list);
 
 int loadBetonList();
 int loadOpencodeList();
-int loadOpencodeAnswerTable(cl_uchar* opencodeAnswerTable, char*** opencodeList, const char* path);
+int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char*** opencodeList, const char* path);
 
 /** 
  * @brief 轉換注單和賠率變成成opencl要處理的matrix  
  * @note   
- * @param betsAmountOnehot:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額]未下注內容是0。
- * @param betsAmountWithOddsOnehot:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額] * [賠率]未下注內容是0。
- * @param startIndex:[IN] Onehot起始位址 
+ * @param betsAmountVector:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額]未下注內容是0。
+ * @param betsAmountWithOddsVector:[OUT] 包含所有beton的一維陣列，有下注內容是[單注金額] * [賠率]未下注內容是0。
+ * @param startIndex:[IN] Vector起始位址 
  * @param bets:[IN]所下注的玩法陣列 
  * @param odds:[IN]所下注的賠率陣列
  * @param unitAmount:[IN]單注金額
  * @param len:[IN]玩法&賠率陣列長度
  * @retval None
  */
-int bets2onehot(
-    cl_float*       betsAmountOnehot, 
-    cl_float*       betsAmountWithOddsOnehot,
+int betsAmountVectorAppend(
+    cl_float*       betsAmountVector, 
+    cl_float*       betsAmountWithOddsVector,
     int             startIndex,
     const char**    bets, 
     const char**    odds, 
@@ -69,9 +69,9 @@ int loadParmeters(
     const char* strRawData);
 
 
-int loadBetsAmountOnehot(
-    cl_float*       betsAmountOnehot,
-    cl_float*       betsAmountWithOddsOnehot,
+int loadRowData2BetsAmountVector(
+    cl_float*       betsAmountVector,
+    cl_float*       betsAmountWithOddsVector,
     float*          totalBetsAmount,
     const char**    rawDatalist,
     int             rawDatalistLength);

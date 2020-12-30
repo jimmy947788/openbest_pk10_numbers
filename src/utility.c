@@ -127,7 +127,7 @@ void build_program_for_all_devices(
     pathCombine(kernel_program_fullpath, gWorkerFolder, path);
     log_debug("kernel_program_fullpath =%s", kernel_program_fullpath);
 
-    if(fileExists(kernel_program_fullpath) != 0)
+    if(!exists(kernel_program_fullpath))
     {
         log_error("Can't find kernel program file...(%s)", kernel_program_fullpath);
         exit(EXIT_FAILURE);

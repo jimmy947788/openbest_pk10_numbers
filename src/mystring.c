@@ -24,8 +24,8 @@ int split(char* list[], const char str[], const char delim[])
     for(p = strtok(str, delim); p != NULL; p = strtok(NULL, delim))
     {
         //printf("%s, len:%d\n", p, strlen(p));
-        list[index] = (char*)malloc(sizeof(char) * strlen(p) + 1);
-        memset(list[index], '\0', strlen(p) + 1);
+        list[index] = (char*)malloc(sizeof(char) * (strlen(p) + 1));
+        memset(list[index], '\0', sizeof(char) * (strlen(p) + 1));
         strcpy(list[index],  p); 
         //printf("%s, len:%d\n",  list[index], strlen( list[index]));
         index ++;
@@ -54,8 +54,8 @@ char* substring(const char s_src[], int i_start, int i_end)
     char * p_stmp;
     int substrlength = i_end - i_start ;
     printf ("==========>Malloc size:%i\n", substrlength);
-    p_stmp = (char *) malloc(sizeof(char) * substrlength + 1);
-    memset(p_stmp, '\0', substrlength + 1);
+    p_stmp = (char *) malloc(sizeof(char) * (substrlength + 1));
+    memset(p_stmp, '\0', sizeof(char) * (substrlength + 1));
     strncpy(p_stmp,s_src + i_start, substrlength);
     return p_stmp;
 }

@@ -26,7 +26,7 @@ void pathCombine(char* destination, const char* path1, const char* path2);
  * @param path:[IN] 檔案完整路徑
  * @retval 1:存在，2:不存在
  */
-int fileExists(const char* path);
+int exists(const char* path);
 
 
 /** 

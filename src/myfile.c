@@ -39,20 +39,11 @@ void pathCombine(char* dst, const char* path1, const char* path2)
     }
 }
 
-int fileExists(const char* path)
+int exists(const char* path)
 {
-    int fullpath_length = strlen(gWorkerFolder) + strlen(path) + 2;
-    char* fullpath = (char*)malloc(sizeof(char) * fullpath_length);
-    memset(fullpath, '\0', fullpath_length);
-
-    pathCombine(fullpath, gWorkerFolder, path);
-    //printf("fullpath=%s\n", fullpath);
     struct stat buffer;
-    int exist = stat(fullpath,&buffer);
-
-    if(fullpath)
-        free(fullpath);
-        
+    int exist = stat(path, &buffer);
+    //printf("exists=%d, path= %s<====\n", exist, path);
     if(exist == 0)
         return 1;
     else // -1
