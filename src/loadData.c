@@ -183,8 +183,8 @@ int betsAmountVectorAppend(
     cl_float*       betsAmountVector, 
     cl_float*       betsAmountWithOddsVector,
     int             startIndex,
-    const char**    bets, 
-    const char**    odds, 
+    const char*    bets[], 
+    const char*    odds[], 
     float           unitAmount, 
     int             len)
 {
@@ -239,7 +239,7 @@ int loadRowData2BetsAmountVector(
     cl_float*       betsAmountVector,
     cl_float*       betsAmountWithOddsVector,
     float*          totalBetsAmount,
-    const char**    rawDatalist,
+    const char*     rawDatalist[],
     int             rawDatalistLength)
 {
     int recvColumnLength = 0;
