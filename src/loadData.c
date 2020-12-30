@@ -269,9 +269,9 @@ int loadParmeters(
     int*        resultLength,
     const char* strRawData)
 {   
-    int columnLength = strCharCount(strRawData, '|') + 1;
+    int columnLength = count(strRawData, '|') + 1;
     char** columns = (char**)malloc(sizeof(char*) * columnLength);
-    split(&columns, strRawData, "|");
+    split(columns, strRawData, "|");
     *wagerLength = strtol(columns[0], NULL, 10);   //0: wager_length
     strcpy(expectId, columns[1]);                   //1: expectId
     *direction = strtol(columns[2], NULL, 10);      //2: direction
@@ -298,27 +298,27 @@ int loadBetsAmountOnehot(
     for(int i=0; i<=rawDatalistLength-1; i++)
     {
         //log_debug("recvRows[%d]=%s", i, rawDatalist[i]);
-        recvColumnLength = strCharCount(rawDatalist[i], '|') + 1;
+        recvColumnLength = count(rawDatalist[i], '|') + 1;
         recvColumns = (char**)malloc(sizeof(char*) * recvColumnLength + 1);
-        split(&recvColumns, rawDatalist[i], "|");
+        split(recvColumns, rawDatalist[i], "|");
 
         //recvColumns[0]: 下注內容
-        int betsLength = strCharCount(recvColumns[0], ',') + 1;
+        int betsLength = count(recvColumns[0], ',') + 1;
         char** bets = (char**)malloc(sizeof(char*) * betsLength);
-        split(&bets, recvColumns[0], ",");
-        //log_debug("bets[0]=%s", bets[0]);
-        //log_debug("bets[%d]=%s", betsLength -1, bets[betsLength-1]);
+        split(bets, recvColumns[0], ",");
+        log_debug("bets[0]=%s", bets[0]);
+        log_debug("bets[%d]=%s", betsLength -1, bets[betsLength-1]);
         
         //recvColumns[1]: 下注賠率
-        int oddsLength = strCharCount(recvColumns[1], ',') + 1;
+        int oddsLength = count(recvColumns[1], ',') + 1;
         char** odds = (char**)malloc(sizeof(char*) * oddsLength);
-        split(&odds, recvColumns[1], ","); 
-        //log_debug("odds[0]=%s", odds[0]);
-        //log_debug("odds[%d]=%s", oddsLength -1, odds[oddsLength-1]);
+        split(odds, recvColumns[1], ","); 
+        log_debug("odds[0]=%s", odds[0]);
+        log_debug("odds[%d]=%s", oddsLength -1, odds[oddsLength-1]);
 
         //recvColumns[2]: 單注金額
         float unitAmount = strtof(recvColumns[2], NULL);
-        //log_debug("unitAmount=%f", unitAmount);
+        log_debug("unitAmount=%f", unitAmount);
 
         for(int j=0; j<=betsLength-1; j++ )
         {

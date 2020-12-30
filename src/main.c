@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
         {
             //取得下一次封包大小
             log_debug("recv raw data: %s", recvBuffer);
-            recvBufferStrip = substring(recvBuffer, strlen("LEN:"), strlen(recvBuffer) -1);
+            recvBufferStrip = substring(recvBuffer, strlen("LEN:"), strlen(recvBuffer));
             recvBufferSize = strtol(recvBufferStrip, NULL, 10);
             log_info("data length:%d", recvBufferSize);
 
@@ -256,14 +256,14 @@ int main(int argc, char* argv[])
         {
             log_debug("recv raw data: %s", recvBuffer);
             timeStart = clock();
-            recvBufferStrip = substring(recvBuffer, strlen("DATA:"), strlen(recvBuffer) -1);
+            recvBufferStrip = substring(recvBuffer, strlen("DATA:"), strlen(recvBuffer) );
             log_debug("recvBufferStrip=%s", recvBufferStrip);
             
             //把資料切分出行
-            recvRowLength = strCharCount(recvBufferStrip, '^') + 1;
+            recvRowLength = count(recvBufferStrip, '^') + 1;
             log_debug("recvRowLength=%d", recvRowLength);
             char** recvRows = (char**)malloc(sizeof(char*) * recvRowLength);
-            split(&recvRows, recvBufferStrip, "^");
+            split(recvRows, recvBufferStrip, "^");
 
             //第一行是運算參數
             loadParmeters(&wagerLength, &expectId, &direction, &killRate, &resultLength, recvRows[0]);
