@@ -40,5 +40,4 @@ int run_kernel_sum_beton_total_amount(
         cl_float* bet_amount, 
         cl_float** result);
 
-void logging(char* message);
 #endif
