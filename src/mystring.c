@@ -1,7 +1,7 @@
 
 #include "../header/mystring.h"
 
-int strCharCount(const char *str, char c)
+int count(const char str[], char c)
 {
     //計算element數量
     int length = 0;
@@ -14,27 +14,26 @@ int strCharCount(const char *str, char c)
     return length;
 }
 
-int split(char*** list, const char *str, const char *delim)
+int split(char* list[], const char str[], const char delim[])
 {
     size_t len = 0;
     char *p = NULL;
     int index = 0;
-
     //寫入element to list
     p = NULL;
     for(p = strtok(str, delim); p != NULL; p = strtok(NULL, delim))
     {
         //printf("%s, len:%d\n", p, strlen(p));
-        *(*list + index) = (char*)malloc(sizeof(char) * strlen(p)+1 );
-        memset(*(*list + index), '\0', strlen(p)+1 );
-        strcpy(*(*list + index),  p); 
-        //printf("%s, len:%d\n", *(*list + index), strlen(*(*list + index)));
+        list[index] = (char*)malloc(sizeof(char) * strlen(p) + 1);
+        memset(list[index], '\0', strlen(p) + 1);
+        strcpy(list[index],  p); 
+        //printf("%s, len:%d\n",  list[index], strlen( list[index]));
         index ++;
     }
     return index; 
 }
 
-int contains(const char *str, const char** list, int len)
+int contains(const char str[], const  char* list[], int len)
 {
     int ret = -1;
     char* tmp;
@@ -50,12 +49,13 @@ int contains(const char *str, const char** list, int len)
     return ret;
 }
 
-char* substring(const char *s_src, int i_start, int i_end)
+char* substring(const char s_src[], int i_start, int i_end)
 {
     char * p_stmp;
-    int substrlength = i_end - i_start + 1;
-    //printf ("Malloc size:%i\n",substrlength);
-    p_stmp = (char *) malloc(substrlength);
+    int substrlength = i_end - i_start ;
+    printf ("==========>Malloc size:%i\n", substrlength);
+    p_stmp = (char *) malloc(sizeof(char) * substrlength + 1);
+    memset(p_stmp, '\0', substrlength + 1);
     strncpy(p_stmp,s_src + i_start, substrlength);
     return p_stmp;
 }

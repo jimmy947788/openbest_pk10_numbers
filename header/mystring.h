@@ -16,7 +16,7 @@
  * @param list:[IN] 要搜尋的字元
  * @retval 字元出現次數
  */
-int strCharCount(const char *str, char c);
+int count(const char str[], char c);
 
 /** 
  * @brief 分割字串到陣列。
@@ -26,7 +26,7 @@ int strCharCount(const char *str, char c);
  * @param delim:[IN] 分割的字元
  * @retval 陣列的長度
  */
-int split(char*** list, const char *str, const char *delim);
+int split(char* list[], const char str[], const char delim[]);
 
 
 /** 
@@ -37,7 +37,7 @@ int split(char*** list, const char *str, const char *delim);
  * @param len:[IN] 陣列長度
  * @retval 1:存在 2.不存在 
  */
-int contains(const char *str, const  char** list, int len);
+int contains(const char str[], const  char* list[], int len);
 
 /** 
  * @brief 擷取字串。
@@ -47,5 +47,5 @@ int contains(const char *str, const  char** list, int len);
  * @param i_end:[IN] 結束位置
  * @retval 擷取後的字串
  */
-char* substring(const char *s_src, int i_start, int i_end);
+char* substring(const char s_src[], int i_start, int i_end);
 #endif
