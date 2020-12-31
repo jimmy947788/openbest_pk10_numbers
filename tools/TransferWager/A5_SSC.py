@@ -964,6 +964,7 @@ def transferWager(logging, jBets):
     elif betTypePlayCode == "SSC_D3T5":
         (betTypePlayCodeWithBetOnDic, length) = SSCD3T5_Beton(rawBetOn)   
     elif betTypePlayCode == "SSC_D4T5":
+        
         (betTypePlayCodeWithBetOnDic, length) = SSCD4T5_Beton(rawBetOn)     
     elif betTypePlayCode == "SSC_TIE12":
         (betTypePlayCodeWithBetOnDic, length) = SSCTIE12_Beton(rawBetOn)   
@@ -985,6 +986,7 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = SSCTIE35_Beton(rawBetOn)   
     elif betTypePlayCode == "SSC_TIE45":
         (betTypePlayCodeWithBetOnDic, length) = SSCTIE45_Beton(rawBetOn)   
+
     elif betTypePlayCode == "SSC_1BS":
         (betTypePlayCodeWithBetOnDic, length) = SSC1BS_Beton(rawBetOn)   
     elif betTypePlayCode == "SSC_2BS":
@@ -995,6 +997,7 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = SSC4BS_Beton(rawBetOn)   
     elif betTypePlayCode == "SSC_5BS":
         (betTypePlayCodeWithBetOnDic, length) = SSC5BS_Beton(rawBetOn)   
+
     elif betTypePlayCode == "SSC_1OE":
         (betTypePlayCodeWithBetOnDic, length) = SSC1OE_Beton(rawBetOn)   
     elif betTypePlayCode == "SSC_2OE":
@@ -1005,41 +1008,39 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = SSC4OE_Beton(rawBetOn)   
     elif betTypePlayCode == "SSC_5OE":
         (betTypePlayCodeWithBetOnDic, length) = SSC5OE_Beton(rawBetOn)   
-    elif betTypePlayCode == "SSC_1OE":
-        (betTypePlayCodeWithBetOnDic, length) = SSC1OE_Beton(rawBetOn)   
-
+        
     elif betTypePlayCode == "SSC_F3_CTN":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3CTN_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCF3CTN_Beton()  
     elif betTypePlayCode == "SSC_F3_HALF":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3HALF_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCF3HALF_Beton()  
     elif betTypePlayCode == "SSC_F3_LEOPARD":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3LEOPARD_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCF3LEOPARD_Beton()  
     elif betTypePlayCode == "SSC_F3_PAIR":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3PAIR_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCF3PAIR_Beton()  
     elif betTypePlayCode == "SSC_F3_SIX":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3PAIR_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCF3SIX_Beton()  
 
     elif betTypePlayCode == "SSC_M3_CTN":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3CTN_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCM3CTN_Beton()  
     elif betTypePlayCode == "SSC_M3_HALF":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3HALF_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCM3HALF_Beton()  
     elif betTypePlayCode == "SSC_M3_LEOPARD":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3LEOPARD_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCM3LEOPARD_Beton()  
     elif betTypePlayCode == "SSC_M3_PAIR":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3PAIR_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCM3PAIR_Beton()  
     elif betTypePlayCode == "SSC_M3_SIX":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3PAIR_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCM3SIX_Beton()  
     
     elif betTypePlayCode == "SSC_L3_CTN":
-            (betTypePlayCodeWithBetOnDic, length) = SSCF3CTN_Beton(rawBetOn)  
+            (betTypePlayCodeWithBetOnDic, length) = SSCL3CTN_Beton()  
     elif betTypePlayCode == "SSC_L3_HALF":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3HALF_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCL3HALF_Beton()  
     elif betTypePlayCode == "SSC_L3_LEOPARD":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3LEOPARD_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCL3LEOPARD_Beton()  
     elif betTypePlayCode == "SSC_L3_PAIR":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3PAIR_Beton(rawBetOn)  
+        (betTypePlayCodeWithBetOnDic, length) = SSCL3PAIR_Beton()  
     elif betTypePlayCode == "SSC_L3_SIX":
-        (betTypePlayCodeWithBetOnDic, length) = SSCF3PAIR_Beton(rawBetOn) 
+        (betTypePlayCodeWithBetOnDic, length) = SSCL3SIX_Beton() 
 
     elif betTypePlayCode == "SSC_SINGLE":
         (betTypePlayCodeWithBetOnDic, length) = SSCSINGLE_Beton(rawBetOn) 
