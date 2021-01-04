@@ -33,6 +33,7 @@ if __name__ == "__main__":
             f.write(f"{a},{b},{c},{d},{e}\n")
     """
 
+    """
     (result, length) =  A5_SSC.SSC1_Beton()
     for beton in result:
         print(beton)
@@ -245,3 +246,25 @@ if __name__ == "__main__":
     (result, length) =  A5_SSC.SSCFOUR_Beton()
     for beton in result:
         print(beton)
+"""
+    print("1=================================")
+    (result, length) =  A5_SSC.OFiveStarZu20_Beton("5,3 7")
+    for beton in result:
+        print(f">==={beton}")
+    
+    print("2=================================")
+    (result, length) =  A5_SSC.OFiveStarZu20_Beton("0,1 2 3")
+    for beton in result:
+        print(f">==={beton}")
+
+    print("3=================================")
+    (result, length) =  A5_SSC.OFiveStarZu20_Beton("7 8 9,4 5")
+    for beton in result:
+        print(f">==={beton}")
+    
+    print("4=================================")
+    (result, length) =  A5_SSC.OFiveStarZu20_Beton("0 4,1 3")
+    for beton in result:
+        print(f">==={beton}")
+
+
