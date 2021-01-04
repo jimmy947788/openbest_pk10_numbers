@@ -871,6 +871,7 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialMiddle3_Beton(rawBetOn)
     elif betTypePlayCode == "O_ThreeStar_Special_Last3":
         (betTypePlayCodeWithBetOnDic, length) = OThreeStarSpecialLast3_Beton(rawBetOn)
+        
     elif betTypePlayCode == "O_TwoStar_Zhi_wq":
         (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiWQ_Beton(rawBetOn)
     elif betTypePlayCode == "O_TwoStar_Zhi_wb":
@@ -891,6 +892,7 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiBG_Beton(rawBetOn)
     elif betTypePlayCode == "O_TwoStar_Zhi_sg":
         (betTypePlayCodeWithBetOnDic, length) = OTwoStarZhiSG_Beton(rawBetOn)
+
     elif betTypePlayCode == "O_TwoStar_Zu_wq":
         (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuWQ_Beton(rawBetOn)
     elif betTypePlayCode == "O_TwoStar_Zu_wb":
@@ -911,10 +913,13 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuBG_Beton(rawBetOn)
     elif betTypePlayCode == "O_TwoStar_Zu_sg":
         (betTypePlayCodeWithBetOnDic, length) = OTwoStarZuSG_Beton(rawBetOn)
+
     elif betTypePlayCode == "O_DingWeiDan_S":
         (betTypePlayCodeWithBetOnDic, length) = ODingWeiDanS_Beton(rawBetOn)
+
     elif betTypePlayCode == "O_BSOE_S":
         (betTypePlayCodeWithBetOnDic, length) = OBSOES_Beton(rawBetOn)
+
     elif betTypePlayCode == "O_DragonTiger_wq":
         (betTypePlayCodeWithBetOnDic, length) = ODragonTigerWQ_Beton(rawBetOn)
     elif betTypePlayCode == "O_DragonTiger_wb":
@@ -935,6 +940,7 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = ODragonTigerBG_Beton(rawBetOn)
     elif betTypePlayCode == "O_DragonTiger_sg":
         (betTypePlayCodeWithBetOnDic, length) = ODragonTigerSG_Beton(rawBetOn)
+
     elif betTypePlayCode == "SSC_1":
         (betTypePlayCodeWithBetOnDic, length) = SSC1_Beton(rawBetOn)
     elif betTypePlayCode == "SSC_2":
@@ -945,6 +951,7 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = SSC4_Beton(rawBetOn)
     elif betTypePlayCode == "SSC_5":
         (betTypePlayCodeWithBetOnDic, length) = SSC5_Beton(rawBetOn)
+
     elif betTypePlayCode == "SSC_D1T2":
         (betTypePlayCodeWithBetOnDic, length) = SSCD1T2_Beton(rawBetOn)
     elif betTypePlayCode == "SSC_D1T3":
