@@ -53,11 +53,11 @@ char* substring(const char s_src[], int i_start, int i_end)
 {
     char * p_stmp;
     int substrlength = i_end - i_start ;
-    printf ("==========>Malloc size:%i\n", substrlength);
-    log_debug("substring before : %s", s_src);
+    //printf ("==========>Malloc size:%i\n", substrlength);
+    //log_debug("substring before : %s", s_src);
     p_stmp = (char *) malloc(sizeof(char) * (substrlength + 2)); //+1會有後面亂碼的問題
     memset(p_stmp, '\0', sizeof(char) * (substrlength + 2));
     strncpy(p_stmp, s_src + i_start, substrlength);
-    log_debug("substring after : %s", s_src);
+    //log_debug("substring after : %s", s_src);
     return p_stmp;
 }
