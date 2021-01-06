@@ -562,6 +562,7 @@ int main(int argc, char* argv[])
             char tmp[MAX_LENGTH];
             //將到達條件金額寫入檔案 
             fp = fopen(result_file, "a");
+            cl_float limit_amount = 0;
             for(int num=0; num<=USE_GPU_NUM - 1; num++)
             {
                 for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
@@ -580,6 +581,30 @@ int main(int argc, char* argv[])
                     else
                     {
                         if(amount <= targetAmount) //莊家贏錢
+                        {
+                            memset(tmp, '\0', MAX_LENGTH);
+                            sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
+                            fputs(tmp, fp);
+                            target_amount_counter++;
+                        }
+                    }
+
+                    if(amount <= limit_amount)
+                    {
+                        limit_amount = amount;
+                    }
+                }
+            }
+
+            //找不到目標金額獎號
+            if(target_amount_counter == 0)
+            {
+                for(int num=0; num<=USE_GPU_NUM - 1; num++)
+                {
+                    for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
+                    {
+                        cl_float amount = opencodeResultVector[num][i];
+                        if(amount == limit_amount) 
                         {
                             memset(tmp, '\0', MAX_LENGTH);
                             sprintf(tmp, "%s,%0.6f\n", opencodeList[num][i], amount);
