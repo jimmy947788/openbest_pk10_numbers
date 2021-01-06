@@ -18,3 +18,6 @@ else
         --worker-folder  "$WORKFOLDER" \
         --kernel-program bin/kernel_program.cl
 fi
+
+#sudo gdb bin/optimize_opencode
+#r --worker-folder  "/home/matrix/openbest_pk10_numbers"  --kernel-program bin/kernel_program.cl
