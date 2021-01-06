@@ -23,9 +23,10 @@ int split(char* list[], const char str[], const char delim[])
     p = NULL;
     for(p = strtok(str, delim); p != NULL; p = strtok(NULL, delim))
     {
+        len = strlen(p) + 2;
         //printf("%s, len:%d\n", p, strlen(p));
-        list[index] = (char*)malloc(sizeof(char) * (strlen(p) + 1));
-        memset(list[index], '\0', sizeof(char) * (strlen(p) + 1));
+        list[index] = (char*)malloc(sizeof(char) * len);
+        memset(list[index], '\0', sizeof(char) * len);
         strcpy(list[index],  p); 
         //printf("%s, len:%d\n",  list[index], strlen( list[index]));
         index ++;

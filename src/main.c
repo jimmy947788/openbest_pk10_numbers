@@ -236,8 +236,8 @@ int main(int argc, char* argv[])
         log_info("ready to recv data...(recv buffer size:%d)", recvBufferSize);
         forClientSockfd = accept(sockfd,(struct sockaddr*) &clientInfo, &addrlen);
         
-        recvBuffer = (char*)malloc(sizeof(char) * recvBufferSize);
-        memset(recvBuffer, '\0', recvBufferSize);
+        recvBuffer = (char*)malloc(sizeof(char) * recvBufferSize+2);
+        memset(recvBuffer, '\0', recvBufferSize+2);
         recv(forClientSockfd, recvBuffer, sizeof(char) * recvBufferSize , 0);
         //log_debug("======> %s", recv_buffer);
 
