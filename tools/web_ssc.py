@@ -110,7 +110,8 @@ def submit():
         tolerance = jdata["Tolerance"]
         killRate = jdata["KillRate"]
     
-        sendData = "DATA:"
+        #sendData = "DATA:"
+        sendData = ""
         sendData += f"{wager_length}|"
         sendData += f"{expectId}|"
         sendData += f"{tolerance}|"
@@ -124,14 +125,14 @@ def submit():
             sendData += str(unitAmount)  
 
         #sendData = sendData[:len(sendData)-1]
-        print(sendData)
-
+        print(f"{sendData}, len:{len(sendData)}")
+        """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect(("127.0.0.1", 8700))
             client.sendall(f"LEN:{len(sendData)}".encode())
             recv_msg = client.recv(1024).decode("UTF-8").replace('\0', '')
             logging.debug(f"Server:{recv_msg}")
-
+        """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect(("127.0.0.1", 8700))
             client.sendall(sendData.encode())

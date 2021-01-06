@@ -25,6 +25,7 @@ int split(char* list[], const char str[], const char delim[])
     {
         len = strlen(p) + 2;
         //printf("%s, len:%d\n", p, strlen(p));
+        //printf("alloc list[%d] memory size to  len:%d\n", index, len);
         list[index] = (char*)malloc(sizeof(char) * len);
         memset(list[index], '\0', sizeof(char) * len);
         strcpy(list[index],  p); 
