@@ -376,6 +376,10 @@ if __name__ == "__main__":
         for beton in result:
             f.write(f"{beton}\n")
         
+        (result, length) =  A5_SSC.SSCD1T4_Beton()
+        for beton in result:
+            f.write(f"{beton}\n")
+        
         (result, length) =  A5_SSC.SSCD1T5_Beton()
         for beton in result:
             f.write(f"{beton}\n")
