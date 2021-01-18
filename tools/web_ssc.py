@@ -87,7 +87,7 @@ def home():
     # 取得所有檔案與子目錄名稱
     logfiles = listdir(f"{currentPath}/log")
     logfiles.remove("calc_opencode_amount.log")
-    logfiles.sort(reverse=True, key=logfile_sort)
+    #logfiles.sort(reverse=True, key=logfile_sort)
     logfiles.insert(0,"calc_opencode_amount.log")
     logfilelength = len(logfiles)
     return render_template(f'index.html', CPU=cpu_usage, MEM=mem_usage, SSD=ssd_usage, GPU0=gpu0_info, GPU1=gpu1_info, 
