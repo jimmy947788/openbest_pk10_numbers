@@ -77,6 +77,8 @@ int main(int argc, char* argv[])
     log_info("this program was for PK10 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
 #elif defined SSC 
     log_info("this program was for SSC (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
+#elif defined llX5
+    log_info("this program was for 11X5 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
 #endif
 
     int total_platforms = 0;
@@ -176,6 +178,7 @@ int main(int argc, char* argv[])
     cl_event kernel_events[USE_GPU_NUM];
     cl_event read_events[USE_GPU_NUM];
 
+    /*
     log_debug("opencodeAnswerTableVector[0][0]=%d", opencodeAnswerTableVector[0][0]);
     log_debug("opencodeAnswerTableVector[0][1]=%d", opencodeAnswerTableVector[0][1]);
     log_debug("opencodeAnswerTableVector[0][5883099999]=%d", opencodeAnswerTableVector[0][5883099999]);
@@ -185,6 +188,7 @@ int main(int argc, char* argv[])
     log_debug("opencodeAnswerTableVector[1][1]=%d", opencodeAnswerTableVector[1][1]);
     log_debug("opencodeAnswerTableVector[1][5883099999]=%d", opencodeAnswerTableVector[1][5883099999]);
     log_debug("opencodeAnswerTableVector[1][5883100000]=%d", opencodeAnswerTableVector[1][5883100000]);
+    */
     //
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
@@ -336,6 +340,7 @@ int main(int argc, char* argv[])
             free(betsAmountVector);
 #ifdef DEBUG
         sum = 0;
+        //printf("totalBetsAmountVector=");
         for(int i=0; i<=gBetonLenght-1; i++)
         {
             //printf("%f,", totalBetsAmountVector[i]);
@@ -671,6 +676,12 @@ int main(int argc, char* argv[])
         send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
         log_info("send back LEN process done!");
 
+        log_info("free every recvRows array.");
+        for(int i=0; i<= recvRowLength -1; i++ )
+        {
+            if(recvRows[i])
+                free(recvRows[i]);
+        }
         if(recvRows)
             free(recvRows);
         if(recvRawData)

@@ -54,6 +54,8 @@ ifeq ($(lotterykind), ssc)
 	CFLAGS += -DSSC
 else ifeq ($(lotterykind), pk10)
 	CFLAGS += -DPK10
+else ifeq ($(lotterykind), llX5)
+	CFLAGS += -DllX5
 endif
 
 $(PROJ): src/*.c
