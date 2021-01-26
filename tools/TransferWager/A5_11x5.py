@@ -145,12 +145,10 @@ def OBSOEX_Beton(beton = "B S O E,B S O E,B S O E,B S O E,B S O E"):
         result.append(f"O_BSOE_X_e{e}")
     return (result, len(result))
 
-def OSumBSOEX_Beton(beton="B S O E,TB TS"):
+def OSumBSOEX_Beton(beton="B S O E TB TS"):
     result = []
-    for a in beton.split(",")[0].split(" "):
+    for a in beton.split(" "):
         result.append(f"O_Sum_BSOE_X_{a}")
-    for b in  beton.split(",")[1].split(" "):
-        result.append(f"O_Sum_BSOE_X_{b}")
     return (result, len(result))
 
 def X11X55_Beton(beton="01 02 03 04 05 06 07 08 09 10 11"):
