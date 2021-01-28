@@ -561,7 +561,7 @@ int main(int argc, char* argv[])
         char tmp[MAX_LENGTH];
         //將到達條件金額寫入檔案 
         fp = fopen(result_file, "a");
-        cl_float limit_amount = 0;
+        cl_float limit_amount = opencodeResultVector[0][0]; //不要從0開始
         for(int num=0; num<=USE_GPU_NUM - 1; num++)
         {
             for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
@@ -594,6 +594,7 @@ int main(int argc, char* argv[])
                 }
             }
         }
+        log_info("targetAmount=%0.6f, limit_amount=%0.6f", targetAmount, limit_amount );
 
         //找不到目標金額獎號
         if(target_amount_counter == 0)
