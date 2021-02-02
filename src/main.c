@@ -6,7 +6,7 @@
 #include <math.h>
 #include <string.h>
 #include <sys/types.h>
-
+#include <linux/limits.h>   // PATH_MAX
 #include "../header/common.h"
 #include "../header/loadData.h"
 #include "../header/config.h"
@@ -17,7 +17,7 @@
 #include "../header/logger.h"
 #include "../header/mystring.h"
 
-extern char     gWorkerFolder[MAX_LENGTH];
+extern char     gWorkerFolder[PATH_MAX];
 extern char**   gBetonList;
 extern uint32      gBetonLenght;
 
@@ -26,27 +26,23 @@ extern uint32      gOpencodeLenght;
 
 extern uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
 
-
-void init_log(FILE **logfp, const char* log_dir)
-{
-    char log_file[MAX_LENGTH];
-    sprintf(log_file, "%s/%scalc_opencode_amount.log", gWorkerFolder, log_dir);
-    *logfp = fopen(log_file, "a+");
-    log_add_fp(*logfp, LOG_TRACE);
-}
+extern char gKernelPath[PATH_MAX];
+extern char gLogPath[PATH_MAX];
+extern char gBetonListPath[PATH_MAX];
 
 int main(int argc, char* argv[])
 {
     cl_int errNum;    
-    char kernel_program_file[MAX_LENGTH] = "";
     char beton_amount_table_file[MAX_LENGTH] = "";
     char beton_amount_table_with_odds_file[MAX_LENGTH] = "";
     FILE *logfp;
     char log_dir[MAX_LENGTH];
     clock_t timeStart, timeEnd;
 
+    read_from_json_file();
+
+    /*
     laod_args(argc, argv, &kernel_program_file, &gWorkerFolder, &log_dir);
-    
     printf("log_dir=%s", log_dir);
     strcpy(log_dir, "log/");
 
@@ -59,11 +55,15 @@ int main(int argc, char* argv[])
         printf("\tcalc_opencode_amount -h");
         exit(EXIT_SUCCESS);
     }
-    log_debug("kernel_program_file: %s", kernel_program_file);
-    //log_debug("log_file: %s", log_file);
-    log_debug("worker folder: %s", gWorkerFolder);
+    */
+    log_trace("kernel_program_file: %s", gKernelPath);
+    log_trace("log_file: %s", gLogPath);
+    log_trace("worker folder: %s", gWorkerFolder);
 
-    init_log(&logfp, log_dir);
+
+    logfp = fopen(gLogPath, "a+");
+    log_add_fp(logfp, LOG_TRACE);
+
     loadBetonList();
     loadOpencodeList();
     for(int num=0; num<=USE_GPU_NUM-1; num++)
@@ -79,6 +79,8 @@ int main(int argc, char* argv[])
     log_info("this program was for SSC (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
 #elif defined llX5
     log_info("this program was for 11X5 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
+#elif defined K3
+    log_info("this program was for K33 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
 #endif
 
     int total_platforms = 0;
@@ -110,7 +112,7 @@ int main(int argc, char* argv[])
     log_info("build OpenCL program from");
     //log_info("full kernel_program_file:%s", temp_path);
     // build an OpenCL program
-    build_program_for_all_devices(kernel_program_file, context, device_list, &program);
+    build_program_for_all_devices(gKernelPath, context, device_list, &program);
     log_info(".......... successful!!");
 
     // Create OpenCL Kernel function

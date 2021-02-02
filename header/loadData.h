@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <libgen.h>         // dirname
+#include <json-c/json.h>
+#include <linux/limits.h>   // PATH_MAX
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -11,6 +14,7 @@
 #include "myfile.h"
 #include "mystring.h"
 #include "logger.h"
+
 
 #ifndef LOADDATA_H_   /* Include guard */
 #define LOADDATA_H_
@@ -75,4 +79,6 @@ int loadRowData2BetsAmountVector(
     float*          totalBetsAmount,
     const char*     rawDatalist[],
     int             rawDatalistLength);
+
+int read_from_json_file();
 #endif

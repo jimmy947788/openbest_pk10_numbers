@@ -13,13 +13,15 @@
 #define USE_GPU_NUM 2
 #define VERSION "1.30"
 
-
+/*
 #ifdef PK10
     static const char OPENCODE_SAMPLE[] ="1-2-3-4-5-6-7-8-9-10";
 #elif defined SSC 
     static const char OPENCODE_SAMPLE[] ="1-2-3-4-5";
 #elif defined llX5 
     static const char OPENCODE_SAMPLE[] ="1-2-3-4-5";
+#elif defined K3 
+    static const char OPENCODE_SAMPLE[] ="1-2-3";
 #endif
 
 static const char OPENCODE_ANSWER_TABLE_PATH[USE_GPU_NUM][MAX_LENGTH] = {
@@ -32,6 +34,9 @@ static const char OPENCODE_ANSWER_TABLE_PATH[USE_GPU_NUM][MAX_LENGTH] = {
     #elif defined llX5 
         "/data/11x5_opencode_table_1.csv",
         "/data/11x5_opencode_table_2.csv"
+    #elif defined K3 
+        "/data/k3_opencode_table_1.csv",
+        "/data/k3_opencode_table_2.csv"
     #endif
 };
 
@@ -42,6 +47,8 @@ static const char BETON_LIST_PATH[] = {
         "data/ssc_beton_list.txt",
     #elif defined llX5 
         "data/11x5_beton_list.txt",
+    #elif defined K3
+        "data/k3_beton_list.txt",
     #endif
 };
 
@@ -52,7 +59,9 @@ static const char OPENCODE_LIST_PATH[] = {
         "data/ssc_opencode_list.txt",
     #elif defined llX5 
         "data/11x5_opencode_list.txt",
+    #elif defined K3 
+        "data/k3_opencode_list.txt",
     #endif
 };
-
+*/
 #endif

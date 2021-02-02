@@ -1,0 +1,14 @@
+{
+    "LOTTERY_KIND" : "11x5",
+    "OPENCODE_SAMPLE" : "1-2-3-4-5",
+    "OPENCODE_ANSWER_TABLE_PATH" : 
+    [
+        "data/11x5_opencode_table_1.csv",
+        "data/11x5_opencode_table_2.csv"
+    ],
+    "BETON_LIST_PATH":  "data/11x5_beton_list.txt",
+    "OPENCODE_LIST_PATH" : "data/11x5_opencode_list.txt",
+    "KERNEL_PATH" : "kernels/kernel_program.cl",
+    "LOG_PATH" : "log/calc_opencode_amount.log",
+    "SOCKET_PORT" : 8700
+ }

@@ -2,29 +2,22 @@
 
 int loadBetonList()
 {
-    int fullpathLength = strlen(gWorkerFolder) + strlen(BETON_LIST_PATH) + 2;
-    char* fullpath = (char*)malloc(sizeof(char) * fullpathLength +1);
-    memset(fullpath, '\0', sizeof(char) * fullpathLength + 1);
-    pathCombine(fullpath, gWorkerFolder, BETON_LIST_PATH);
-
-    log_debug("check beton list file %s", fullpath);
-    if(!exists(fullpath))
+    log_debug("check beton list file %s", gBetonListPath);
+    if(!exists(gBetonListPath))
     {
-        log_error("Can't find beton list file...(%s)", fullpath);
+        log_error("Can't find beton list file...(%s)", gBetonListPath);
         exit(EXIT_SUCCESS);
     }
 
-    gBetonLenght = loadListFromFile(fullpath, NULL);
+    gBetonLenght = loadListFromFile(gBetonListPath, NULL);
     gBetonList = (char**)malloc(sizeof(char*) * gBetonLenght);
-    loadListFromFile(fullpath, &gBetonList);
+    loadListFromFile(gBetonListPath, &gBetonList);
 
     log_debug("gBetonList[%d]=%s", 0, gBetonList[0]);
     log_debug("gBetonList[%d]=%s", 1, gBetonList[1]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-2, gBetonList[gBetonLenght-2]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-1, gBetonList[gBetonLenght-1]);
 
-    if(fullpath)
-        free(fullpath);
     return gBetonLenght;
 }
 
@@ -281,4 +274,138 @@ int loadRowData2BetsAmountVector(
         index += gBetonLenght;
     }  
     return 0;
+}
+
+int read_from_json_file()
+{
+    int ret = 0;
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    const char *path;
+    if (count != -1) {
+        path = dirname(result);
+        printf("PATH=%s\n", path);
+    }
+
+    char* workerFolder = substring(path, 0, strlen(path) -3);
+    printf("workerFolder= %s\n", workerFolder);
+    strcpy(gWorkerFolder, workerFolder);
+   
+    char filename[PATH_MAX];
+    pathCombine(filename, path, "config.json");
+    printf("load from %s\n", filename);
+
+
+    if(exists(filename) != 1)
+    {
+        printf("can't find %s\n", filename);
+        return -1;
+    }
+
+	json_object *test_obj = NULL;
+	json_object *tmp_obj = NULL;
+	json_object *tmp1_obj = NULL;
+	json_object *tmp2_obj = NULL;
+
+    //get json object from file
+	test_obj = json_object_from_file(filename);
+	if (!test_obj)
+	{
+		printf("Cannot open %s\n", filename);
+		ret = -1;
+		goto error;
+	}
+    //==============================================
+    tmp_obj = json_object_object_get(test_obj, "LOTTERY_KIND");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "LOTTERY_KIND");
+		ret = -1;
+		goto error;
+	}
+	printf("LOTTERY_KIND = %s\n", json_object_get_string(tmp_obj));
+    //==============================================
+    tmp_obj = json_object_object_get(test_obj, "OPENCODE_SAMPLE");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "OPENCODE_SAMPLE");
+		ret = -1;
+		goto error;
+	}
+	printf("OPENCODE_SAMPLE = %s\n", json_object_get_string(tmp_obj));
+    //==============================================
+    //get array
+	tmp_obj = json_object_object_get(test_obj, "OPENCODE_ANSWER_TABLE_PATH");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "OPENCODE_ANSWER_TABLE_PATH");
+		ret = -1;
+		goto error;
+	}
+	//get the length of the array
+	printf("%s size = %d\n", "OPENCODE_ANSWER_TABLE_PATH", json_object_array_length(tmp_obj));
+
+	//get the value of array[0]
+	tmp1_obj = json_object_array_get_idx(tmp_obj, 0);
+    pathCombine(gKernelPath ,  gOpencodeAnswerTablePath[0] , json_object_get_string(tmp1_obj));
+	printf("%s[0] = %s\n", "OPENCODE_ANSWER_TABLE_PATH", json_object_get_string(tmp1_obj));
+
+	//get the value of array[1]
+	tmp1_obj = json_object_array_get_idx(tmp_obj, 1);
+    gOpencodeAnswerTablePath[1] =  json_object_get_string(tmp1_obj);
+	printf("%s[1] = %s\n", "OPENCODE_ANSWER_TABLE_PATH", json_object_get_string(tmp1_obj));
+    //==============================================
+    tmp_obj = json_object_object_get(test_obj, "BETON_LIST_PATH");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "BETON_LIST_PATH");
+		ret = -1;
+		goto error;
+	}
+    pathCombine(gBetonListPath , gWorkerFolder, json_object_get_string(tmp_obj));
+	printf("BETON_LIST_PATH = %s\n", json_object_get_string(tmp_obj));
+    //==============================================
+    tmp_obj = json_object_object_get(test_obj, "OPENCODE_LIST_PATH");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "OPENCODE_LIST_PATH");
+		ret = -1;
+		goto error;
+	}
+	printf("OPENCODE_LIST_PATH = %s\n", json_object_get_string(tmp_obj));
+    //==============================================
+    tmp_obj = json_object_object_get(test_obj, "KERNEL_PATH");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "KERNEL_PATH");
+		ret = -1;
+		goto error;
+	}
+    pathCombine(gKernelPath , gWorkerFolder, json_object_get_string(tmp_obj));
+	printf("KERNEL_PATH = %s\n", json_object_get_string(tmp_obj));
+    //==============================================
+    tmp_obj = json_object_object_get(test_obj, "LOG_PATH");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "LOG_PATH");
+		ret = -1;
+		goto error;
+	}
+    pathCombine(gLogPath , gWorkerFolder, json_object_get_string(tmp_obj));
+	printf("LOG_PATH = %s\n", json_object_get_string(tmp_obj));
+    //==============================================
+    //get integer
+	tmp_obj = json_object_object_get(test_obj, "SOCKET_PORT");
+	if (!tmp_obj)
+	{
+		printf("Cannot get %s object\n", "SOCKET_PORT");
+		ret = -1;
+		goto error;
+	}
+	printf("SOCKET_PORT = %d\n", json_object_get_int(tmp_obj));
+
+error:
+	json_object_put(test_obj);
+
+	return ret;
 }
