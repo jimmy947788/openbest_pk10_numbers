@@ -29,6 +29,9 @@ extern uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
 extern char gKernelPath[PATH_MAX];
 extern char gLogPath[PATH_MAX];
 extern char gBetonListPath[PATH_MAX];
+extern char gOpencodeListPath[PATH_MAX];
+extern char gOpencodeAnswerTablePath[USE_GPU_NUM][PATH_MAX];
+extern uint32 gSocketPort;
 
 int main(int argc, char* argv[])
 {
@@ -41,24 +44,14 @@ int main(int argc, char* argv[])
 
     read_from_json_file();
 
-    /*
-    laod_args(argc, argv, &kernel_program_file, &gWorkerFolder, &log_dir);
-    printf("log_dir=%s", log_dir);
-    strcpy(log_dir, "log/");
-
-    if(strlen(kernel_program_file) == 0 || strlen(gWorkerFolder) == 0)
-    {
-        printf("must be support argument...");
-        printf("\t--kernel-program <path>");
-        printf("\t--worker-folder  <path>");
-        printf("show help");
-        printf("\tcalc_opencode_amount -h");
-        exit(EXIT_SUCCESS);
-    }
-    */
-    log_trace("kernel_program_file: %s", gKernelPath);
-    log_trace("log_file: %s", gLogPath);
     log_trace("worker folder: %s", gWorkerFolder);
+    log_trace("gOpencodeAnswerTablePath[0]=%s", gOpencodeAnswerTablePath[0]);
+    log_trace("gOpencodeAnswerTablePath[1]=%s", gOpencodeAnswerTablePath[1]);
+    log_trace("gBetonListPath=%s", gBetonListPath);
+    log_trace("gOpencodeListPath=%s", gOpencodeListPath);
+    log_trace("gKernelPath=%s", gKernelPath);
+    log_trace("gLogPath=%s", gLogPath);
+    log_trace("gSocketPort=%d", gSocketPort);
 
 
     logfp = fopen(gLogPath, "a+");
@@ -71,17 +64,6 @@ int main(int argc, char* argv[])
         GPU_HANDEL_COUNT[num] = gOpencodeLenght / USE_GPU_NUM;
         log_info("GPU_HANDEL_COUNT[%d]=%d", num, GPU_HANDEL_COUNT[num]);
     }
-
-
-#ifdef PK10
-    log_info("this program was for PK10 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
-#elif defined SSC 
-    log_info("this program was for SSC (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
-#elif defined llX5
-    log_info("this program was for 11X5 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
-#elif defined K3
-    log_info("this program was for K33 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
-#endif
 
     int total_platforms = 0;
     cl_platform_id* platforms = NULL;
@@ -143,7 +125,7 @@ int main(int argc, char* argv[])
     cl_float* opencodeResultVector[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
-        log_info("load opencode answer table from %s...%d/%d", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
+        log_info("load opencode answer table from %s...%d/%d", gOpencodeAnswerTablePath[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
         opencodeAnswerTableVector[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableVectorLength);
         opencodeList[num] = (char**)malloc(sizeof(char*) * GPU_HANDEL_COUNT[num]);
@@ -151,7 +133,7 @@ int main(int argc, char* argv[])
         int ret = loadOpencodeAnswerTableVector(
             opencodeAnswerTableVector[num], 
             opencodeList[num],
-            OPENCODE_ANSWER_TABLE_PATH[num]);
+            gOpencodeAnswerTablePath[num]);
         log_info("opencodeList[%d] length:%ld", num, ret);
         
     }
@@ -180,14 +162,16 @@ int main(int argc, char* argv[])
     cl_event kernel_events[USE_GPU_NUM];
     cl_event read_events[USE_GPU_NUM];
 
-    /*
+    
     log_debug("opencodeAnswerTableVector[0][0]=%d", opencodeAnswerTableVector[0][0]);
     log_debug("opencodeAnswerTableVector[0][1]=%d", opencodeAnswerTableVector[0][1]);
+    /*
     log_debug("opencodeAnswerTableVector[0][5883099999]=%d", opencodeAnswerTableVector[0][5883099999]);
     log_debug("opencodeAnswerTableVector[0][5883100000]=%d", opencodeAnswerTableVector[0][5883100000]);
-
+    */
     log_debug("opencodeAnswerTableVector[1][0]=%d", opencodeAnswerTableVector[1][0]);
     log_debug("opencodeAnswerTableVector[1][1]=%d", opencodeAnswerTableVector[1][1]);
+    /*
     log_debug("opencodeAnswerTableVector[1][5883099999]=%d", opencodeAnswerTableVector[1][5883099999]);
     log_debug("opencodeAnswerTableVector[1][5883100000]=%d", opencodeAnswerTableVector[1][5883100000]);
     */

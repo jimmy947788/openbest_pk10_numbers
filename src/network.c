@@ -14,7 +14,7 @@ int create_socket()
 
     serverInfo.sin_family = PF_INET;
     serverInfo.sin_addr.s_addr = INADDR_ANY;
-    serverInfo.sin_port = htons(SOCKET_PORT);
+    serverInfo.sin_port = htons(gSocketPort);
     ret = bind(sockfd,(struct sockaddr *)&serverInfo,sizeof(serverInfo));
     if(ret == -1)
     {

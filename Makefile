@@ -52,14 +52,6 @@ ifeq ($(ver), debug)
 	CFLAGS += -g -DDEBUG
 endif
 
-ifeq ($(lotterykind), ssc)
-	CFLAGS += -DSSC
-else ifeq ($(lotterykind), pk10)
-	CFLAGS += -DPK10
-else ifeq ($(lotterykind), llX5)
-	CFLAGS += -DllX5
-endif
-
 $(PROJ): src/*.c
 	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -DLOG_USE_COLOR
 	cp kernels/kernel_program.cl bin/

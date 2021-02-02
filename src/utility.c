@@ -123,19 +123,16 @@ void build_program_for_all_devices(
     cl_program** program)
 {
     cl_int errNum;
-    char* kernel_program_fullpath = (char*)malloc(sizeof(char) * (strlen(gWorkerFolder) + strlen(path) + 2));
-    pathCombine(kernel_program_fullpath, gWorkerFolder, path);
-    log_debug("kernel_program_fullpath =%s", kernel_program_fullpath);
 
-    if(!exists(kernel_program_fullpath))
+    if(!exists(gKernelPath))
     {
-        log_error("Can't find kernel program file...(%s)", kernel_program_fullpath);
+        log_error("Can't find kernel program file...(%s)", gKernelPath);
         exit(EXIT_FAILURE);
     }
 
     // Load the kernel source code into the array source_str
     char* programContent = (char*)malloc(MAX_SOURCE_SIZE);
-    size_t programSize = readContent(programContent, kernel_program_fullpath);
+    size_t programSize = readContent(programContent, gKernelPath);
 
     // Create a program from the kernel source
     *program = clCreateProgramWithSource(context, 1, 
@@ -144,8 +141,6 @@ void build_program_for_all_devices(
     //printf("create OpenCL program from %s ........... successful!!\n", kernel_program_path);
     if(programContent)
         free(programContent);
-    if(kernel_program_fullpath)
-        free(kernel_program_fullpath);
 
     // Build the program
     //errNum = clBuildProgram(*program, num_devices, device_list, NULL, NULL, NULL);

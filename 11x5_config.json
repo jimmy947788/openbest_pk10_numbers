@@ -1,6 +1,5 @@
 {
     "LOTTERY_KIND" : "11x5",
-    "OPENCODE_SAMPLE" : "1-2-3-4-5",
     "OPENCODE_ANSWER_TABLE_PATH" : 
     [
         "data/11x5_opencode_table_1.csv",

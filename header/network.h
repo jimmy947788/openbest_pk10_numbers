@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "common.h"
 #include "config.h"
 
 #ifndef NETWORK_H_   /* Include guard */

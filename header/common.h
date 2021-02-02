@@ -16,4 +16,7 @@ uint32 GPU_HANDEL_COUNT[USE_GPU_NUM];
 char     gKernelPath[PATH_MAX];
 char     gLogPath[PATH_MAX];
 char     gBetonListPath[PATH_MAX];
+char     gOpencodeListPath[PATH_MAX];
+char     gOpencodeAnswerTablePath[USE_GPU_NUM][PATH_MAX];
+uint32  gSocketPort;
 #endif

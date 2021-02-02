@@ -1,0 +1,13 @@
+{
+    "LOTTERY_KIND" : "k3",
+    "OPENCODE_ANSWER_TABLE_PATH" : 
+    [
+        "data/k3_opencode_table_1.csv",
+        "data/k3_opencode_table_2.csv"
+    ],
+    "BETON_LIST_PATH":  "data/k3_beton_list.txt",
+    "OPENCODE_LIST_PATH" : "data/k3_opencode_list.txt",
+    "KERNEL_PATH" : "kernels/kernel_program.cl",
+    "LOG_PATH" : "log/calc_opencode_amount.log",
+    "SOCKET_PORT" : 8701
+ }
