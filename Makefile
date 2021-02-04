@@ -4,6 +4,8 @@ CC=gcc
 
 CFLAGS=-std=c99 -Wall -DUNIX -Wpointer-to-int-cast -Wimplicit-function-declaration 
 
+LIBS=-ljson-c
+
 # Check for 32-bit vs 64-bit
 PROC_TYPE = $(strip $(shell uname -m | grep 64))
  
@@ -14,7 +16,7 @@ DARWIN = $(strip $(findstring DARWIN, $(OS)))
 # MacOS System
 ifneq ($(DARWIN),)
 	CFLAGS += -DMAC
-	LIBS=-framework OpenCL
+	LIBS+= -framework OpenCL
 
 	ifeq ($(PROC_TYPE),)
 		CFLAGS+=-arch i386
@@ -23,7 +25,7 @@ ifneq ($(DARWIN),)
 	endif
 else
 	# Linux OS
-	LIBS=-lOpenCL
+	LIBS+= -lOpenCL
 	ifeq ($(PROC_TYPE),)
 		CFLAGS+=-m32
 	else
