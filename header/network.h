@@ -9,6 +9,8 @@
 #ifndef NETWORK_H_   /* Include guard */
 #define NETWORK_H_
 
+int create_socket(int port);
+
 void recv_data(char* data, 
     char* beton_amount_table_file, 
     char* beton_amount_table_with_odds_file, 

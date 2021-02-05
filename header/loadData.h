@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <libgen.h>         // dirname
+#include <json-c/json.h>
+#include <linux/limits.h>   // PATH_MAX
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -75,4 +78,7 @@ int loadRowData2BetsAmountVector(
     float*          totalBetsAmount,
     const char*     rawDatalist[],
     int             rawDatalistLength);
+
+int loadConfigFromJsonFile(const char* lotteryKind);
+
 #endif

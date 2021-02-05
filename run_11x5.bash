@@ -5,19 +5,15 @@
 #WORKFOLDER="$currentPath"
 
 WORKFOLDER="/home/matrix/openbest_pk10_numbers"
+LOTTERY_KIND="11x5"
 
-SERVICE="optimize_opencode"
-if ps ax | grep -v grep | grep $SERVICE > /dev/null
+SERVICE="optimize_opencode -k $LOTTERY_KIND"
+if ps ax | grep -v grep | grep "$SERVICE" > /dev/null
 then
     echo "$SERVICE is running"
 else
     echo "$SERVICE stopped"
-    #"$currentPath"/bin/calc_opencode_amount \
-    #    --work-folder "$currentPath" \
-    #    --kernel-program /bin/kernel_program.cl
-    "$WORKFOLDER"/bin/$SERVICE \
-        --worker-folder  "$WORKFOLDER" \
-        --kernel-program bin/kernel_program.cl
+    "$WORKFOLDER"/bin/$SERVICE
 fi
 
 tmp0=$(nvidia-smi -i 0 | grep "Default" | awk '{print $3}') #溫度

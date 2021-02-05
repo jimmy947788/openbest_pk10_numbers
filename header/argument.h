@@ -11,7 +11,5 @@
 
 void help();
 void laod_args(int argc, char* argv[], 
-        char kernel_program_file[], 
-        char work_folder[], 
-        char log_dir[]);
+        char lotteryKind[]);
 #endif

@@ -1,6 +1,6 @@
 #include "../header/network.h"
 
-int create_socket()
+int create_socket(int port)
 {
     int sockfd = 0, ret = 0;
     sockfd = socket(AF_INET , SOCK_STREAM , 0);
@@ -14,7 +14,7 @@ int create_socket()
 
     serverInfo.sin_family = PF_INET;
     serverInfo.sin_addr.s_addr = INADDR_ANY;
-    serverInfo.sin_port = htons(SOCKET_PORT);
+    serverInfo.sin_port = htons(port);
     ret = bind(sockfd,(struct sockaddr *)&serverInfo,sizeof(serverInfo));
     if(ret == -1)
     {

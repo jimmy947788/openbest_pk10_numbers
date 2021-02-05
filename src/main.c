@@ -6,6 +6,8 @@
 #include <math.h>
 #include <string.h>
 #include <sys/types.h>
+#include <linux/limits.h>   // PATH_MAX
+#include<json-c/json.h>
 
 #include "../header/common.h"
 #include "../header/loadData.h"
@@ -17,7 +19,7 @@
 #include "../header/logger.h"
 #include "../header/mystring.h"
 
-extern char     gWorkerFolder[MAX_LENGTH];
+extern char     gWorkerFolder[PATH_MAX];
 extern char**   gBetonList;
 extern uint32      gBetonLenght;
 
@@ -26,14 +28,13 @@ extern uint32      gOpencodeLenght;
 
 extern uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
 
-
-void init_log(FILE **logfp, const char* log_dir)
-{
-    char log_file[MAX_LENGTH];
-    sprintf(log_file, "%s/%scalc_opencode_amount.log", gWorkerFolder, log_dir);
-    *logfp = fopen(log_file, "a+");
-    log_add_fp(*logfp, LOG_TRACE);
-}
+extern char gLotteryKind[MAX_LENGTH];
+extern char gKernelPath[PATH_MAX];
+extern char gLogPath[PATH_MAX];
+extern char gBetonListPath[PATH_MAX];
+extern char gOpencodeListPath[PATH_MAX];
+extern char gOpencodeAnswerTablePath[USE_GPU_NUM][PATH_MAX];
+extern uint32 gSocketPort;
 
 int main(int argc, char* argv[])
 {
@@ -42,28 +43,32 @@ int main(int argc, char* argv[])
     char beton_amount_table_file[MAX_LENGTH] = "";
     char beton_amount_table_with_odds_file[MAX_LENGTH] = "";
     FILE *logfp;
-    char log_dir[MAX_LENGTH];
     clock_t timeStart, timeEnd;
 
-    laod_args(argc, argv, &kernel_program_file, &gWorkerFolder, &log_dir);
-    
-    printf("log_dir=%s", log_dir);
-    strcpy(log_dir, "log/");
-
-    if(strlen(kernel_program_file) == 0 || strlen(gWorkerFolder) == 0)
+    laod_args(argc, argv, &gLotteryKind);
+    if(strlen(gLotteryKind) == 0)
     {
-        printf("must be support argument...");
-        printf("\t--kernel-program <path>");
-        printf("\t--worker-folder  <path>");
+        printf("must be support lotterykind...");
+        printf("\topenbest_pk10_numbers -k 11x5");
+        printf("\topenbest_pk10_numbers --lotteryKind 11x5");
         printf("show help");
-        printf("\tcalc_opencode_amount -h");
+        printf("\topenbest_pk10_numbers -h");
         exit(EXIT_SUCCESS);
     }
-    log_debug("kernel_program_file: %s", kernel_program_file);
-    //log_debug("log_file: %s", log_file);
-    log_debug("worker folder: %s", gWorkerFolder);
 
-    init_log(&logfp, log_dir);
+    loadConfigFromJsonFile(gLotteryKind);
+    
+    logfp = fopen(gLogPath, "a+");
+    log_add_fp(logfp, LOG_TRACE);
+    log_trace("%-25s : %s", "WorkerFolder", gWorkerFolder);
+    log_trace("%-25s : %s", "OpencodeAnswerTablePath[0]", gOpencodeAnswerTablePath[0]);
+    log_trace("%-25s : %s", "OpencodeAnswerTablePath[1]", gOpencodeAnswerTablePath[1]);
+    log_trace("%-25s : %s", "BetonListPath", gBetonListPath);
+    log_trace("%-25s : %s", "OpencodeListPath", gOpencodeListPath);
+    log_trace("%-25s : %s", "KernelPath", gKernelPath);
+    log_trace("%-25s : %s", "LogPath", gLogPath);
+    log_trace("%-25s : %d", "SocketPort", gSocketPort);
+
     loadBetonList();
     loadOpencodeList();
     for(int num=0; num<=USE_GPU_NUM-1; num++)
@@ -71,15 +76,6 @@ int main(int argc, char* argv[])
         GPU_HANDEL_COUNT[num] = gOpencodeLenght / USE_GPU_NUM;
         log_info("GPU_HANDEL_COUNT[%d]=%d", num, GPU_HANDEL_COUNT[num]);
     }
-
-
-#ifdef PK10
-    log_info("this program was for PK10 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
-#elif defined SSC 
-    log_info("this program was for SSC (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
-#elif defined llX5
-    log_info("this program was for 11X5 (OPENCODE_COUNT=%d, BETON_COUNT=%d)...", gOpencodeLenght, gBetonLenght);    
-#endif
 
     int total_platforms = 0;
     cl_platform_id* platforms = NULL;
@@ -141,7 +137,7 @@ int main(int argc, char* argv[])
     cl_float* opencodeResultVector[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
-        log_info("load opencode answer table from %s...%d/%d", OPENCODE_ANSWER_TABLE_PATH[num], (num+1), USE_GPU_NUM);
+        log_info("load opencode answer table from %s...%d/%d", gOpencodeAnswerTablePath[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
         opencodeAnswerTableVector[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableVectorLength);
         opencodeList[num] = (char**)malloc(sizeof(char*) * GPU_HANDEL_COUNT[num]);
@@ -149,7 +145,7 @@ int main(int argc, char* argv[])
         int ret = loadOpencodeAnswerTableVector(
             opencodeAnswerTableVector[num], 
             opencodeList[num],
-            OPENCODE_ANSWER_TABLE_PATH[num]);
+            gOpencodeAnswerTablePath[num]);
         log_info("opencodeList[%d] length:%ld", num, ret);
         
     }
@@ -178,14 +174,18 @@ int main(int argc, char* argv[])
     cl_event kernel_events[USE_GPU_NUM];
     cl_event read_events[USE_GPU_NUM];
 
-    /*
+    
     log_debug("opencodeAnswerTableVector[0][0]=%d", opencodeAnswerTableVector[0][0]);
     log_debug("opencodeAnswerTableVector[0][1]=%d", opencodeAnswerTableVector[0][1]);
+    /*
+    int lastIndex1 = GPU_HANDEL_COUNT[0] - 1;
+    int lastIndex2 = GPU_HANDEL_COUNT[0];
     log_debug("opencodeAnswerTableVector[0][5883099999]=%d", opencodeAnswerTableVector[0][5883099999]);
     log_debug("opencodeAnswerTableVector[0][5883100000]=%d", opencodeAnswerTableVector[0][5883100000]);
-
+    */
     log_debug("opencodeAnswerTableVector[1][0]=%d", opencodeAnswerTableVector[1][0]);
     log_debug("opencodeAnswerTableVector[1][1]=%d", opencodeAnswerTableVector[1][1]);
+    /*
     log_debug("opencodeAnswerTableVector[1][5883099999]=%d", opencodeAnswerTableVector[1][5883099999]);
     log_debug("opencodeAnswerTableVector[1][5883100000]=%d", opencodeAnswerTableVector[1][5883100000]);
     */
@@ -224,9 +224,9 @@ int main(int argc, char* argv[])
     int     direction = 0;
     float   killRate = 0;
     int     resultLength=0;
-    float   totalBetsAmount;
+    float   totalBetsAmount = 0;
     float   targetAmount = 0;
-    sockfd = create_socket();
+    sockfd = create_socket(gSocketPort);
 
     log_info("init one_mask ...");
     one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * gBetonLenght);
@@ -237,6 +237,25 @@ int main(int argc, char* argv[])
 
     int nDataLength = 0;   
     int totalDataLength = 0;
+
+    json_object* json_obj =NULL;
+    json_object *tmp_obj = NULL;
+    json_object *bets_arr_obj = NULL;
+
+    json_object *bets_betons_index_obj = NULL;
+    json_object *betons_arr_obj = NULL;
+    json_object *betons_obj = NULL;
+    
+    json_object *bets_odds_index_obj = NULL;
+    json_object *odds_arr_obj = NULL;
+    json_object *odds_obj = NULL;
+
+    json_object *bets_unitAmount_index_obj = NULL;
+    json_object *unitAmount_obj = NULL;
+
+    float unitAmount = 0;
+    char** bets = NULL;
+    float* odds = NULL;
     while(true)
     {
         log_info("ready to recv data...(recv buffer size:%d)", MAX_BUFFER_SIZE);
@@ -252,12 +271,8 @@ int main(int argc, char* argv[])
         while ((nDataLength = recv(forClientSockfd, recvBuffer,  sizeof(char) * MAX_BUFFER_SIZE, 0)) > 0) {
             totalDataLength += nDataLength;
             //printf("===>%s, len:%d\n", recvBuffer, nDataLength);
-
-            //recvBufferStrip = (char*)malloc(sizeof(char) * totalDataLength);
-            
             if(strlen(recvRawData) == 0)
             {
-                //recvRawData = (char*)malloc(sizeof(char) * nDataLength);
                 strcpy(recvRawData, recvBuffer);
             }
             else
@@ -274,29 +289,95 @@ int main(int argc, char* argv[])
         log_debug("recvRawData:%s, len:%d", recvRawData, strlen(recvRawData));
 
          timeStart = clock();
+        
+        //讀取web pass 過來的 json資料
+        //===============================================================
+        char jsonfile[MAX_LENGTH];
+        strcpy(jsonfile, recvRawData); 
+        if(recvRawData)
+            free(recvRawData);
 
-        //把資料切分出行
-        recvRowLength = count(recvRawData, '^') + 1;
-        log_debug("recvRowLength=%d", recvRowLength);
-        recvRows = (char**)malloc(sizeof(char*) * recvRowLength);
-        if(recvRows){
-            log_debug("allloc recvRows memory success...");
+        json_obj = json_object_from_file(jsonfile);
+        if (!json_obj)
+        {
+            printf("Cannot open %s\n", jsonfile);
+            //ret = -1;
+            goto error;
         }
-        else
-            log_error("allloc recvRows memory failed...");
-        split(recvRows, recvRawData, "^");
 
-        //第一行是運算參數
-        loadParmeters(&wagerLength, &expectId, &direction, &killRate, &resultLength, recvRows[0]);
-        log_trace("expectId=%s, wager_length=%d, direction=%d, killRate=%f, resultLength=%d",
-            expectId,  
-            wagerLength, 
-            direction, 
-            killRate,
-            resultLength);
+        //讀取wager_length
+        //===============================================
+        tmp_obj = json_object_object_get(json_obj, "wager_length");
+        if (!tmp_obj)
+        {
+            printf("Cannot get %s object\n", "wager_length");
+            //ret = -1;
+            goto error;
+        }
+        wagerLength = json_object_get_int(tmp_obj);
+        printf("%s = %d\n", "wager_length", wagerLength);
 
-         rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
-        rawDatalistLength = recvRowLength - 1; //少一筆因為第比是計算參數  
+        //讀取 expectId
+        //===============================================
+        tmp_obj = json_object_object_get(json_obj, "expectId");
+        if (!tmp_obj)
+        {
+            printf("Cannot get %s object\n", "expectId");
+            //ret = -1;
+            goto error;
+        }
+        strcpy(expectId,  json_object_get_string(tmp_obj));
+        printf("%s = %s\n", "expectId", expectId);
+
+        //讀取 direction
+        //===============================================
+        tmp_obj = json_object_object_get(json_obj, "direction");
+        if (!tmp_obj)
+        {
+            printf("Cannot get %s object\n", "direction");
+            //ret = -1;
+            goto error;
+        }
+        direction = json_object_get_int(tmp_obj);
+        printf("%s = %d\n", "direction", direction);
+
+        //讀取 killRate
+        //===============================================
+        tmp_obj = json_object_object_get(json_obj, "killRate");
+        if (!tmp_obj)
+        {
+            printf("Cannot get %s object\n", "killRate");
+            //ret = -1;
+            goto error;
+        }
+        killRate = json_object_get_double(tmp_obj);
+        printf("%s = %F\n", "killRate", killRate);
+
+        //讀取 opencodeCount
+        //===============================================
+        tmp_obj = json_object_object_get(json_obj, "opencodeCount");
+        if (!tmp_obj)
+        {
+            printf("Cannot get %s object\n", "opencodeCount");
+            //ret = -1;
+            goto error;
+        }
+        resultLength = json_object_get_int(tmp_obj);
+        printf("%s = %d\n", "resultLength", resultLength);
+
+        //讀取 Bets array
+        //===============================================
+        bets_arr_obj = json_object_object_get(json_obj, "Bets");
+        if (!bets_arr_obj)
+        {
+            printf("Cannot get %s object\n", "Bets");
+            //ret = -1;
+            goto error;
+        }
+        //get the length of the array
+        int bets_length = json_object_array_length(bets_arr_obj);
+        printf("%s size = %d\n", "Bets", bets_length);
+
         log_debug("betsAmountVector length is %d", gBetonLenght * wagerLength);
         betsAmountVector = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
         memset(betsAmountVector, 0, gBetonLenght * wagerLength);
@@ -304,13 +385,97 @@ int main(int argc, char* argv[])
         betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
         memset(betsAmountWithOddsVector, 0, gBetonLenght * wagerLength);
 
-        loadRowData2BetsAmountVector(
-            betsAmountVector,
-            betsAmountWithOddsVector,
-            &totalBetsAmount,
-            rawDatalist, 
-            rawDatalistLength
-        );
+        int startIndex = 0;
+        totalBetsAmount = 0;
+        for (int i=0 ; i<= bets_length-1 ; i++ )
+        {
+            //取得 betons array 物件
+            //=======================================
+            bets_betons_index_obj = json_object_array_get_idx(bets_arr_obj, i);
+            betons_arr_obj = json_object_object_get(bets_betons_index_obj, "betons");
+            int betons_length = json_object_array_length(betons_arr_obj);
+	        //printf("%s size = %d\n", "betons", betons_length);
+  
+            //取得 odds array 物件
+            //=======================================
+            bets_odds_index_obj = json_object_array_get_idx(bets_arr_obj, i);
+            odds_arr_obj = json_object_object_get(bets_odds_index_obj, "odds");
+            int odds_length = json_object_array_length(odds_arr_obj);
+	        //printf("%s size = %d\n", "odds", odds_length);
+
+            //unitAmount
+            //=======================================
+            bets_unitAmount_index_obj = json_object_array_get_idx(bets_arr_obj, i);
+            unitAmount_obj = json_object_object_get(bets_unitAmount_index_obj, "unitAmount");
+            float unitAmount =  json_object_get_double(unitAmount_obj);
+            printf("%s = %F\n", "unitAmount", unitAmount);
+            
+            //讀取 betons array 
+            //讀取 odds array 
+            //=======================================
+            char** bets = (char**)malloc(sizeof(char*) * betons_length);
+            float* odds = (float*)malloc(sizeof(float) * odds_length);
+            for(int j=0; j<= betons_length-1; j++ )
+            {
+                betons_obj = json_object_array_get_idx(betons_arr_obj, j);
+                bets[j] = (char*)malloc(sizeof(char) * strlen(json_object_get_string(betons_obj)));
+                strcpy(bets[j],  json_object_get_string(betons_obj));
+
+                odds_obj = json_object_array_get_idx(odds_arr_obj, j);
+                odds[j] = json_object_get_double(odds_obj);
+                printf("====>betons[%d]=%s, odds[%d]=%F \n",  j, bets[j], j, odds[j]);              
+
+                totalBetsAmount += unitAmount;
+            }
+
+            //build betsAmountVector & betsAmountWithOddsVector
+            //length = gBetonLenght * wagerLength
+            //========================================================================
+            int odds_index = 0;
+            for(int i=0; i<=gBetonLenght-1; i++)
+            {
+                if(contains(gBetonList[i], bets, betons_length) == 1)
+                {
+                    betsAmountVector[startIndex + i] = unitAmount;
+                    betsAmountWithOddsVector[startIndex + i] = (odds[odds_index] - 1) * unitAmount; //此處賠率要扣掉1（本金
+                    odds_index ++;
+                }
+                else
+                {
+                    betsAmountVector[startIndex + i] = 0;
+                    betsAmountWithOddsVector[startIndex + i] = 0;
+                }
+            }
+            startIndex += gBetonLenght;
+            //========================================================================
+
+            //Release alloc memory
+            //========================================================================
+            for(int j=0; j<= betons_length-1; j++ )
+            {
+                if(bets[j])
+                {
+                    log_debug("Release bets[%d] pointer", j);
+                    free(bets[j]);
+                }
+            }
+            if(bets){
+                log_debug("Release bets pointer");
+                free(bets);
+            }
+            if(odds){
+                log_debug("Release odds pointer");
+                free(odds);
+            }
+        }
+
+        log_trace("expectId=%s, wager_length=%d, direction=%d, killRate=%f, resultLength=%d",
+            expectId,  
+            wagerLength, 
+            direction, 
+            killRate,
+            resultLength);
+
         timeEnd = clock();
         log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "bets_to_onehot", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
         
@@ -321,8 +486,6 @@ int main(int argc, char* argv[])
             log_info("user winner target_amount=%f", targetAmount);
         else //if(tolerance ==-1)
             log_info("banker winner target_amount=%f", targetAmount);
-
-        //send(forClientSockfd, "456", sizeof(char) * strlen("456"), 0);
 
 #ifdef DEBUG
         float sum = 0;
@@ -336,8 +499,10 @@ int main(int argc, char* argv[])
             one_mask, 
             betsAmountVector,
             &totalBetsAmountVector);
-        if(betsAmountVector)
+        if(betsAmountVector){
+            log_debug("Release betsAmountVector pointer...");
             free(betsAmountVector);
+        }
 #ifdef DEBUG
         sum = 0;
         //printf("totalBetsAmountVector=");
@@ -548,7 +713,7 @@ int main(int argc, char* argv[])
         timeStart = clock();
         char result_file[MAX_LENGTH];
         memset(result_file, '\0', MAX_LENGTH);
-        sprintf(result_file, "%s/data/opencode_amount_result_%s.csv", gWorkerFolder, expectId);
+        sprintf(result_file, "%s/data/%s_opencode_amount_result_%s.csv", gWorkerFolder, gLotteryKind, expectId);
         //check result file exist
         FILE* fp = fopen(result_file, "r");
         if (fp) {
@@ -672,21 +837,17 @@ int main(int argc, char* argv[])
         memset(dateTime, 0, sizeof(dateTime));
         GetDateTime(dateTime);
         log_info("The Local date and time is %s", dateTime);
+error:
+	    json_object_put(json_obj);
+
+        if(totalBetsAmountVector)
+            free(totalBetsAmountVector);
+        if(totalBetsAmountWithOddsVector)
+            free(totalBetsAmountWithOddsVector);
 
         //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
         send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
         log_info("send back LEN process done!");
-
-        log_info("free every recvRows array.");
-        for(int i=0; i<= recvRowLength -1; i++ )
-        {
-            if(recvRows[i])
-                free(recvRows[i]);
-        }
-        if(recvRows)
-            free(recvRows);
-        if(recvRawData)
-            free(recvRawData);
     }
     exit(EXIT_SUCCESS);
 }

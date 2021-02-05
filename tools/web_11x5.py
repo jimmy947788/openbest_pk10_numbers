@@ -110,6 +110,14 @@ def submit():
         tolerance = jdata["Tolerance"]
         killRate = jdata["KillRate"]
     
+        dddd = {}
+        dddd["wager_length"] = wager_length
+        dddd["expectId"] = expectId;
+        dddd["tolerance"] = tolerance;
+        dddd["killRate"] = killRate;
+        dddd["opencodeCount"] = opencodeCount;
+        dddd["Bets"] = []
+        """
         #sendData = "DATA:"
         sendData = ""
         sendData += f"{wager_length}|"
@@ -117,15 +125,26 @@ def submit():
         sendData += f"{tolerance}|"
         sendData += f"{killRate}|"
         sendData += f"{opencodeCount}"
+        """
         for jBet in jdata["Bets"]:
             (betons, odds, unitAmount, betOnCount) = A5_11x5.transferWager(logging, jBet) 
+            """
             sendData += "^"
             sendData += ",".join(betons) + "|"
             sendData += ",".join(odds) + "|"  
             sendData += str(unitAmount)  
+            """
+            dddd["Bets"].append({
+                "betons" : betons,
+                "odds" : odds,
+                "unitAmount" : unitAmount,
+            })
+        
+        with open(f'{currentPath}/data/bets_{expectId}.json', 'w') as outfile:
+            json.dump(dddd, outfile)
 
-        #sendData = sendData[:len(sendData)-1]
-        print(f"{sendData}, len:{len(sendData)}")
+        # sendData = sendData[:len(sendData)-1]
+        # print(f"{sendData}, len:{len(sendData)}")
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect(("127.0.0.1", 8700))
@@ -135,7 +154,7 @@ def submit():
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             client.connect(("127.0.0.1", 8700))
-            client.sendall(sendData.encode())
+            client.sendall(f'{currentPath}/data/bets_{expectId}.json'.encode())
             recv_msg = client.recv(32767).decode("UTF-8").replace('\0', '')
             logging.debug(f"Server:{recv_msg}")
         
