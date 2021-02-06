@@ -1,13 +1,12 @@
 
+#ifndef MYSTRING_H_   /* Include guard */
+#define MYSTRING_H_
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "config.h"
 #include "common.h"
 #include "logger.h"
-
-#ifndef MYSTRING_H_   /* Include guard */
-#define MYSTRING_H_
 
 /** 
  * @brief 計算字元在字串裡面出現得次數。

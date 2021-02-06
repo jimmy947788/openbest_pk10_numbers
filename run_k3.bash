@@ -24,5 +24,8 @@ then
     reboot
 fi
 
-#sudo gdb bin/optimize_opencode
-#r --worker-folder  "/home/matrix/openbest_pk10_numbers"  --kernel-program bin/kernel_program.cl
+# 用GDB啟動
+#sudo gdb bin/optimize_opencode -k 11x5
+
+# 用valgrind啟動 抓漏
+#sudo valgrind --leak-check=full --show-leak-kinds=all --verbose --log-file=Valgrind.log ./bin/optimize_op encode -k 11x5

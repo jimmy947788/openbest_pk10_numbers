@@ -1,13 +1,14 @@
+
+//for socket
+#ifndef NETWORK_H_   /* Include guard */
+#define NETWORK_H_
+
 #include <stdlib.h>
 #include <string.h>
-//for socket
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include "config.h"
-
-#ifndef NETWORK_H_   /* Include guard */
-#define NETWORK_H_
+#include "common.h"
 
 int create_socket(int port);
 

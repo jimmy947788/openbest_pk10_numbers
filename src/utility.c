@@ -4,7 +4,7 @@ void checkErr(cl_int err, const char* name)
 {
     if(err != CL_SUCCESS)
     {
-        printf("ERROR: %s ( %d )\n", name, err);
+        log_error("ERROR: %s ( %d )\n", name, err);
         exit(EXIT_FAILURE);
     }
 }
@@ -46,9 +46,7 @@ cl_uint get_platforms(cl_platform_id **platforms)
 
     errNum = clGetPlatformIDs(0, NULL, &total_platforms);
     checkErr((errNum != CL_SUCCESS)? errNum : (total_platforms <= 0 ? -1 : CL_SUCCESS), "clGetPlatformIDs for init.");
-#ifdef DEBUG
-    printf("Get number of Platforms: %d\n", total_platforms);
-#endif
+    log_debug("Get number of Platforms: %d", total_platforms);
 
     *platforms = (cl_platform_id*) malloc(sizeof(cl_platform_id) * total_platforms);
     errNum = clGetPlatformIDs(total_platforms, *platforms, NULL);
@@ -178,94 +176,86 @@ void executionTime(cl_event event, double* elapsedTime)
     //return (double)(end - start)*(double)(1e-06); // convert nanoseconds to seconds on return
 }
 
+
 int run_kernel_sum_beton_total_amount(
-        cl_context context, 
-        cl_command_queue queue, 
-        cl_kernel kernel,
-        int wgaer_length, 
-        cl_ushort* one_mask, 
-        cl_float* bet_amount, 
+        const cl_context context, 
+        const  cl_command_queue queue, 
+        const  cl_kernel kernel,
+        const  int wgaer_length, 
+        const  cl_ushort* one_mask, 
+        const  cl_float* bet_amount, 
         cl_float** result)
 {
-    cl_int errNum;
-    
-    log_info("clCreateBuffer mask_buffer");
+    cl_int errNum;  
     /* Create a write-only buffer to hold the output data */
+    log_debug("clCreateBuffer mask_buffer");
     cl_mem mask_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_ushort) * gBetonLenght, 
         one_mask, 
         &errNum); 
-    if(errNum < 0) {
-      log_error("Couldn't create a mask_buffer");
-      exit(EXIT_FAILURE);
-    };
+    checkErr(errNum, "clCreateBuffer"); 
 
-    log_info("clCreateBuffer bet_amount_buffer");
+    log_debug("clCreateBuffer bet_amount_buffer");
     cl_mem bet_amount_buffer = clCreateBuffer(context, 
         CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, 
         sizeof(cl_float) * gBetonLenght * wgaer_length, 
         bet_amount, 
         &errNum);    
-    if(errNum < 0) {
-      log_error("Couldn't create a bet_amount_buffer");
-      exit(EXIT_FAILURE);
-    };
+    checkErr(errNum, "clCreateBuffer");   
 
+    log_debug("clCreateBuffer result_buffer");
     cl_mem result_buffer = clCreateBuffer(context,
         CL_MEM_WRITE_ONLY,
         sizeof(cl_float) * gBetonLenght, 
         NULL, 
         &errNum);
-     if(errNum < 0) {
-      log_error("Couldn't create a result_buffer");
-      exit(EXIT_FAILURE);
-    };
+    checkErr(errNum, "clCreateBuffer"); 
 
-    /* Create kernel argument */
+     /* Create kernel argument */
+    log_debug("clSetKernelArg mask_buffer");
     errNum = clSetKernelArg(kernel, 0, sizeof(cl_mem), &mask_buffer);
-    if(errNum < 0) {
-        log_error("Couldn't set a kernel argument(mask_buffer)");
-        exit(EXIT_FAILURE);
-    };
+    checkErr(errNum, "clSetKernelArg"); 
+
+    log_debug("clSetKernelArg bet_amount_buffer");
     errNum = clSetKernelArg(kernel, 1, sizeof(cl_mem), &bet_amount_buffer);
-    if(errNum < 0) {
-        log_error("Couldn't set a kernel argument(bet_amount_buffer)");
-        exit(EXIT_FAILURE);
-    };
+    checkErr(errNum, "clSetKernelArg"); 
+
+    log_debug("clSetKernelArg result_buffer");
     errNum = clSetKernelArg(kernel, 2, sizeof(cl_mem), &result_buffer);
-    if(errNum < 0) {
-        log_error("Couldn't set a kernel argument(result_buffer)");
-        exit(EXIT_FAILURE);
-    };
+    checkErr(errNum, "clSetKernelArg"); 
+
+    log_debug("clSetKernelArg wgaer_length");
     errNum = clSetKernelArg(kernel, 3, sizeof(cl_int), &wgaer_length);
-    if(errNum < 0) {
-        log_error("Couldn't set a kernel argument(wgaer_length)");
-        exit(EXIT_FAILURE);
-    };
+    checkErr(errNum, "clSetKernelArg"); 
 
     int dim = 1;
     const size_t global_offset[] = { 0 };
     const size_t global_size[] = { gBetonLenght };
     const size_t local_size[] = { 1 };
-    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  NULL);
 
-    checkErr(errNum, "clEnqueueNDRangeKernel");    
+    log_debug("clEnqueueNDRangeKernel  dim:%d, global_offset=%d, global_size:%u, local_size:%d", dim, global_offset[0], global_size[0], local_size[0]);
+    errNum = clEnqueueNDRangeKernel(queue, kernel, dim, global_offset, global_size, local_size, 0, NULL,  NULL);
+    checkErr(errNum, "clEnqueueNDRangeKernel");   
+
     log_info("pass kernel code to GPU");
 
+    log_debug("clEnqueueReadBuffer result");
      /* Read and print the result */
     errNum = clEnqueueReadBuffer(queue, result_buffer, CL_TRUE, 0, sizeof(cl_float) * gBetonLenght, *result, 0, NULL, NULL);
-    if(errNum < 0) {
-        log_error("Couldn't read the buffer");
-        exit(EXIT_FAILURE);
-    }
+    checkErr(errNum, "clEnqueueReadBuffer");  
 
-    log_debug("Release result_buffer object...");
-    clReleaseMemObject(result_buffer);
-    log_debug("Release mask_buffer object...");
-    clReleaseMemObject(mask_buffer);
-    log_debug("Release bet_amount_buffer object...");
+    log_debug("clReleaseMemObject result_buffer");
+    errNum = clReleaseMemObject(result_buffer);
+    checkErr(errNum, "clReleaseMemObject");  
+
+    log_debug("clReleaseMemObject mask_buffer");
+    errNum = clReleaseMemObject(mask_buffer);
+    checkErr(errNum, "clReleaseMemObject");  
+
+    log_debug("clReleaseMemObject bet_amount_buffer");
     clReleaseMemObject(bet_amount_buffer);
+    checkErr(errNum, "clReleaseMemObject");  
    
-    return 0;
+    return errNum;
 }

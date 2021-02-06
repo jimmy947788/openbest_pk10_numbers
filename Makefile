@@ -52,8 +52,11 @@ ifeq ($(ver), debug)
 	CFLAGS += -g -DDEBUG
 endif
 
-$(PROJ): src/*.c
-	$(CC) $(CFLAGS) -o bin/$@ $^ $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -DLOG_USE_COLOR
+# Should be equivalent to your list of C files, if you don't build selectively
+SRC=$(wildcard src/*.c)
+
+$(PROJ): $(SRC)
+	$(CC) $(CFLAGS) -o bin/$@ $^ -Iheader $(INC_DIRS:%=-I%) $(LIB_DIRS:%=-L%) $(LIBS) -DLOG_USE_COLOR
 	cp kernels/kernel_program.cl bin/
 	cp configs/* bin/
 

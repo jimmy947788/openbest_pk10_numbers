@@ -8,33 +8,31 @@
 #include <sys/types.h>
 #include <linux/limits.h>   // PATH_MAX
 #include<json-c/json.h>
-
 #include "../header/common.h"
-#include "../header/loadData.h"
-#include "../header/config.h"
-#include "../header/argument.h"
 #include "../header/utility.h"
+#include "../header/loadData.h"
+#include "../header/argument.h"
 #include "../header/dateTime.h"
 #include "../header/network.h"
 #include "../header/logger.h"
 #include "../header/mystring.h"
 
-extern char     gWorkerFolder[PATH_MAX];
-extern char**   gBetonList;
-extern uint32      gBetonLenght;
+char     gWorkerFolder[PATH_MAX];
+char**   gBetonList;
+uint32      gBetonLenght;
 
-extern char**   gOpencodeList;
-extern uint32      gOpencodeLenght;
+char**   gOpencodeList;
+uint32      gOpencodeLenght;
 
-extern uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
+uint32   GPU_HANDEL_COUNT[USE_GPU_NUM];
 
-extern char gLotteryKind[MAX_LENGTH];
-extern char gKernelPath[PATH_MAX];
-extern char gLogPath[PATH_MAX];
-extern char gBetonListPath[PATH_MAX];
-extern char gOpencodeListPath[PATH_MAX];
-extern char gOpencodeAnswerTablePath[USE_GPU_NUM][PATH_MAX];
-extern uint32 gSocketPort;
+char gLotteryKind[MAX_LENGTH];
+char gKernelPath[PATH_MAX];
+char gLogPath[PATH_MAX];
+char gBetonListPath[PATH_MAX];
+char gOpencodeListPath[PATH_MAX];
+char gOpencodeAnswerTablePath[USE_GPU_NUM][PATH_MAX];
+uint32 gSocketPort;
 
 int main(int argc, char* argv[])
 {
@@ -60,14 +58,14 @@ int main(int argc, char* argv[])
     
     logfp = fopen(gLogPath, "a+");
     log_add_fp(logfp, LOG_TRACE);
-    log_trace("%-25s : %s", "WorkerFolder", gWorkerFolder);
-    log_trace("%-25s : %s", "OpencodeAnswerTablePath[0]", gOpencodeAnswerTablePath[0]);
-    log_trace("%-25s : %s", "OpencodeAnswerTablePath[1]", gOpencodeAnswerTablePath[1]);
-    log_trace("%-25s : %s", "BetonListPath", gBetonListPath);
-    log_trace("%-25s : %s", "OpencodeListPath", gOpencodeListPath);
-    log_trace("%-25s : %s", "KernelPath", gKernelPath);
-    log_trace("%-25s : %s", "LogPath", gLogPath);
-    log_trace("%-25s : %d", "SocketPort", gSocketPort);
+    log_trace("%-27s : %s", "WorkerFolder", gWorkerFolder);
+    log_trace("%-27s : %s", "OpencodeAnswerTablePath[0]", gOpencodeAnswerTablePath[0]);
+    log_trace("%-27s : %s", "OpencodeAnswerTablePath[1]", gOpencodeAnswerTablePath[1]);
+    log_trace("%-27s : %s", "BetonListPath", gBetonListPath);
+    log_trace("%-27s : %s", "OpencodeListPath", gOpencodeListPath);
+    log_trace("%-27s : %s", "KernelPath", gKernelPath);
+    log_trace("%-27s : %s", "LogPath", gLogPath);
+    log_trace("%-27s : %d", "SocketPort", gSocketPort);
 
     loadBetonList();
     loadOpencodeList();
@@ -219,7 +217,7 @@ int main(int argc, char* argv[])
     int     recvColumnLength = 0;
     char**  rawDatalist = NULL;
     int     rawDatalistLength = 0; 
-    int     wagerLength = 0;
+    uint16     wagerLength = 0;
     char    expectId[MAX_LENGTH];
     int     direction = 0;
     float   killRate = 0;
@@ -238,24 +236,7 @@ int main(int argc, char* argv[])
     int nDataLength = 0;   
     int totalDataLength = 0;
 
-    json_object* json_obj =NULL;
-    json_object *tmp_obj = NULL;
-    json_object *bets_arr_obj = NULL;
 
-    json_object *bets_betons_index_obj = NULL;
-    json_object *betons_arr_obj = NULL;
-    json_object *betons_obj = NULL;
-    
-    json_object *bets_odds_index_obj = NULL;
-    json_object *odds_arr_obj = NULL;
-    json_object *odds_obj = NULL;
-
-    json_object *bets_unitAmount_index_obj = NULL;
-    json_object *unitAmount_obj = NULL;
-
-    float unitAmount = 0;
-    char** bets = NULL;
-    float* odds = NULL;
     while(true)
     {
         log_info("ready to recv data...(recv buffer size:%d)", MAX_BUFFER_SIZE);
@@ -297,177 +278,28 @@ int main(int argc, char* argv[])
         if(recvRawData)
             free(recvRawData);
 
-        json_obj = json_object_from_file(jsonfile);
-        if (!json_obj)
-        {
-            printf("Cannot open %s\n", jsonfile);
-            //ret = -1;
-            goto error;
-        }
 
-        //讀取wager_length
-        //===============================================
-        tmp_obj = json_object_object_get(json_obj, "wager_length");
-        if (!tmp_obj)
-        {
-            printf("Cannot get %s object\n", "wager_length");
-            //ret = -1;
-            goto error;
-        }
-        wagerLength = json_object_get_int(tmp_obj);
-        printf("%s = %d\n", "wager_length", wagerLength);
+        loadWagerLengthFromJsonFile(&wagerLength, jsonfile);
+        //build betsAmountVector & betsAmountWithOddsVector
+        uint32 betsAmountVectorLength = gBetonLenght * wagerLength;
+        log_trace("betsAmountVector length is %u", betsAmountVectorLength);
+        betsAmountVector = (cl_float*)malloc(sizeof(cl_float) *  betsAmountVectorLength);
+        //memset(betsAmountVector, 0, betsAmountVectorLength);
 
-        //讀取 expectId
-        //===============================================
-        tmp_obj = json_object_object_get(json_obj, "expectId");
-        if (!tmp_obj)
-        {
-            printf("Cannot get %s object\n", "expectId");
-            //ret = -1;
-            goto error;
-        }
-        strcpy(expectId,  json_object_get_string(tmp_obj));
-        printf("%s = %s\n", "expectId", expectId);
+        log_trace("betsAmountWithOddsVector length is %u", betsAmountVectorLength);
+        betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * betsAmountVectorLength);
+        //memset(betsAmountWithOddsVector, 0, betsAmountVectorLength);
 
-        //讀取 direction
-        //===============================================
-        tmp_obj = json_object_object_get(json_obj, "direction");
-        if (!tmp_obj)
-        {
-            printf("Cannot get %s object\n", "direction");
-            //ret = -1;
-            goto error;
-        }
-        direction = json_object_get_int(tmp_obj);
-        printf("%s = %d\n", "direction", direction);
-
-        //讀取 killRate
-        //===============================================
-        tmp_obj = json_object_object_get(json_obj, "killRate");
-        if (!tmp_obj)
-        {
-            printf("Cannot get %s object\n", "killRate");
-            //ret = -1;
-            goto error;
-        }
-        killRate = json_object_get_double(tmp_obj);
-        printf("%s = %F\n", "killRate", killRate);
-
-        //讀取 opencodeCount
-        //===============================================
-        tmp_obj = json_object_object_get(json_obj, "opencodeCount");
-        if (!tmp_obj)
-        {
-            printf("Cannot get %s object\n", "opencodeCount");
-            //ret = -1;
-            goto error;
-        }
-        resultLength = json_object_get_int(tmp_obj);
-        printf("%s = %d\n", "resultLength", resultLength);
-
-        //讀取 Bets array
-        //===============================================
-        bets_arr_obj = json_object_object_get(json_obj, "Bets");
-        if (!bets_arr_obj)
-        {
-            printf("Cannot get %s object\n", "Bets");
-            //ret = -1;
-            goto error;
-        }
-        //get the length of the array
-        int bets_length = json_object_array_length(bets_arr_obj);
-        printf("%s size = %d\n", "Bets", bets_length);
-
-        log_debug("betsAmountVector length is %d", gBetonLenght * wagerLength);
-        betsAmountVector = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
-        memset(betsAmountVector, 0, gBetonLenght * wagerLength);
-        
-        betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
-        memset(betsAmountWithOddsVector, 0, gBetonLenght * wagerLength);
-
-        int startIndex = 0;
-        totalBetsAmount = 0;
-        for (int i=0 ; i<= bets_length-1 ; i++ )
-        {
-            //取得 betons array 物件
-            //=======================================
-            bets_betons_index_obj = json_object_array_get_idx(bets_arr_obj, i);
-            betons_arr_obj = json_object_object_get(bets_betons_index_obj, "betons");
-            int betons_length = json_object_array_length(betons_arr_obj);
-	        //printf("%s size = %d\n", "betons", betons_length);
-  
-            //取得 odds array 物件
-            //=======================================
-            bets_odds_index_obj = json_object_array_get_idx(bets_arr_obj, i);
-            odds_arr_obj = json_object_object_get(bets_odds_index_obj, "odds");
-            int odds_length = json_object_array_length(odds_arr_obj);
-	        //printf("%s size = %d\n", "odds", odds_length);
-
-            //unitAmount
-            //=======================================
-            bets_unitAmount_index_obj = json_object_array_get_idx(bets_arr_obj, i);
-            unitAmount_obj = json_object_object_get(bets_unitAmount_index_obj, "unitAmount");
-            float unitAmount =  json_object_get_double(unitAmount_obj);
-            printf("%s = %F\n", "unitAmount", unitAmount);
-            
-            //讀取 betons array 
-            //讀取 odds array 
-            //=======================================
-            char** bets = (char**)malloc(sizeof(char*) * betons_length);
-            float* odds = (float*)malloc(sizeof(float) * odds_length);
-            for(int j=0; j<= betons_length-1; j++ )
-            {
-                betons_obj = json_object_array_get_idx(betons_arr_obj, j);
-                bets[j] = (char*)malloc(sizeof(char) * strlen(json_object_get_string(betons_obj)));
-                strcpy(bets[j],  json_object_get_string(betons_obj));
-
-                odds_obj = json_object_array_get_idx(odds_arr_obj, j);
-                odds[j] = json_object_get_double(odds_obj);
-                printf("====>betons[%d]=%s, odds[%d]=%F \n",  j, bets[j], j, odds[j]);              
-
-                totalBetsAmount += unitAmount;
-            }
-
-            //build betsAmountVector & betsAmountWithOddsVector
-            //length = gBetonLenght * wagerLength
-            //========================================================================
-            int odds_index = 0;
-            for(int i=0; i<=gBetonLenght-1; i++)
-            {
-                if(contains(gBetonList[i], bets, betons_length) == 1)
-                {
-                    betsAmountVector[startIndex + i] = unitAmount;
-                    betsAmountWithOddsVector[startIndex + i] = (odds[odds_index] - 1) * unitAmount; //此處賠率要扣掉1（本金
-                    odds_index ++;
-                }
-                else
-                {
-                    betsAmountVector[startIndex + i] = 0;
-                    betsAmountWithOddsVector[startIndex + i] = 0;
-                }
-            }
-            startIndex += gBetonLenght;
-            //========================================================================
-
-            //Release alloc memory
-            //========================================================================
-            for(int j=0; j<= betons_length-1; j++ )
-            {
-                if(bets[j])
-                {
-                    log_debug("Release bets[%d] pointer", j);
-                    free(bets[j]);
-                }
-            }
-            if(bets){
-                log_debug("Release bets pointer");
-                free(bets);
-            }
-            if(odds){
-                log_debug("Release odds pointer");
-                free(odds);
-            }
-        }
+        loadParmetersFromJsonFile( 
+            &wagerLength, 
+            expectId,  
+            &direction, 
+            &killRate,
+            &resultLength,
+            &totalBetsAmount,
+            betsAmountVector,
+            betsAmountWithOddsVector,
+            jsonfile);
 
         log_trace("expectId=%s, wager_length=%d, direction=%d, killRate=%f, resultLength=%d",
             expectId,  
@@ -490,7 +322,10 @@ int main(int argc, char* argv[])
 #ifdef DEBUG
         float sum = 0;
 #endif
-        totalBetsAmountVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+        if(totalBetsAmountVector)
+            totalBetsAmountVector = (cl_float*)realloc(totalBetsAmountVector, sizeof(cl_float) * gBetonLenght);    
+        else
+            totalBetsAmountVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
@@ -499,6 +334,7 @@ int main(int argc, char* argv[])
             one_mask, 
             betsAmountVector,
             &totalBetsAmountVector);
+        log_debug("exec run_kernel_sum_beton_total_amount function done");
         if(betsAmountVector){
             log_debug("Release betsAmountVector pointer...");
             free(betsAmountVector);
@@ -516,7 +352,10 @@ int main(int argc, char* argv[])
         //printf("\n");
         log_debug("====> sum total_beton_amount = %f", sum);
 #endif
-        totalBetsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+        if(totalBetsAmountWithOddsVector)
+            totalBetsAmountWithOddsVector = (cl_float*)realloc(totalBetsAmountWithOddsVector, sizeof(cl_float) * gBetonLenght);  
+        else
+            totalBetsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
@@ -838,12 +677,18 @@ int main(int argc, char* argv[])
         GetDateTime(dateTime);
         log_info("The Local date and time is %s", dateTime);
 error:
+            /*
+        log_debug("Release json_obj pointer");
 	    json_object_put(json_obj);
-
+    
+        log_debug("Release totalBetsAmountVector pointer");
         if(totalBetsAmountVector)
             free(totalBetsAmountVector);
+        
+        log_debug("Release totalBetsAmountWithOddsVector pointer");
         if(totalBetsAmountWithOddsVector)
             free(totalBetsAmountWithOddsVector);
+        */
 
         //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
         send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);

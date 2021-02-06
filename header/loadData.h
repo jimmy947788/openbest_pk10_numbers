@@ -1,3 +1,6 @@
+#ifndef LOADDATA_H_   /* Include guard */
+#define LOADDATA_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -7,17 +10,12 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
-#include "utility.h"
-#include "config.h"
+#include "common.h"
 #include "dateTime.h"
 #include "mytype.h"
 #include "myfile.h"
 #include "mystring.h"
 #include "logger.h"
-
-#ifndef LOADDATA_H_   /* Include guard */
-#define LOADDATA_H_
-
 /** 
  * @brief 讀取TXT檔案到陣列。每一行一筆資料，最後一行要是空資料。
  * @note  
@@ -29,7 +27,7 @@ int loadListFromFile(const char* path, char*** list);
 
 int loadBetonList();
 int loadOpencodeList();
-int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char*** opencodeList, const char* path);
+int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char* opencodeList[], const char* path);
 
 /** 
  * @brief 轉換注單和賠率變成成opencl要處理的matrix  
@@ -81,4 +79,16 @@ int loadRowData2BetsAmountVector(
 
 int loadConfigFromJsonFile(const char* lotteryKind);
 
+int loadWagerLengthFromJsonFile(int* wagerLength, const char* jsonfile);
+
+int loadParmetersFromJsonFile(    
+    int*      wagerLength, 
+    char**      expectId, 
+    int*        direction, 
+    float*      killRate,
+    int*        resultLength,
+    float*     totalBetsAmount,
+    cl_float* betsAmountVector,
+    cl_float* betsAmountWithOddsVector,
+    const char* jsonfile);
 #endif

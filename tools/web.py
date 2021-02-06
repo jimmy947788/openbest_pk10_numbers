@@ -146,6 +146,7 @@ def submit():
                 return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
         
         jsonfile =f'{currentPath}/data/{lotteryCode}_bets_{expectId}.json' 
+        logging.info(f"path={jsonfile}")
         with open(jsonfile, 'w') as outfile:
             json.dump(jObj, outfile)
 

@@ -1,16 +1,8 @@
-#define _GNU_SOURCE
-#ifdef __APPLE__
-#include <OpenCL/opencl.h>
-#else
-#include <CL/cl.h>
-#endif
-
 #ifndef UTILITY_H_   /* Include guard */
 #define UTILITY_H_
 
 #include <stdio.h>
 #include <time.h>
-#include "config.h"
 #include "common.h"
 #include "loadData.h"
 #include "logger.h"
@@ -31,13 +23,14 @@ void build_program_for_all_devices(
     cl_program** program);
 void executionTime(cl_event event, double* elapsedTime);
 
+/*
 int run_kernel_sum_beton_total_amount(
-        cl_context context, 
-        cl_command_queue queue, 
-        cl_kernel kernel,
-        int wgaer_length, 
-        cl_ushort* one_mask, 
-        cl_float* bet_amount, 
+        const cl_context context, 
+        const  cl_command_queue queue, 
+        const  cl_kernel kernel,
+        const  int wgaer_length, 
+        const  cl_ushort* one_mask, 
+        const  cl_float* bet_amount, 
         cl_float** result);
-
+*/
 #endif

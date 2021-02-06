@@ -9,6 +9,9 @@
         "string": "c",
         "string_view": "c",
         "algorithm": "c",
-        "network.h": "c"
+        "network.h": "c",
+        "common.h": "c",
+        "argument.h": "c",
+        "loaddata.h": "c"
     }
 }

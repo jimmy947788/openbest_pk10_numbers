@@ -1,14 +1,13 @@
+#ifndef MYFILE_H_   /* Include guard */
+#define MYFILE_H_
+
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include "config.h"
 #include "common.h"
 #include "logger.h"
-
-#ifndef MYFILE_H_   /* Include guard */
-#define MYFILE_H_
 
 /** 
  * @brief 合併檔案路徑

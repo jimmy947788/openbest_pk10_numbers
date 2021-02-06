@@ -17,7 +17,7 @@ int loadBetonList()
     log_debug("gBetonList[%d]=%s", 1, gBetonList[1]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-2, gBetonList[gBetonLenght-2]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-1, gBetonList[gBetonLenght-1]);
-
+    log_info("gBetonLenght=%d", gBetonLenght);
     return gBetonLenght;
 }
 
@@ -31,7 +31,7 @@ int loadOpencodeList()
     }
     
     gOpencodeLenght = loadListFromFile(gOpencodeListPath, NULL);
-    log_debug("gOpencodeLenght=%d", gOpencodeLenght);
+    log_info("gOpencodeLenght=%u", gOpencodeLenght);
 
     gOpencodeList = (char**)malloc(sizeof(char*) * gOpencodeLenght);
     loadListFromFile(gOpencodeListPath, &gOpencodeList);
@@ -44,7 +44,7 @@ int loadOpencodeList()
     return gOpencodeLenght;
 }
 
-int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char*** opencodeList, const char* path)
+int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char* opencodeList[], const char* path)
 {
     FILE * fp;
     char * line = NULL;
@@ -85,11 +85,13 @@ int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char*** o
                     // Load opencode list 
                     // 把csv檔案的第1欄opencode存到opencode_list
                     opencodeListIndex = rowIndex - 1;
-                    //*(*opencodeList + opencodeListIndex) = (char*) malloc(sizeof(char) * opencodeLength);
-                    opencodeList[opencodeListIndex] = (char*) malloc(sizeof(char) * (opencodeLength + 1));
-                    memset(opencodeList[opencodeListIndex], '\0', sizeof(char) * (opencodeLength + 1));
-                    //strcpy(*(*opencodeList + opencodeListIndex), p);
-                    strcpy(opencodeList[opencodeListIndex], p);
+                    //*(opencodeList + opencodeListIndex) = (char*) malloc(sizeof(char) * (opencodeLength + 1));
+                    opencodeList[opencodeListIndex] = (char*)calloc(opencodeLength + 1, sizeof(char));
+                    //opencodeList[opencodeListIndex] = (char*) malloc(sizeof(char) * (opencodeLength + 1));
+                    //memset(*(opencodeList + opencodeListIndex) , '\0', sizeof(char) * (opencodeLength + 1));
+                    //strcpy(opencodeList[opencodeListIndex], p);
+                    opencodeList[opencodeListIndex] = p;
+
                     //printf("opencodeList[%d]= %s \n", opencodeListIndex, *(*opencodeList + opencodeListIndex));
                     //log_debug("opencodeList[%d]=%s",  opencodeListIndex, opencodeList[opencodeListIndex]);
                 }
@@ -114,11 +116,10 @@ int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char*** o
             //log_debug("==========>rowIndex:%d, column length:%d, opencodeAnswerTableIndex=%llu",  rowIndex, columnIndex-1, opencodeAnswerTableIndex);
         }
         rowIndex++;
+        line = NULL;
     }
 
     fclose(fp);
-    if (line)
-        free(line);
     timeEnd = clock();
     log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
     return rowIndex -1; //header不要
@@ -265,15 +266,18 @@ int loadRowData2BetsAmountVector(
 int loadConfigFromJsonFile(const char* lotteryKind)
 {
     int ret = 0;
-    char result[PATH_MAX];
-    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-    const char *path;
+    const char appPath[PATH_MAX];
+    const char appFoder[PATH_MAX];
+    memset(appPath, '\0', PATH_MAX);
+    memset(appFoder, '\0', PATH_MAX);
+    ssize_t count = readlink("/proc/self/exe", appPath, PATH_MAX);
     if (count != -1) {
-        path = dirname(result);
-        printf("PATH=%s\n", path);
+        printf("APP PATH=%s\n", appPath);
+        strcpy(appFoder, dirname(appPath));
+        printf("APP Folder=%s\n", appFoder); //後面有帶 bin/
     }
 
-    char* workerFolder = substring(path, 0, strlen(path) -3);
+    char* workerFolder = substring(appFoder, 0, strlen(appFoder) -3);
     printf("workerFolder= %s\n", workerFolder);
     strcpy(gWorkerFolder, workerFolder);
    
@@ -284,8 +288,8 @@ int loadConfigFromJsonFile(const char* lotteryKind)
 
     char configPath[PATH_MAX];
     memset(configPath, '\0', PATH_MAX);
-    pathCombine(configPath, path, configName);
-    printf("load config from : %s\n", configPath);
+    pathCombine(configPath, appFoder, configName);
+    //printf("load config file : %s\n", configPath);
 
     if(exists(configPath) != 1)
     {
@@ -316,17 +320,17 @@ int loadConfigFromJsonFile(const char* lotteryKind)
 		goto error;
 	}
 	//get the length of the array
-	printf("%s size = %d\n", "OPENCODE_ANSWER_TABLE_PATH", json_object_array_length(tmp_obj));
+	//printf("%s size = %d\n", "OPENCODE_ANSWER_TABLE_PATH", json_object_array_length(tmp_obj));
 
 	//get the value of array[0]
 	tmp1_obj = json_object_array_get_idx(tmp_obj, 0);
     pathCombine(gOpencodeAnswerTablePath[0], gWorkerFolder, json_object_get_string(tmp1_obj));
-	printf("%s[0] = %s\n", "OPENCODE_ANSWER_TABLE_PATH[0]", gOpencodeAnswerTablePath[0]);
+	//printf("%s[0] = %s\n", "OPENCODE_ANSWER_TABLE_PATH[0]", gOpencodeAnswerTablePath[0]);
 
 	//get the value of array[1]
 	tmp1_obj = json_object_array_get_idx(tmp_obj, 1);
     pathCombine(gOpencodeAnswerTablePath[1],  gWorkerFolder , json_object_get_string(tmp1_obj));
-	printf("%s[1] = %s\n", "OPENCODE_ANSWER_TABLE_PATH[1]",gOpencodeAnswerTablePath[1]);
+	//printf("%s[1] = %s\n", "OPENCODE_ANSWER_TABLE_PATH[1]",gOpencodeAnswerTablePath[1]);
     //==============================================
     tmp_obj = json_object_object_get(test_obj, "BETON_LIST_PATH");
 	if (!tmp_obj)
@@ -336,7 +340,7 @@ int loadConfigFromJsonFile(const char* lotteryKind)
 		goto error;
 	}
     pathCombine(gBetonListPath , gWorkerFolder, json_object_get_string(tmp_obj));
-	printf("BETON_LIST_PATH = %s\n",gBetonListPath);
+	//printf("BETON_LIST_PATH = %s\n",gBetonListPath);
     //==============================================
     tmp_obj = json_object_object_get(test_obj, "OPENCODE_LIST_PATH");
 	if (!tmp_obj)
@@ -346,7 +350,7 @@ int loadConfigFromJsonFile(const char* lotteryKind)
 		goto error;
 	}
     pathCombine(gOpencodeListPath,  gWorkerFolder , json_object_get_string(tmp_obj));
-	printf("OPENCODE_LIST_PATH = %s\n", gOpencodeListPath);
+	//printf("OPENCODE_LIST_PATH = %s\n", gOpencodeListPath);
     //==============================================
     tmp_obj = json_object_object_get(test_obj, "KERNEL_PATH");
 	if (!tmp_obj)
@@ -356,7 +360,7 @@ int loadConfigFromJsonFile(const char* lotteryKind)
 		goto error;
 	}
     pathCombine(gKernelPath , gWorkerFolder, json_object_get_string(tmp_obj));
-	printf("KERNEL_PATH = %s\n", gKernelPath);
+	//printf("KERNEL_PATH = %s\n", gKernelPath);
     //==============================================
     tmp_obj = json_object_object_get(test_obj, "LOG_PATH");
 	if (!tmp_obj)
@@ -366,7 +370,7 @@ int loadConfigFromJsonFile(const char* lotteryKind)
 		goto error;
 	}
     pathCombine(gLogPath , gWorkerFolder, json_object_get_string(tmp_obj));
-	printf("LOG_PATH = %s\n", gLogPath);
+	//printf("LOG_PATH = %s\n", gLogPath);
     //==============================================
     //get integer
 	tmp_obj = json_object_object_get(test_obj, "SOCKET_PORT");
@@ -377,10 +381,244 @@ int loadConfigFromJsonFile(const char* lotteryKind)
 		goto error;
 	}
     gSocketPort = json_object_get_int(tmp_obj);
-	printf("SOCKET_PORT = %d\n", gSocketPort);
+	//printf("SOCKET_PORT = %d\n", gSocketPort);
 
 error:
 	json_object_put(test_obj);
+
+	return ret;
+}
+
+int loadWagerLengthFromJsonFile(int* wagerLength, const char* jsonfile)
+{
+    int ret = 0;
+    json_object* json_obj =NULL;
+    json_object *tmp_obj = NULL;
+
+    json_obj = json_object_from_file(jsonfile);
+    if (!json_obj)
+    {
+        log_error("Cannot open %s", jsonfile);
+        ret = -1;
+        goto error;
+    }
+
+    //讀取wager_length
+    //===============================================
+    tmp_obj = json_object_object_get(json_obj, "wager_length");
+    if (!tmp_obj)
+    {
+        log_error("Cannot get %s object", "wager_length");
+        ret = -1;
+        goto error;
+    }
+    *wagerLength = json_object_get_int(tmp_obj);
+    log_trace("%s = %d", "wager_length", *wagerLength);
+error:
+	json_object_put(json_obj);
+
+	return ret;
+}
+
+int loadParmetersFromJsonFile(    
+    int*      wagerLength, 
+    char**      expectId, 
+    int*        direction, 
+    float*      killRate,
+    int*        resultLength,
+    float*     totalBetsAmount,
+    cl_float* betsAmountVector,
+    cl_float* betsAmountWithOddsVector,
+    const char* jsonfile)
+{
+    int ret = 0;
+    json_object* json_obj =NULL;
+    json_object *tmp_obj = NULL;
+    json_object *bets_arr_obj = NULL;
+
+    json_object *bets_betons_index_obj = NULL;
+    json_object *betons_arr_obj = NULL;
+    json_object *betons_obj = NULL;
+    
+    json_object *bets_odds_index_obj = NULL;
+    json_object *odds_arr_obj = NULL;
+    json_object *odds_obj = NULL;
+
+    json_object *bets_unitAmount_index_obj = NULL;
+    json_object *unitAmount_obj = NULL;
+
+    float unitAmount = 0;
+    char** bets = NULL;
+    float* odds = NULL;
+    char* beton = NULL;
+
+    json_obj = json_object_from_file(jsonfile);
+    if (!json_obj)
+    {
+        log_error("Cannot open %s", jsonfile);
+        ret = -1;
+        goto error;
+    }
+
+    //讀取wager_length
+    //===============================================
+    tmp_obj = json_object_object_get(json_obj, "wager_length");
+    if (!tmp_obj)
+    {
+        log_error("Cannot get %s object", "wager_length");
+        ret = -1;
+        goto error;
+    }
+    *wagerLength = json_object_get_int(tmp_obj);
+    log_trace("%s = %d", "wager_length", *wagerLength);
+
+    //讀取 expectId
+    //===============================================
+    tmp_obj = json_object_object_get(json_obj, "expectId");
+    if (!tmp_obj)
+    {
+        log_error("Cannot get %s object", "expectId");
+        ret = -1;
+        goto error;
+    }
+    strcpy(expectId,  json_object_get_string(tmp_obj));
+    log_trace("%s = %s", "expectId", expectId);
+
+    //讀取 direction
+    //===============================================
+    tmp_obj = json_object_object_get(json_obj, "direction");
+    if (!tmp_obj)
+    {
+        log_error("Cannot get %s object", "direction");
+        ret = -1;
+        goto error;
+    }
+    *direction = json_object_get_int(tmp_obj);
+    log_trace("%s = %d", "direction", *direction);
+
+    //讀取 killRate
+    //===============================================
+    tmp_obj = json_object_object_get(json_obj, "killRate");
+    if (!tmp_obj)
+    {
+        log_error("Cannot get %s object", "killRate");
+        ret = -1;
+        goto error;
+    }
+    *killRate = json_object_get_double(tmp_obj);
+    log_trace("%s = %F", "killRate", *killRate);
+
+    //讀取 opencodeCount
+    //===============================================
+    tmp_obj = json_object_object_get(json_obj, "opencodeCount");
+    if (!tmp_obj)
+    {
+        log_error("Cannot get %s object", "opencodeCount");
+        ret = -1;
+        goto error;
+    }
+    *resultLength = json_object_get_int(tmp_obj);
+    log_trace("%s = %d", "resultLength", *resultLength);
+
+    //讀取 Bets array
+    //===============================================
+    bets_arr_obj = json_object_object_get(json_obj, "Bets");
+    if (!bets_arr_obj)
+    {
+        log_error("Cannot get %s object", "Bets");
+        ret = -1;
+        goto error;
+    }
+    //get the length of the array
+    int bets_length = json_object_array_length(bets_arr_obj);
+    log_trace("%s size = %d", "Bets", bets_length);
+
+    int startIndex = 0;
+    *totalBetsAmount = 0;
+    for (int i=0 ; i<= bets_length-1 ; i++ )
+    {
+        //取得 betons array 物件
+        //=======================================
+        bets_betons_index_obj = json_object_array_get_idx(bets_arr_obj, i);
+        betons_arr_obj = json_object_object_get(bets_betons_index_obj, "betons");
+        int betons_length = json_object_array_length(betons_arr_obj);
+        //printf("%s size = %d\n", "betons", betons_length);
+
+        //取得 odds array 物件
+        //=======================================
+        bets_odds_index_obj = json_object_array_get_idx(bets_arr_obj, i);
+        odds_arr_obj = json_object_object_get(bets_odds_index_obj, "odds");
+        int odds_length = json_object_array_length(odds_arr_obj);
+        //printf("%s size = %d\n", "odds", odds_length);
+
+        //unitAmount
+        //=======================================
+        bets_unitAmount_index_obj = json_object_array_get_idx(bets_arr_obj, i);
+        unitAmount_obj = json_object_object_get(bets_unitAmount_index_obj, "unitAmount");
+        float unitAmount =  json_object_get_double(unitAmount_obj);
+        printf("%s = %F\n", "unitAmount", unitAmount);
+        
+        //讀取 betons array 
+        //讀取 odds array 
+        //=======================================
+        bets = (char**)malloc(sizeof(char*) * betons_length);
+        odds = (float*)malloc(sizeof(float) * odds_length);
+        beton = NULL;
+        for(int j=0; j<= betons_length-1; j++ )
+        {
+            betons_obj = json_object_array_get_idx(betons_arr_obj, j);
+            beton = json_object_get_string(betons_obj);
+            bets[j] = (char*)malloc(sizeof(char) * strlen(beton));
+            bets[j] = json_object_get_string(betons_obj);
+
+            odds_obj = json_object_array_get_idx(odds_arr_obj, j);
+            odds[j] = json_object_get_double(odds_obj);
+            printf("====>betons[%d]=%s, odds[%d]=%F \n",  j, bets[j], j, odds[j]);              
+
+            *totalBetsAmount += unitAmount;
+        }
+
+        //========================================================================
+        int odds_index = 0;
+        for(int i=0; i<=gBetonLenght-1; i++)
+        {
+            if(contains(gBetonList[i], bets, betons_length) == 1)
+            {
+                betsAmountVector[startIndex + i] = unitAmount;
+                printf("betsAmountVector[%d]=%f\n", startIndex + i,  betsAmountVector[startIndex + i]);
+                betsAmountWithOddsVector[startIndex + i] = (odds[odds_index] - 1) * unitAmount; //此處賠率要扣掉1（本金
+                odds_index ++;
+            }
+            else
+            {
+                betsAmountVector[startIndex + i] = 0;
+                betsAmountWithOddsVector[startIndex + i] = 0;
+            }
+        }
+        startIndex += gBetonLenght;
+        //========================================================================
+
+        //Release alloc memory
+        //========================================================================
+        for(int j=0; j<= betons_length-1; j++ )
+        {
+            if(bets[j])
+            {
+                log_debug("Release bets[%d] pointer", j);
+                bets[j] = NULL;
+            }
+        }
+        if(bets){
+            log_debug("Release bets pointer");
+            free(bets);
+        }
+        if(odds){
+            log_debug("Release odds pointer");
+            free(odds);
+        }
+    }
+error:
+	json_object_put(json_obj);
 
 	return ret;
 }

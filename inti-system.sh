@@ -4,6 +4,7 @@
 
 
 apt-get install net-tools hwinfo vim clinfo ocl-icd-libopencl1 opencl-headers ocl-icd-opencl-dev lsb-core nvidia-driver-455 python3-pip libjson-c-dev -y 
+apt-get install valgrind #指標抓漏工具
 
 sudo -H pip3 install Flask
 sudo -H pip3 install pandas

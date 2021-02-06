@@ -1,8 +1,9 @@
 
-#include <time.h>
-
 #ifndef DATETIME_H_   /* Include guard */
 #define DATETIME_H_
+
+#include <time.h>
+
 
 // GetDate - 獲取當前系統日期
 /**
