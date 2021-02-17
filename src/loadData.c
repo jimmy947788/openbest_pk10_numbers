@@ -99,12 +99,17 @@ int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char* ope
                 {
                     // 把csv檔案第1欄後面的答案存到opencode_answer
                     short ret = strtol(p, NULL, 10);
-                    if(ret > 0){
-                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 43;  
+                    if(ret > 0)
+                    {
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 43;  //+
+                    }
+                    else if (ret == 0)
+                    {
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 44; // 和 (不算輸贏)
                     }
                     else
                     {
-                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 45;  
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 45;  //-
                     }
                     
                     //opencodeAnswerTable[opencodeAnswerTableIndex] = ret;
@@ -568,7 +573,7 @@ int loadParmetersFromJsonFile(
         {
             betons_obj = json_object_array_get_idx(betons_arr_obj, j);
             beton = json_object_get_string(betons_obj);
-            bets[j] = (char*)malloc(sizeof(char) * strlen(beton));
+            //bets[j] = (char*)malloc(sizeof(char) * strlen(beton));
             bets[j] = json_object_get_string(betons_obj);
 
             odds_obj = json_object_array_get_idx(odds_arr_obj, j);
@@ -600,6 +605,7 @@ int loadParmetersFromJsonFile(
 
         //Release alloc memory
         //========================================================================
+        /*
         for(int j=0; j<= betons_length-1; j++ )
         {
             if(bets[j])
@@ -607,7 +613,7 @@ int loadParmetersFromJsonFile(
                 log_debug("Release bets[%d] pointer", j);
                 bets[j] = NULL;
             }
-        }
+        }*/
         if(bets){
             log_debug("Release bets pointer");
             free(bets);

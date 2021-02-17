@@ -120,29 +120,39 @@ def OTwoStarAny8_Beton(beton = "1 2 3 4 5 6 7 8 9 10 11"):
 def ODingWeiDanX_Beton(beton = "1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11,1 2 3 4 5 6 7 8 9 10 11"):
     result = []
     for a in beton.split(",")[0].split(" "):
-        result.append(f"O_DingWeiDan_X_a{a}")
+        if a:
+            result.append(f"O_DingWeiDan_X_a{a}")
     for b in  beton.split(",")[1].split(" "):
-        result.append(f"O_DingWeiDan_X_b{b}")
+        if b:
+            result.append(f"O_DingWeiDan_X_b{b}")
     for c in  beton.split(",")[2].split(" "):
-        result.append(f"O_DingWeiDan_X_c{c}")
+        if c:
+            result.append(f"O_DingWeiDan_X_c{c}")
     for d in  beton.split(",")[3].split(" "):
-        result.append(f"O_DingWeiDan_X_d{d}")
+        if d:
+            result.append(f"O_DingWeiDan_X_d{d}")
     for e in  beton.split(",")[4].split(" "):
-        result.append(f"O_DingWeiDan_X_e{e}")
+        if e:
+            result.append(f"O_DingWeiDan_X_e{e}")
     return (result, len(result))
 
 def OBSOEX_Beton(beton = "B S O E,B S O E,B S O E,B S O E,B S O E"):
     result = []
     for a in beton.split(",")[0].split(" "):
-        result.append(f"O_BSOE_X_a{a}")
+        if a :
+            result.append(f"O_BSOE_X_a{a}")
     for b in  beton.split(",")[1].split(" "):
-        result.append(f"O_BSOE_X_b{b}")
+        if b:
+            result.append(f"O_BSOE_X_b{b}")
     for c in  beton.split(",")[2].split(" "):
-        result.append(f"O_BSOE_X_c{c}")
+        if c:
+            result.append(f"O_BSOE_X_c{c}")
     for d in  beton.split(",")[3].split(" "):
-        result.append(f"O_BSOE_X_d{d}")
+        if d:
+            result.append(f"O_BSOE_X_d{d}")
     for e in  beton.split(",")[4].split(" "):
-        result.append(f"O_BSOE_X_e{e}")
+        if e:
+            result.append(f"O_BSOE_X_e{e}")
     return (result, len(result))
 
 def OSumBSOEX_Beton(beton="B S O E,TB TS"):

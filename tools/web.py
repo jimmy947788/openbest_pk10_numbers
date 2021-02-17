@@ -192,7 +192,7 @@ def submit():
         #print(json.dumps(response, cls=NumpyEncoder))
         end = time.time()
         #logging.debug(response)
-        logging.info(f"[Response] buId:{buId}, expectId:{expectId}, spend time: {end - start} s, row length:{ len(rows) }")
+        logging.info(f"[Response] buId: {buId}, expectId: {expectId}, spend time: {end - start} s, row length: { len(rows) }")
         return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
    
     return render_template('bestopen.html', title=title)
