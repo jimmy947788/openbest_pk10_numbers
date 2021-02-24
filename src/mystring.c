@@ -4,14 +4,15 @@
 int count(const char str[], char c)
 {
     //計算element數量
-    int length = 0;
-    for(int i = 0; str[i] != '\0'; i++)
+    int length = strlen(str);
+    int count = 0;
+    for(int i = 0; i<= length -1; i++)
     {
         if(str[i] == c)
-            ++length;
+            ++count;
     }
     //printf("===================>length=%d\n",length);
-    return length;
+    return count;
 }
 
 int split(char* list[], const char str[], const char delim[])

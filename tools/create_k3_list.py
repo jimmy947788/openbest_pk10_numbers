@@ -241,5 +241,5 @@ if __name__ == "__main__":
         print(f"K3_BLACKRED length:{length}")
 
     with open('k3_opencode_list.txt', 'w+', encoding='UTF-8') as f:
-         for (a, b, c) in  itertools.product('123456', repeat = 3):
+         for (a, b, c) in  itertools.combinations_with_replacement('123456', 3):
             f.write(f"{a},{b},{c}\n")

@@ -252,8 +252,12 @@ int main(int argc, char* argv[])
         while ((nDataLength = recv(forClientSockfd, recvBuffer,  sizeof(char) * MAX_BUFFER_SIZE, 0)) > 0) {
             totalDataLength += nDataLength;
             //printf("===>%s, len:%d\n", recvBuffer, nDataLength);
+
+            //recvBufferStrip = (char*)malloc(sizeof(char) * totalDataLength);
+            
             if(strlen(recvRawData) == 0)
             {
+                //recvRawData = (char*)malloc(sizeof(char) * nDataLength);
                 strcpy(recvRawData, recvBuffer);
             }
             else
@@ -270,37 +274,20 @@ int main(int argc, char* argv[])
         log_debug("recvRawData:%s, len:%d", recvRawData, strlen(recvRawData));
 
          timeStart = clock();
-        
-        //讀取web pass 過來的 json資料
-        //===============================================================
-        char jsonfile[MAX_LENGTH];
-        strcpy(jsonfile, recvRawData); 
-        if(recvRawData)
-            free(recvRawData);
 
+        //把資料切分出行
+        recvRowLength = count(recvRawData, '^') + 1;
+        log_debug("recvRowLength=%d", recvRowLength);
+        recvRows = (char**)malloc(sizeof(char*) * recvRowLength);
+        if(recvRows){
+            log_debug("allloc recvRows memory success...");
+        }
+        else
+            log_error("allloc recvRows memory failed...");
+        split(recvRows, recvRawData, "^");
 
-        loadWagerLengthFromJsonFile(&wagerLength, jsonfile);
-        //build betsAmountVector & betsAmountWithOddsVector
-        uint32 betsAmountVectorLength = gBetonLenght * wagerLength;
-        log_trace("betsAmountVector length is %u", betsAmountVectorLength);
-        betsAmountVector = (cl_float*)malloc(sizeof(cl_float) *  betsAmountVectorLength);
-        //memset(betsAmountVector, 0, betsAmountVectorLength);
-
-        log_trace("betsAmountWithOddsVector length is %u", betsAmountVectorLength);
-        betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * betsAmountVectorLength);
-        //memset(betsAmountWithOddsVector, 0, betsAmountVectorLength);
-
-        loadParmetersFromJsonFile( 
-            &wagerLength, 
-            expectId,  
-            &direction, 
-            &killRate,
-            &resultLength,
-            &totalBetsAmount,
-            betsAmountVector,
-            betsAmountWithOddsVector,
-            jsonfile);
-
+        //第一行是運算參數
+        loadParmeters(&wagerLength, &expectId, &direction, &killRate, &resultLength, recvRows[0]);
         log_trace("expectId=%s, wager_length=%d, direction=%d, killRate=%f, resultLength=%d",
             expectId,  
             wagerLength, 
@@ -308,6 +295,22 @@ int main(int argc, char* argv[])
             killRate,
             resultLength);
 
+         rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
+        rawDatalistLength = recvRowLength - 1; //少一筆因為第比是計算參數  
+        log_debug("betsAmountVector length is %d", gBetonLenght * wagerLength);
+        betsAmountVector = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
+        memset(betsAmountVector, 0, gBetonLenght * wagerLength);
+        
+        betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
+        memset(betsAmountWithOddsVector, 0, gBetonLenght * wagerLength);
+
+        loadRowData2BetsAmountVector(
+            betsAmountVector,
+            betsAmountWithOddsVector,
+            &totalBetsAmount,
+            rawDatalist, 
+            rawDatalistLength
+        );
         timeEnd = clock();
         log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "bets_to_onehot", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
         
@@ -319,13 +322,14 @@ int main(int argc, char* argv[])
         else //if(tolerance ==-1)
             log_info("banker winner target_amount=%f", targetAmount);
 
+        //send(forClientSockfd, "456", sizeof(char) * strlen("456"), 0);
+
 #ifdef DEBUG
         float sum = 0;
 #endif
-        if(totalBetsAmountVector)
-            totalBetsAmountVector = (cl_float*)realloc(totalBetsAmountVector, sizeof(cl_float) * gBetonLenght);    
-        else
-            totalBetsAmountVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+        totalBetsAmountVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+        for(int i=0; i<= gBetonLenght-1; i++)
+            totalBetsAmountVector[i] = 0.0f;
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
@@ -352,10 +356,9 @@ int main(int argc, char* argv[])
         //printf("\n");
         log_debug("====> sum total_beton_amount = %f", sum);
 #endif
-        if(totalBetsAmountWithOddsVector)
-            totalBetsAmountWithOddsVector = (cl_float*)realloc(totalBetsAmountWithOddsVector, sizeof(cl_float) * gBetonLenght);  
-        else
-            totalBetsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+        totalBetsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
+        for(int i=0; i<= gBetonLenght-1; i++)
+            totalBetsAmountWithOddsVector[i] = 0.0f;
         run_kernel_sum_beton_total_amount(
             context, 
             queue_list[0], 
@@ -364,8 +367,10 @@ int main(int argc, char* argv[])
             one_mask, 
             betsAmountWithOddsVector, 
             &totalBetsAmountWithOddsVector);
-        if(betsAmountWithOddsVector)
+        if(betsAmountWithOddsVector){
+            log_debug("Release betsAmountWithOddsVector pointer...");
             free(betsAmountWithOddsVector);
+        }
 #ifdef DEBUG
         sum = 0;
         for(int i=0; i<= gBetonLenght-1; i++)
@@ -528,24 +533,20 @@ int main(int argc, char* argv[])
             clReleaseEvent(result_buffer[num]);
 
 #ifdef DEBUG
-        for(int i=0; i<=20 - 1; i++)
+        for(int num=0; num<=USE_GPU_NUM-1; num++)
         {
-            log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeResultVector[0][i]);
+            for(int i=0; i<20 ; i++)
+            {
+                log_debug("%s, opencodeResultVector[%d][%lld]=%0.6f ", opencodeList[num][i], 
+                    num, i, opencodeResultVector[num][i]);
+            }
+            for(int i=20; i>=1 ; i--)
+            {
+                int32 index = GPU_HANDEL_COUNT[num] - i;
+                log_debug("%s, opencodeResultVector[%d][%lld]=%0.6f ", opencodeList[num][index], 
+                    num, index, opencodeResultVector[num][index]);
+            }
         }
-
-        for(int i= GPU_HANDEL_COUNT[0] - 1; i>=GPU_HANDEL_COUNT[0] -20; i--)
-        {
-            log_debug("%s, result[%d]=%0.6f ", opencodeList[0][i], i, opencodeResultVector[0][i]);
-        }
-        for(int i=0; i<=20 - 1; i++)
-        {
-            log_debug("%s, result[%d]=%0.6f ",opencodeList[1][i], i, opencodeResultVector[1][i]);
-        }
-        for(int i=GPU_HANDEL_COUNT[1]-1; i>=GPU_HANDEL_COUNT[1] -20; i--)
-        {
-            log_debug("%s, result[%d]=%0.6f ", opencodeList[1][i], i, opencodeResultVector[1][i]);
-        }
-
 #endif
 
         //clock_t timeStart, timeEnd;
@@ -677,10 +678,14 @@ int main(int argc, char* argv[])
         GetDateTime(dateTime);
         log_info("The Local date and time is %s", dateTime);
 error:
-            /*
+        //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
+        send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
+        log_info("send back LEN process done!");
+
+        /*
         log_debug("Release json_obj pointer");
 	    json_object_put(json_obj);
-    
+        */
         log_debug("Release totalBetsAmountVector pointer");
         if(totalBetsAmountVector)
             free(totalBetsAmountVector);
@@ -688,11 +693,15 @@ error:
         log_debug("Release totalBetsAmountWithOddsVector pointer");
         if(totalBetsAmountWithOddsVector)
             free(totalBetsAmountWithOddsVector);
-        */
-
-        //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
-        send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
-        log_info("send back LEN process done!");
+    
+        for(int num=0; num<=USE_GPU_NUM - 1; num++)
+        {
+            log_debug("Clean opencodeResultVector[%d] every elements to 0", num);
+            for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
+            {
+                opencodeResultVector[num][i] = 0.0f;
+            }
+        }
     }
     exit(EXIT_SUCCESS);
 }

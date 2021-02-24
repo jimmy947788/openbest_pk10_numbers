@@ -63,27 +63,25 @@ __kernel void calc_numbers_risk(
         i, total_amount_odds_vector[i],
         i, total_amount_vector[i]);
   */
-    if (answers_matrix[index] == 43)// +1
+    if (answers_matrix[index] == 87)// Win
     {
-      result[numbers_index] += total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
-      //sum+= total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
+      sum+= total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
     }
-    else if (answers_matrix[index] == 44) // 0
+    else if (answers_matrix[index] == 84) // Tie
     {
-      result[numbers_index] += 0; // 和 (不算輸贏)
+      sum += 0;
     }
-    else if (answers_matrix[index] == 45) // -1
+    else if (answers_matrix[index] == 76) // Loss
     {
-      result[numbers_index] += total_amount_vector[i] * -1; //沒中獎就用本金
-      //sum += total_amount_vector[i] * -1; //沒中獎就用本金
+      sum += total_amount_vector[i] * -1; //沒中獎就用本金
     }
-    //printf("answers_matrix[%lu]=%d, sum=%f\n",  index,  answers_matrix[index],  sum);
+    //printf("answers_matrix[%lu]=%d, sum=%f\n",  index,  answers_matrix[index], sum);
   }
-
   //printf("\n");
-  //printf("numbers_index=%d, numbers_size=%d, result[%d]=%f\n", numbers_index, numbers_size,  numbers_index, result[numbers_index]);
+  //printf("numbers_index=%d, result[%d]=%f\n", numbers_index,  numbers_index, result[numbers_index] );
   
   //debug用 
   //result[numbers_index] = numbers_index; 
-  //result[numbers_index] = sum;
+  result[numbers_index] = sum;
+  //printf("result[%lu] = %f\n", numbers_index, sum);
 }

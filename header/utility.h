@@ -23,7 +23,7 @@ void build_program_for_all_devices(
     cl_program** program);
 void executionTime(cl_event event, double* elapsedTime);
 
-/*
+
 int run_kernel_sum_beton_total_amount(
         const cl_context context, 
         const  cl_command_queue queue, 
@@ -32,5 +32,5 @@ int run_kernel_sum_beton_total_amount(
         const  cl_ushort* one_mask, 
         const  cl_float* bet_amount, 
         cl_float** result);
-*/
+
 #endif

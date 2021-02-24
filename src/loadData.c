@@ -12,12 +12,10 @@ int loadBetonList()
     gBetonLenght = loadListFromFile(gBetonListPath, NULL);
     gBetonList = (char**)malloc(sizeof(char*) * gBetonLenght);
     loadListFromFile(gBetonListPath, &gBetonList);
-
     log_debug("gBetonList[%d]=%s", 0, gBetonList[0]);
     log_debug("gBetonList[%d]=%s", 1, gBetonList[1]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-2, gBetonList[gBetonLenght-2]);
     log_debug("gBetonList[%d]=%s", gBetonLenght-1, gBetonList[gBetonLenght-1]);
-    log_info("gBetonLenght=%d", gBetonLenght);
     return gBetonLenght;
 }
 
@@ -91,39 +89,45 @@ int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char* ope
                     //memset(*(opencodeList + opencodeListIndex) , '\0', sizeof(char) * (opencodeLength + 1));
                     //strcpy(opencodeList[opencodeListIndex], p);
                     opencodeList[opencodeListIndex] = p;
-
-                    //printf("opencodeList[%d]= %s \n", opencodeListIndex, *(*opencodeList + opencodeListIndex));
+                    //printf("opencodeList[%d]= %s \n", opencodeListIndex, opencodeList[opencodeListIndex]);
                     //log_debug("opencodeList[%d]=%s",  opencodeListIndex, opencodeList[opencodeListIndex]);
                 }
                 else
                 {
+                    //printf("%s, ", p);
                     // 把csv檔案第1欄後面的答案存到opencode_answer
                     short ret = strtol(p, NULL, 10);
-                    if(ret > 0)
+                    opencodeAnswerTableVector[opencodeAnswerTableIndex] = 0;
+                    if( ret == 1)
                     {
-                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 43;  //+
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 'W';  //玩家贏 ASCII:87
+                        opencodeAnswerTableIndex ++;
                     }
-                    else if (ret == 0)
+                    else if( ret == 0)
+                    {   
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 'T'; // 和 (不算輸贏) ASCII:84
+                        opencodeAnswerTableIndex ++;
+                    }
+                    else if( ret == -1)
                     {
-                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 44; // 和 (不算輸贏)
+                       
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 'L';  //玩家輸 ASCII:76
+                        opencodeAnswerTableIndex ++;
                     }
-                    else
-                    {
-                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 45;  //-
-                    }
-                    
                     //opencodeAnswerTable[opencodeAnswerTableIndex] = ret;
-                    //printf("opencodeAnswerTable[%d]=%d\n",opencodeAnswerTableIndex, opencodeAnswerTable[opencodeAnswerTableIndex]);
-                    opencodeAnswerTableIndex ++;
+                    //printf("p=%s, opencodeAnswerTableVector[%d]=%s\n", p, opencodeAnswerTableIndex, opencodeAnswerTableVector[opencodeAnswerTableIndex]);
+                    //opencodeAnswerTableIndex ++;
                 }
                 columnIndex ++;
             }
+            //printf("\n");
             //log_debug("==========>rowIndex:%d, column length:%d, opencodeAnswerTableIndex=%llu",  rowIndex, columnIndex-1, opencodeAnswerTableIndex);
         }
         rowIndex++;
         line = NULL;
     }
-
+    
+    log_debug("==========>opencodeAnswerTableIndex=%llu", opencodeAnswerTableIndex);
     fclose(fp);
     timeEnd = clock();
     log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);

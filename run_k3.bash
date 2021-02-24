@@ -28,4 +28,4 @@ fi
 #sudo gdb bin/optimize_opencode -k 11x5
 
 # 用valgrind啟動 抓漏
-#sudo valgrind --leak-check=full --show-leak-kinds=all --verbose --log-file=Valgrind.log ./bin/optimize_op encode -k 11x5
+#sudo valgrind --leak-check=full --show-leak-kinds=all --verbose --log-file=Valgrind.log ./bin/optimize_op encode -k k3

@@ -249,10 +249,16 @@ def K3KUADU_Beton(beton="1 2 3 4 5"):
         result.append(f"K3_KUADU_{a}")
     return (result, len(result))
 
-def K3BLACKOE_Beton(beton="B S O E"):
+def K3BLACKOE_Beton(beton="O E"):
     result = []
     for a in beton.split(' '):
         result.append(f"K3_BLACKOE_{a}")
+    return (result, len(result))
+
+def K3BLACKBS_Beton(beton="B S"):
+    result = []
+    for a in beton.split(' '):
+        result.append(f"K3_BLACKBS_{a}")
     return (result, len(result))
 
 def K3REDOE_Beton(beton="O E"):
@@ -285,6 +291,8 @@ def transferWager(logging, jBets):
 
     if betTypePlayCode == "O_Sum_K":
         (betTypePlayCodeWithBetOnDic, length) = OSumK_Beton(rawBetOn)
+    if betTypePlayCode == "O_Sum_BSOE_K":
+        (betTypePlayCodeWithBetOnDic, length) = OSumBSOEK_Beton(rawBetOn)
     elif betTypePlayCode == "O_Same3B":
         (betTypePlayCodeWithBetOnDic, length) = OSame3B_Beton()
     elif betTypePlayCode == "O_Same3A":
@@ -297,7 +305,87 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = OSame2B_Beton(rawBetOn)
     elif betTypePlayCode == "O_Same2A":
         (betTypePlayCodeWithBetOnDic, length) = OSame2A_Beton(rawBetOn)
-   
+    elif betTypePlayCode == "O_Diff2":
+        (betTypePlayCodeWithBetOnDic, length) = ODfif2_Beton(rawBetOn)
+    elif betTypePlayCode == "O_KUADU":
+        (betTypePlayCodeWithBetOnDic, length) = OKUADU_Beton(rawBetOn)
+    elif betTypePlayCode == "O_SIX":
+        (betTypePlayCodeWithBetOnDic, length) = OSIX_Beton(rawBetOn)
+    elif betTypePlayCode == "O_3":
+        (betTypePlayCodeWithBetOnDic, length) = O3_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_SUM_03":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM03_Beton()
+    elif betTypePlayCode == "K3_SUM_04":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM04_Beton()
+    elif betTypePlayCode == "K3_SUM_05":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM05_Beton()
+    elif betTypePlayCode == "K3_SUM_06":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM06_Beton()
+    elif betTypePlayCode == "K3_SUM_07":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM07_Beton()
+    elif betTypePlayCode == "K3_SUM_08":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM08_Beton()
+    elif betTypePlayCode == "K3_SUM_09":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM09_Beton()
+    elif betTypePlayCode == "K3_SUM_10":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM10_Beton()
+    elif betTypePlayCode == "K3_SUM_11":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM11_Beton()
+    elif betTypePlayCode == "K3_SUM_12":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM12_Beton()
+    elif betTypePlayCode == "K3_SUM_13":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM13_Beton()
+    elif betTypePlayCode == "K3_SUM_14":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM14_Beton()
+    elif betTypePlayCode == "K3_SUM_15":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM15_Beton()
+    elif betTypePlayCode == "K3_SUM_16":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM16_Beton()
+    elif betTypePlayCode == "K3_SUM_17":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM17_Beton()
+    elif betTypePlayCode == "K3_SUM_18":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUM18_Beton()
+    elif betTypePlayCode == "K3_SUMBS":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUMBS_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_SUMOE":
+        (betTypePlayCodeWithBetOnDic, length) = K3SUMOE_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_OBS":
+        (betTypePlayCodeWithBetOnDic, length) = K3OBS_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_EBS":
+        (betTypePlayCodeWithBetOnDic, length) = K3EBS_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_SAME3A":
+        (betTypePlayCodeWithBetOnDic, length) = K3SAME3A_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_SAME3B":
+        (betTypePlayCodeWithBetOnDic, length) = K3SAME3B_Beton()
+    elif betTypePlayCode == "K3_CTN3A":
+        (betTypePlayCodeWithBetOnDic, length) = K3CTN3A_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_CTN3B":
+        (betTypePlayCodeWithBetOnDic, length) = K3CTN3B_Beton()
+    elif betTypePlayCode == "K3_DIFF3":
+        (betTypePlayCodeWithBetOnDic, length) = K3DIFF3_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_SAME2A":
+        (betTypePlayCodeWithBetOnDic, length) = K3SAME2A_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_SAME2B":
+        (betTypePlayCodeWithBetOnDic, length) = K3SAME2B_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_DIFF2":
+        (betTypePlayCodeWithBetOnDic, length) = K3DIFF2_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_3":
+        (betTypePlayCodeWithBetOnDic, length) = K33_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_SIX":
+        (betTypePlayCodeWithBetOnDic, length) = K3SIX_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_KUADU":
+        (betTypePlayCodeWithBetOnDic, length) = K3KUADU_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_BLACKOE":
+        (betTypePlayCodeWithBetOnDic, length) = K3BLACKOE_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_BLACKBS":
+        (betTypePlayCodeWithBetOnDic, length) = K3BLACKBS_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_REDOE":
+        (betTypePlayCodeWithBetOnDic, length) = K3REDOE_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_REDBS":
+        (betTypePlayCodeWithBetOnDic, length) = K3REDBS_Beton(rawBetOn)
+    elif betTypePlayCode == "K3_BLACKRED":
+        (betTypePlayCodeWithBetOnDic, length) = K3BLACKRED_Beton(rawBetOn)
+
     odds = []
     if len(extraData["ExtraBets"]) >1:
         for extraBet in extraData["ExtraBets"]:

@@ -17,6 +17,7 @@ import TransferWager.A5 as A5
 import TransferWager.Redfire as Redfire
 import TransferWager.A5_11x5 as A5_11x5
 import TransferWager.A5_K3 as A5_K3
+import TransferWager.A5_SSC as A5_SSC
 import traceback
 from os import listdir
 from os.path import isfile, isdir, join
@@ -111,7 +112,8 @@ def submit():
         tolerance = jdata["Tolerance"]
         killRate = jdata["KillRate"]
         lotteryCode = jdata["LotteryCode"]
-    
+
+        """
         jObj = {}
         jObj["wager_length"] = wager_length
         jObj["expectId"] = expectId;
@@ -138,6 +140,13 @@ def submit():
                     "odds" : odds,
                     "unitAmount" : unitAmount,
                 }) 
+            elif "ssc" in lotteryCode :
+                (betons, odds, unitAmount, betOnCount) = A5_SSC.transferWager(logging, jBet) 
+                jObj["Bets"].append({
+                    "betons" : betons,
+                    "odds" : odds,
+                    "unitAmount" : unitAmount,
+                }) 
             else:
                 response = { }
                 response["code"] = 999
@@ -155,11 +164,62 @@ def submit():
                 client.connect(("127.0.0.1", 8700))
             elif "k3" in lotteryCode :
                 client.connect(("127.0.0.1", 8701))
+            elif "ssc" in lotteryCode :
+                client.connect(("127.0.0.1", 8702))
 
             client.sendall(jsonfile.encode())
             recv_msg = client.recv(32767).decode("UTF-8").replace('\0', '')
             logging.debug(f"Server:{recv_msg}")
-        
+        """
+        #sendData = "DATA:"
+        sendData = ""
+        sendData += f"{wager_length}|"
+        sendData += f"{expectId}|"
+        sendData += f"{tolerance}|"
+        sendData += f"{killRate}|"
+        sendData += f"{opencodeCount}"
+
+        for jBet in jdata["Bets"]:
+            if "11x5" in lotteryCode :
+                (betons, odds, unitAmount, betOnCount) = A5_11x5.transferWager(logging, jBet)
+                sendData += "^"
+                sendData += ",".join(betons) + "|"
+                sendData += ",".join(odds) + "|"  
+                sendData += str(unitAmount)  
+
+            elif "k3" in lotteryCode :
+                (betons, odds, unitAmount, betOnCount) = A5_K3.transferWager(logging, jBet) 
+                sendData += "^"
+                sendData += ",".join(betons) + "|"
+                sendData += ",".join(odds) + "|"  
+                sendData += str(unitAmount)  
+
+            elif "ssc" in lotteryCode :
+                (betons, odds, unitAmount, betOnCount) = A5_SSC.transferWager(logging, jBet) 
+                sendData += "^"
+                sendData += ",".join(betons) + "|"
+                sendData += ",".join(odds) + "|"  
+                sendData += str(unitAmount)  
+            else:
+                response = { }
+                response["code"] = 999
+                response["msg"] = f"not support {lotteryCode}"
+                rows = [] 
+                return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
+         
+        #sendData = sendData[:len(sendData)-1]
+        print(f"{sendData}, len:{len(sendData)}")
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
+            if "11x5" in lotteryCode :
+                    client.connect(("127.0.0.1", 8700))
+            elif "k3" in lotteryCode :
+                client.connect(("127.0.0.1", 8701))
+            elif "ssc" in lotteryCode :
+                client.connect(("127.0.0.1", 8702))
+            client.sendall(sendData.encode())
+            recv_msg = client.recv(32767).decode("UTF-8").replace('\0', '')
+            logging.debug(f"Server:{recv_msg}")
+
         response = { }
         response["code"] = 0
         response["msg"] = "success"

@@ -1,0 +1,13 @@
+{
+    "LOTTERY_KIND" : "ssc",
+    "OPENCODE_ANSWER_TABLE_PATH" : 
+    [
+        "data/ssc_opencode_table_1.csv",
+        "data/ssc_opencode_table_2.csv"
+    ],
+    "BETON_LIST_PATH":  "data/ssc_beton_list.txt",
+    "OPENCODE_LIST_PATH" : "data/ssc_opencode_list.txt",
+    "KERNEL_PATH" : "kernels/kernel_program.cl",
+    "LOG_PATH" : "log/run_opencl_calc_ssc.log",
+    "SOCKET_PORT" : 8702
+ }
