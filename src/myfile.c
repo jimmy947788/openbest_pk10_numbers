@@ -67,3 +67,32 @@ int readContent(char *content, const char* path)
     
     return source_size;
 }
+
+
+int vector2csv(const char* file, float *vector, uint32 vectorLength)
+{
+    FILE* fp = fopen(file, "r");
+    if (fp) {
+        // file exists
+        remove(file);
+        fclose(fp);
+    }
+
+    fp = fopen(file, "a");
+    uint32 count = 0;
+    char tmp[MAX_LENGTH];
+    for(uint32 i=0; i<= vectorLength-1; i ++)
+    {
+        count++;
+        memset(tmp, '\0', MAX_LENGTH);
+        sprintf(tmp, "%0.6f,", vector[i]);
+        fputs(tmp, fp);
+
+        if(count == gBetonLenght)
+        {
+            count =0;
+            fputs("\n", fp);
+        }
+    }
+    fclose(fp);
+}

@@ -37,4 +37,6 @@ int exists(const char* path);
  */
 int readContent(char *content, const char* path);
 
+int vector2csv(const char* file, float *vector, uint32 vectorLength);
+
 #endif
