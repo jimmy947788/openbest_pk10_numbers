@@ -387,14 +387,19 @@ def transferWager(logging, jBets):
         (betTypePlayCodeWithBetOnDic, length) = K3BLACKRED_Beton(rawBetOn)
 
     odds = []
-    if len(extraData["ExtraBets"]) >1:
-        for extraBet in extraData["ExtraBets"]:
-            odd = str(extraBet["Odds"])
+    if betTypePlayCode == "O_3":
+         for extraBet in extraData["ExtraBets"]:
+            odd = str(1.98 + 0.98 + 0.98)
             odds.append(odd)
     else:
-        for i in range(length):
-            odd = str(extraData["ExtraBets"][0]["Odds"])
-            odds.append(odd)
+        if len(extraData["ExtraBets"]) >1:
+            for extraBet in extraData["ExtraBets"]:
+                odd = str(extraBet["Odds"])
+                odds.append(odd)
+        else:
+            for i in range(length):
+                odd = str(extraData["ExtraBets"][0]["Odds"])
+                odds.append(odd)
 
     return (betTypePlayCodeWithBetOnDic, odds, unitAmount, betOnCount)
     #$target_amount = total_bet_amount * killRate #* -1
