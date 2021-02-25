@@ -226,11 +226,12 @@ int main(int argc, char* argv[])
     float   targetAmount = 0;
     sockfd = create_socket(gSocketPort);
 
-    log_info("init one_mask ...");
+    log_info("alloc one_mask memory size and initial. (size: %llu)", gBetonLenght);
     one_mask = (cl_ushort*)malloc(sizeof(cl_ushort) * gBetonLenght);
-    for(int i = 0; i< gBetonLenght-1; i++)
+    for(int i = 0; i<= gBetonLenght-1; i++)
     {
         one_mask[i] = 1;
+        //printf("one_mask[%d]=%d\n", i, one_mask[i]);
     }
 
     int nDataLength = 0;   
@@ -262,7 +263,7 @@ int main(int argc, char* argv[])
             }
             else
             {
-                log_debug("realloc recvRawData memory size to %d", totalDataLength);
+                log_info("realloc recvRawData memory and initial. (size: %llu)", totalDataLength);
                 recvRawData = (char*)realloc(recvRawData, sizeof(char) * totalDataLength);
                 strcat(recvRawData, recvBuffer);
             }           
@@ -295,14 +296,20 @@ int main(int argc, char* argv[])
             killRate,
             resultLength);
 
-         rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
+        rawDatalist = (recvRows + 1);  //傳入陣列從1開始     
         rawDatalistLength = recvRowLength - 1; //少一筆因為第比是計算參數  
-        log_debug("betsAmountVector length is %d", gBetonLenght * wagerLength);
-        betsAmountVector = (cl_float*)malloc(sizeof(cl_float)*  gBetonLenght * wagerLength);
-        memset(betsAmountVector, 0, gBetonLenght * wagerLength);
-        
-        betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght * wagerLength);
-        memset(betsAmountWithOddsVector, 0, gBetonLenght * wagerLength);
+        uint32 vectorLength = gBetonLenght * wagerLength;
+        log_debug("vector Length length is %d", vectorLength);
+
+        log_info("alloc betsAmountVector memory size and initial. (size: %llu)", vectorLength);
+        betsAmountVector = (cl_float*)malloc(sizeof(cl_float) * vectorLength);
+        for(int i=0; i<= vectorLength -1; i++ )
+            betsAmountVector[i] = 0.0f;
+
+        log_info("alloc betsAmountWithOddsVector memory size and initial. (size: %llu)", vectorLength);
+        betsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * vectorLength);
+        for(int i=0; i<= vectorLength -1; i++ )
+            betsAmountWithOddsVector[i] = 0.0f;
 
         loadRowData2BetsAmountVector(
             betsAmountVector,
@@ -325,6 +332,19 @@ int main(int argc, char* argv[])
         //send(forClientSockfd, "456", sizeof(char) * strlen("456"), 0);
 
 #ifdef DEBUG
+        /*
+        char betsAmountVectorFilename[MAX_LENGTH];
+        memset(betsAmountVectorFilename, '\0', MAX_LENGTH);
+        sprintf(betsAmountVectorFilename, "%sdata/%s_betsAmountVector_%s.csv", gWorkerFolder, gLotteryKind, expectId);
+        printf("betsAmountVectorFilename : %s\n", betsAmountVectorFilename);
+        vector2csv(betsAmountVectorFilename, betsAmountVector, vectorLength);
+        
+        char betsAmountWithOddsVectorFilename[MAX_LENGTH];
+        memset(betsAmountWithOddsVectorFilename, '\0', MAX_LENGTH);
+        sprintf(betsAmountWithOddsVectorFilename, "%sdata/%s_betsAmountWithOddsVector_%s.csv", gWorkerFolder, gLotteryKind, expectId);
+        printf("betsAmountWithOddsVectorFilename : %s\n", betsAmountWithOddsVectorFilename);
+        vector2csv(betsAmountWithOddsVectorFilename, betsAmountWithOddsVector, vectorLength);
+        */
         float sum = 0;
 #endif
         totalBetsAmountVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
@@ -355,6 +375,14 @@ int main(int argc, char* argv[])
         }
         //printf("\n");
         log_debug("====> sum total_beton_amount = %f", sum);
+        
+        /*
+        char totalBetsAmountVectorFilename[MAX_LENGTH];
+        memset(totalBetsAmountVectorFilename, '\0', MAX_LENGTH);
+        sprintf(totalBetsAmountVectorFilename, "%sdata/%s_totalBetsAmountVector_%s.csv", gWorkerFolder, gLotteryKind, expectId);
+        printf("totalBetsAmountVectorFilename : %s\n", totalBetsAmountVectorFilename);
+        vector2csv(totalBetsAmountVectorFilename, totalBetsAmountVector, gBetonLenght);
+        */
 #endif
         totalBetsAmountWithOddsVector = (cl_float*)malloc(sizeof(cl_float) * gBetonLenght);
         for(int i=0; i<= gBetonLenght-1; i++)
@@ -382,6 +410,14 @@ int main(int argc, char* argv[])
         }
         log_debug("====> sum total beton amount with odds = %f", sum);
         //printf("\n");
+
+        /*
+        char totalBetsAmountWithOddsVectorFilename[MAX_LENGTH];
+        memset(totalBetsAmountWithOddsVectorFilename, '\0', MAX_LENGTH);
+        sprintf(totalBetsAmountWithOddsVectorFilename, "%sdata/%s_totalBetsAmountWithOddsVector_%s.csv", gWorkerFolder, gLotteryKind, expectId);
+        printf("totalBetsAmountWithOddsVectorFilename : %s\n", totalBetsAmountWithOddsVectorFilename);
+        vector2csv(totalBetsAmountWithOddsVectorFilename, totalBetsAmountWithOddsVector, gBetonLenght);\
+        */
 #endif
         clock_t timeStart, timeEnd;
         //計算獎號開出金額 (建立buffer & 設定參數)
@@ -543,7 +579,7 @@ int main(int argc, char* argv[])
             for(int i=20; i>=1 ; i--)
             {
                 int32 index = GPU_HANDEL_COUNT[num] - i;
-                log_debug("%s, opencodeResultVector[%d][%lld]=%0.6f ", opencodeList[num][index], 
+                log_debug("%s, opencodeResultVector[%d][%lld]=%0.6f ", opencodeList[num][i], 
                     num, index, opencodeResultVector[num][index]);
             }
         }
@@ -681,6 +717,14 @@ error:
         //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
         send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
         log_info("send back LEN process done!");
+        
+        log_debug("Remove file %s", result_file);
+        fp = fopen(result_file, "r");
+        if (fp) {
+            // file exists
+            remove(result_file);
+            fclose(fp);
+        }
 
         /*
         log_debug("Release json_obj pointer");
