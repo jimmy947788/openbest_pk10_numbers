@@ -389,8 +389,10 @@ def transferWager(logging, jBets):
     odds = []
     if betTypePlayCode == "O_3":
          for extraBet in extraData["ExtraBets"]:
-            odd = str(1.98 + 0.98 + 0.98)
-            odds.append(odd)
+            # odd = str(1.98 + 0.98 + 0.98)
+            odd = float(extraBet["Odds"])
+            max_odd = odd + (odd -1) + (odd -1)
+            odds.append(str(max_odd))
     else:
         if len(extraData["ExtraBets"]) >1:
             for extraBet in extraData["ExtraBets"]:
