@@ -225,6 +225,11 @@ if __name__ == "__main__":
             f.write(f"{beton}\n")
         print(f"K3_BLACKOE length:{length}")
 
+        (result, length ) = A5_K3.K3BLACKBS_Beton()
+        for beton in result:
+            f.write(f"{beton}\n")
+        print(f"K3_BLACKBS length:{length}")
+
         (result, length ) = A5_K3.K3REDOE_Beton()
         for beton in result:
             f.write(f"{beton}\n")
