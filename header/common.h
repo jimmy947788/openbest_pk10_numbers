@@ -12,6 +12,8 @@
 #include <CL/cl.h>
 #endif
 
+
+
 #define MAX_SOURCE_SIZE (0x100000)
 #define MAX_DEVICE_SIZE 256
 #define MAX_LENGTH 255
@@ -22,14 +24,14 @@
 
 extern char     gWorkerFolder[PATH_MAX];
 extern char**   gBetonList;
-extern uint32      gBetonLenght;
+extern uint32   gBetonLenght;
 
 extern char**   gOpencodeList;
-extern uint32      gOpencodeLenght;
+extern uint32   gOpencodeLenght;
 
 extern uint32 GPU_HANDEL_COUNT[USE_GPU_NUM];
 
-extern char    gLotteryKind[MAX_LENGTH];
+extern char     gLotteryKind[MAX_LENGTH];
 extern char     gKernelPath[PATH_MAX];
 extern char     gLogPath[PATH_MAX];
 extern char     gBetonListPath[PATH_MAX];
