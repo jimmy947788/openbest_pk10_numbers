@@ -63,15 +63,15 @@ __kernel void calc_numbers_risk(
         i, total_amount_odds_vector[i],
         i, total_amount_vector[i]);
   */
-    if (answers_matrix[index] == 87)// Win
+    if (answers_matrix[index] == 'W')// Win
     {
       sum+= total_amount_odds_vector[i]; //有中獎就用乘上賠率的金額
     }
-    else if (answers_matrix[index] == 84) // Tie
+    else if (answers_matrix[index] == 'T') // Tie
     {
       sum += 0;
     }
-    else if (answers_matrix[index] == 76) // Loss
+    else if (answers_matrix[index] == 'L') // Loss
     {
       sum += total_amount_vector[i] * -1; //沒中獎就用本金
     }

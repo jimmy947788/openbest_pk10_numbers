@@ -2,7 +2,7 @@
 
 int loadBetonList()
 {
-    log_debug("check beton list file %s", gBetonListPath);
+    //log_debug("check beton list file %s", gBetonListPath);
     if(!exists(gBetonListPath))
     {
         log_error("Can't find beton list file...(%s)", gBetonListPath);
@@ -10,18 +10,20 @@ int loadBetonList()
     }
 
     gBetonLenght = loadListFromFile(gBetonListPath, NULL);
+    log_info("Full beton Lenght = %u", gBetonLenght);
+
     gBetonList = (char**)malloc(sizeof(char*) * gBetonLenght);
     loadListFromFile(gBetonListPath, &gBetonList);
-    log_debug("gBetonList[%d]=%s", 0, gBetonList[0]);
-    log_debug("gBetonList[%d]=%s", 1, gBetonList[1]);
-    log_debug("gBetonList[%d]=%s", gBetonLenght-2, gBetonList[gBetonLenght-2]);
-    log_debug("gBetonList[%d]=%s", gBetonLenght-1, gBetonList[gBetonLenght-1]);
+    //log_debug("gBetonList[%d]=%s", 0, gBetonList[0]);
+    //log_debug("gBetonList[%d]=%s", 1, gBetonList[1]);
+    //log_debug("gBetonList[%d]=%s", gBetonLenght-2, gBetonList[gBetonLenght-2]);
+    //log_debug("gBetonList[%d]=%s", gBetonLenght-1, gBetonList[gBetonLenght-1]);
     return gBetonLenght;
 }
 
 int loadOpencodeList()
 {
-    log_debug("check opencode list file %s", gOpencodeListPath);
+    //log_debug("check opencode list file %s", gOpencodeListPath);
     if(!exists(gOpencodeListPath))
     {
         log_error("Can't find opencode list file...(%s)", gOpencodeListPath);
@@ -29,16 +31,14 @@ int loadOpencodeList()
     }
     
     gOpencodeLenght = loadListFromFile(gOpencodeListPath, NULL);
-    log_info("gOpencodeLenght=%u", gOpencodeLenght);
+    log_info("Full opencode Lenght = %u", gOpencodeLenght);
 
     gOpencodeList = (char**)malloc(sizeof(char*) * gOpencodeLenght);
     loadListFromFile(gOpencodeListPath, &gOpencodeList);
-
-    log_debug("gOpencodeList[%d]=%s", 0, gOpencodeList[0]);
-    log_debug("gOpencodeList[%d]=%s", 1, gOpencodeList[1]);
-    log_debug("gOpencodeList[%d]=%s", gOpencodeLenght-2, gOpencodeList[gOpencodeLenght-2]);
-    log_debug("gOpencodeList[%d]=%s", gOpencodeLenght-1, gOpencodeList[gOpencodeLenght-1]);
-
+    //log_debug("gOpencodeList[%d]=%s", 0, gOpencodeList[0]);
+    //log_debug("gOpencodeList[%d]=%s", 1, gOpencodeList[1]);
+    //log_debug("gOpencodeList[%d]=%s", gOpencodeLenght-2, gOpencodeList[gOpencodeLenght-2]);
+    //log_debug("gOpencodeList[%d]=%s", gOpencodeLenght-1, gOpencodeList[gOpencodeLenght-1]);
     return gOpencodeLenght;
 }
 
@@ -52,12 +52,10 @@ int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char* ope
     char *p = NULL;
     int columnIndex = 0;
     int rowIndex = 0;
-    uint32 opencode_answer_index = 0;
     clock_t timeStart, timeEnd;
-    int opencodeListIndex = 0;
-    unsigned long long opencodeAnswerTableIndex = 0;
-
-    int opencodeLength = strlen(gOpencodeList[0]);
+    uint32 opencodeListIndex = 0;
+    uint64 opencodeAnswerTableIndex = 0;
+    uint16 opencodeLength = strlen(gOpencodeList[0]);
     //log_debug("opencode length:%d", opencodeLength );
 
     timeStart = clock();
@@ -82,51 +80,38 @@ int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char* ope
                 if(columnIndex == 0){
                     // Load opencode list 
                     // 把csv檔案的第1欄opencode存到opencode_list
-                    opencodeListIndex = rowIndex - 1;
-                    //*(opencodeList + opencodeListIndex) = (char*) malloc(sizeof(char) * (opencodeLength + 1));
-                    //.opencodeList[opencodeListIndex] = (char*)calloc(opencodeLength + 1, sizeof(char));
-                    //opencodeList[opencodeListIndex] = (char*) malloc(sizeof(char) * (opencodeLength + 1));
-                    //memset(*(opencodeList + opencodeListIndex) , '\0', sizeof(char) * (opencodeLength + 1));
-                    //strcpy(opencodeList[opencodeListIndex], p);
-                    opencodeList[opencodeListIndex] = p;
-                    //printf("opencodeList[%d]= %s \n", opencodeListIndex, opencodeList[opencodeListIndex]);
+                    opencodeListIndex = rowIndex - 1;    
+                    opencodeList[opencodeListIndex] = (char*)calloc(opencodeLength+ 1, sizeof(char) );
+                    strncpy(opencodeList[opencodeListIndex], p, opencodeLength);
+                    //printf("opencodeList[%d]= %s \n", opencodeListIndex, *(*opencodeList + opencodeListIndex));
                 }
                 else
                 {
-                    //printf("%s, ", p);
                     // 把csv檔案第1欄後面的答案存到opencode_answer
                     short ret = strtol(p, NULL, 10);
-                    opencodeAnswerTableVector[opencodeAnswerTableIndex] = 0;
-                    if( ret == 1)
+                    if(ret > 0)
                     {
-                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 'W';  //玩家贏 ASCII:87
-                        opencodeAnswerTableIndex ++;
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] =  'W';  //玩家贏 ASCII:87
                     }
                     else if( ret == 0)
                     {   
                         opencodeAnswerTableVector[opencodeAnswerTableIndex] = 'T'; // 和 (不算輸贏) ASCII:84
-                        opencodeAnswerTableIndex ++;
                     }
-                    else if( ret == -1)
+                    else
                     {
-                       
-                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 'L';  //玩家輸 ASCII:76
-                        opencodeAnswerTableIndex ++;
+                        opencodeAnswerTableVector[opencodeAnswerTableIndex] = 'L';   //玩家輸 ASCII:76
                     }
-                    //opencodeAnswerTable[opencodeAnswerTableIndex] = ret;
-                    //printf("p=%s, opencodeAnswerTableVector[%d]=%s\n", p, opencodeAnswerTableIndex, opencodeAnswerTableVector[opencodeAnswerTableIndex]);
-                    //opencodeAnswerTableIndex ++;
+                    //printf("opencodeAnswerTable[%d]=%d\n",opencodeAnswerTableIndex, opencodeAnswerTable[opencodeAnswerTableIndex]);
+                    opencodeAnswerTableIndex ++;
                 }
                 columnIndex ++;
             }
-            //printf("\n");
             //log_debug("==========>rowIndex:%d, column length:%d, opencodeAnswerTableIndex=%llu",  rowIndex, columnIndex-1, opencodeAnswerTableIndex);
         }
         rowIndex++;
-        line = NULL;
     }
     
-    log_debug("==========>opencodeAnswerTableIndex=%llu", opencodeAnswerTableIndex);
+    // log_debug("==========>opencodeAnswerTableIndex=%llu", opencodeAnswerTableIndex);
     fclose(fp);
     timeEnd = clock();
     log_trace("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", __FUNCTION__, (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
