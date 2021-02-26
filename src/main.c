@@ -573,13 +573,13 @@ int main(int argc, char* argv[])
         {
             for(int i=0; i<20 ; i++)
             {
-                log_debug("%s, opencodeResultVector[%d][%lld]=%0.6f ", opencodeList[num][i], 
+                log_debug("opencodeList[%d][%d]=%s, opencodeResultVector[%d][%lld]=%0.6f ", num, i, opencodeList[num][i], 
                     num, i, opencodeResultVector[num][i]);
             }
             for(int i=20; i>=1 ; i--)
             {
                 int32 index = GPU_HANDEL_COUNT[num] - i;
-                log_debug("%s, opencodeResultVector[%d][%lld]=%0.6f ", opencodeList[num][i], 
+                log_debug("opencodeList[%d][%d]=%s, opencodeResultVector[%d][%lld]=%0.6f ", num, index, opencodeList[num][index], 
                     num, index, opencodeResultVector[num][index]);
             }
         }

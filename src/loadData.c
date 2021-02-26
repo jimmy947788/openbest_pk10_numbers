@@ -84,13 +84,12 @@ int loadOpencodeAnswerTableVector(cl_uchar* opencodeAnswerTableVector, char* ope
                     // 把csv檔案的第1欄opencode存到opencode_list
                     opencodeListIndex = rowIndex - 1;
                     //*(opencodeList + opencodeListIndex) = (char*) malloc(sizeof(char) * (opencodeLength + 1));
-                    opencodeList[opencodeListIndex] = (char*)calloc(opencodeLength + 1, sizeof(char));
+                    //.opencodeList[opencodeListIndex] = (char*)calloc(opencodeLength + 1, sizeof(char));
                     //opencodeList[opencodeListIndex] = (char*) malloc(sizeof(char) * (opencodeLength + 1));
                     //memset(*(opencodeList + opencodeListIndex) , '\0', sizeof(char) * (opencodeLength + 1));
                     //strcpy(opencodeList[opencodeListIndex], p);
                     opencodeList[opencodeListIndex] = p;
                     //printf("opencodeList[%d]= %s \n", opencodeListIndex, opencodeList[opencodeListIndex]);
-                    //log_debug("opencodeList[%d]=%s",  opencodeListIndex, opencodeList[opencodeListIndex]);
                 }
                 else
                 {
