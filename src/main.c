@@ -83,29 +83,23 @@ int main(int argc, char* argv[])
     cl_program* program = NULL;
     cl_command_queue* queue_list = NULL;
 
-    log_info("get OpenCL platforms");
     total_platforms = get_platforms(&platforms);
-    log_info(" ........... successful!!(total_platforms=%d)", total_platforms);
+    log_info("Get OpenCL platforms...  (total_platforms=%d)", total_platforms);
 
-    log_info("create OpenCL GPU devices");
     total_devices = create_gpu_device_list(platforms[0], &device_list);
-    log_info(" ........... successful!!(total_devices=%d)", total_devices);
+    log_info("Get OpenCL GPU devices... (total_devices=%d)", total_devices);
 
     // Create an OpenCL context
-    log_info("create OpenCL context for all GPU");
     context = clCreateContext(NULL, total_devices, device_list, &contextCallback, NULL, &errNum);
     checkErr(errNum, "clCreateContext");
-    log_info(" ........... successful!!");
+    log_info("Create OpenCL context for all GPU...");
 
-    log_info("create OpenCL command queue for all devics");
     create_queue_list(context, device_list, total_devices, &queue_list);
-    log_info(" ........... successful!!(total command queue=%d)", total_devices);
+    log_info("Create OpenCL command queue for all devices... (total command queue=%d)", total_devices);
 
-    log_info("build OpenCL program from");
-    //log_info("full kernel_program_file:%s", temp_path);
     // build an OpenCL program
     build_program_for_all_devices(kernel_program_file, context, device_list, &program);
-    log_info(".......... successful!!");
+    log_info("Build OpenCL program...");
 
     // Create OpenCL Kernel function
     cl_kernel kSumBetonTotalAmount = clCreateKernel(program, "sum_beton_total_amount", &errNum);
@@ -121,40 +115,37 @@ int main(int argc, char* argv[])
     }
 
     // release OpenCL program
-    log_info("release OpenCL program");
     clReleaseProgram(program);
-    log_info(".......... successful!!");
+    log_info("Release OpenCL program...");
     //============================================================================
 
     // load opencode answer table
     //===================================================================================================
     cl_uchar* opencodeAnswerTableVector[USE_GPU_NUM];
-    unsigned long long opencodeAnswerTableVectorLength = gBetonLenght * GPU_HANDEL_COUNT[0];
+    uint64 opencodeAnswerTableVectorLength = gBetonLenght * GPU_HANDEL_COUNT[0];
     char** opencodeList[USE_GPU_NUM];
     
     cl_float* opencodeResultVector[USE_GPU_NUM];
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
-        log_info("load opencode answer table from %s...%d/%d", gOpencodeAnswerTablePath[num], (num+1), USE_GPU_NUM);
         //fflush(stdout); //不給就不給輸出,flush強制輸出
+        log_info("alloc opencodeAnswerTableVector[%d]  memory size. (size: %llu)", num, opencodeAnswerTableVectorLength);
         opencodeAnswerTableVector[num] = (cl_uchar*)malloc(sizeof(cl_uchar) * opencodeAnswerTableVectorLength);
+
+        log_info("alloc opencodeList[%d]  memory size. (size: %u)", num, GPU_HANDEL_COUNT[num]);
         opencodeList[num] = (char**)malloc(sizeof(char*) * GPU_HANDEL_COUNT[num]);
         
+        log_info("alloc opencode_answer_table_result[%d] memory size and initial. (size: %u)", num, GPU_HANDEL_COUNT[num]);
+        opencodeResultVector[num] = (cl_float*)malloc(sizeof(cl_float) * GPU_HANDEL_COUNT[num]);
+
+        log_info("load opencode answer table from %s...%d/%d", gOpencodeAnswerTablePath[num], (num+1), USE_GPU_NUM);
         int ret = loadOpencodeAnswerTableVector(
             opencodeAnswerTableVector[num], 
             opencodeList[num],
             gOpencodeAnswerTablePath[num]);
-        log_info("opencodeList[%d] length:%ld", num, ret);
-        
+        //log_info("opencodeList[%d] count is %d...", num, ret);
     }
 
-    for(int num=0; num<=USE_GPU_NUM-1; num++)
-    {
-        log_info("alloc opencode_answer_table_result[%d] array (length: %d)", num, GPU_HANDEL_COUNT[num]);
-        opencodeResultVector[num] = (cl_float*)malloc(sizeof(cl_float) * GPU_HANDEL_COUNT[num]);
-    }
- 
-    
     //openc input & output
     cl_ushort* one_mask = NULL;
     cl_float* betsAmountVector = NULL;
@@ -172,21 +163,23 @@ int main(int argc, char* argv[])
     cl_event kernel_events[USE_GPU_NUM];
     cl_event read_events[USE_GPU_NUM];
 
-    
-    log_debug("opencodeAnswerTableVector[0][0]=%d", opencodeAnswerTableVector[0][0]);
-    log_debug("opencodeAnswerTableVector[0][1]=%d", opencodeAnswerTableVector[0][1]);
-    /*
-    int lastIndex1 = GPU_HANDEL_COUNT[0] - 1;
-    int lastIndex2 = GPU_HANDEL_COUNT[0];
-    log_debug("opencodeAnswerTableVector[0][5883099999]=%d", opencodeAnswerTableVector[0][5883099999]);
-    log_debug("opencodeAnswerTableVector[0][5883100000]=%d", opencodeAnswerTableVector[0][5883100000]);
-    */
-    log_debug("opencodeAnswerTableVector[1][0]=%d", opencodeAnswerTableVector[1][0]);
-    log_debug("opencodeAnswerTableVector[1][1]=%d", opencodeAnswerTableVector[1][1]);
-    /*
-    log_debug("opencodeAnswerTableVector[1][5883099999]=%d", opencodeAnswerTableVector[1][5883099999]);
-    log_debug("opencodeAnswerTableVector[1][5883100000]=%d", opencodeAnswerTableVector[1][5883100000]);
-    */
+
+   #ifdef DEBUG
+        int showRecords = 5;
+        for(int num=0; num<=USE_GPU_NUM-1; num++)
+        {
+            for(int i=0; i<showRecords ; i++)
+            {
+                log_debug("opencodeAnswerTableVector[%d][%lld]=%d ", num, i, opencodeAnswerTableVector[num][i]);
+            }
+            for(int i=showRecords; i>=1 ; i--)
+            {
+                uint32 index = GPU_HANDEL_COUNT[num] - i;
+                log_debug("opencodeAnswerTableVector[%d][%lld]=%d ", num, index, opencodeAnswerTableVector[num][index]);
+            }
+        }
+#endif
+
     //
     for(int num=0; num<=USE_GPU_NUM-1; num++)
     {
@@ -550,33 +543,35 @@ int main(int argc, char* argv[])
 #endif
         for(int num=0; num<=USE_GPU_NUM-1; num++)
         {
-            log_info("release total_beton_amount_buffer[%d]", num);
+            log_info("Release total_beton_amount_buffer[%d]", num);
             clReleaseMemObject(total_beton_amount_buffer[num]);
-            log_info("release total_beton_amount_with_odds_buffer[%d]", num);
+
+            log_info("Release total_beton_amount_with_odds_buffer[%d]", num);
             clReleaseMemObject(total_beton_amount_with_odds_buffer[num]);
         }
         
-        log_info("release kernel_events");
+        log_info("Release kernel_events");
         for(int num=0; num<=USE_GPU_NUM-1; num++)
             clReleaseEvent(kernel_events[num]);
         
-        log_info("release read_events");
+        log_info("Release read_events");
         for(int num=0; num<=USE_GPU_NUM-1; num++)
             clReleaseEvent(read_events[num]);
         
-        log_info("release result_buffer");
+        log_info("Release result_buffer");
         for(int num=0; num<=USE_GPU_NUM-1; num++)
             clReleaseEvent(result_buffer[num]);
 
 #ifdef DEBUG
+        int showRecords = 5;
         for(int num=0; num<=USE_GPU_NUM-1; num++)
         {
-            for(int i=0; i<20 ; i++)
+            for(int i=0; i<showRecords ; i++)
             {
                 log_debug("opencodeList[%d][%d]=%s, opencodeResultVector[%d][%lld]=%0.6f ", num, i, opencodeList[num][i], 
                     num, i, opencodeResultVector[num][i]);
             }
-            for(int i=20; i>=1 ; i--)
+            for(int i=showRecords; i>=1 ; i--)
             {
                 int32 index = GPU_HANDEL_COUNT[num] - i;
                 log_debug("opencodeList[%d][%d]=%s, opencodeResultVector[%d][%lld]=%0.6f ", num, index, opencodeList[num][index], 
@@ -598,6 +593,7 @@ int main(int argc, char* argv[])
             fclose(fp);
         }
 
+        log_info("Find targetAmount and save to temp result file... %s", result_file);
         int target_amount_counter = 0;
         char tmp[MAX_LENGTH];
         //將到達條件金額寫入檔案 
@@ -635,11 +631,12 @@ int main(int argc, char* argv[])
                 }
             }
         }
-        log_info("targetAmount=%0.6f, limit_amount=%0.6f", targetAmount, limit_amount );
+        log_trace("targetAmount=%0.6f, limit_amount=%0.6f", targetAmount, limit_amount );
 
         //找不到目標金額獎號
         if(target_amount_counter == 0)
         {
+            log_info("Can't find targetAmount, use limit_amount save to temp result file... ");
             for(int num=0; num<=USE_GPU_NUM - 1; num++)
             {
                 for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
@@ -659,9 +656,8 @@ int main(int argc, char* argv[])
         timeEnd = clock();
         log_info("execution \033[1;37m%s\033[0m time:\033[1;36m%f\033[0ms", "save result to csv", (double)(timeEnd - timeStart) / CLOCKS_PER_SEC);
 
-
         //讀取所有符合開獎結果CSV
-        log_info("read data from csv file");
+        log_info("Read temp result data from csv file...");
         int target_amount_result_index = 0;
         char** target_amount_results;
         target_amount_results = (char**)malloc(sizeof(*target_amount_results) * target_amount_counter);
@@ -673,33 +669,42 @@ int main(int argc, char* argv[])
             strcpy(*(target_amount_results + target_amount_result_index), tmp);
             target_amount_result_index++;
         }
-        log_info("target_amount_counter = %d", target_amount_counter );
+        log_info("target_amount_counter=%d", target_amount_counter );
 
+        log_info("randam %d data append finalResults .", resultLength);
         // 亂數讀取 result_count 筆所有符合開獎結果
-        // 把所有結果組成很長的字串透過socket回傳 > temp_target_amount_results
+        // 把所有結果組成很長的字串透過socket回傳 > finalResults
         // target_amount_results[rand_num] : 1-3-7-2-9-4-10-8-5-6,0.000000\n
         // target_amount_results[rand_num] : {獎號},{金額}\n
-        // temp_target_amount_results : {獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n
-        int rand_num = 0;
+        // finalResults : {獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n{獎號},{金額}\n
         time_t t;
-        char temp_target_amount_results[MAX_SOURCE_SIZE];
-        memset(temp_target_amount_results, '\0', MAX_SOURCE_SIZE);
-        log_info("randam %d data to temp_target_amount_results array.", resultLength);
+        int rand_num = 0;
+        int finalResultsCounter = 0;
+        char finalResults[MAX_SOURCE_SIZE];
+        memset(finalResults, '\0', MAX_SOURCE_SIZE);
+       
         if( target_amount_counter > 0)
         {
             srand((unsigned) time(&t));
-            for( int i = 0 ; i <= resultLength-1 ; i++ ) {
+            for( int i = 1; i <= 100 ; i++ ) {
                 rand_num = rand() % target_amount_counter;
-#ifdef DEBUG
-                log_debug("rand_num[%d] = %d, target_amount_results[%d] = %s",  i, rand_num, rand_num, target_amount_results[rand_num]);
-#endif
                 //檢查重複獎號，重複則不要回傳
-                if(strstr(temp_target_amount_results, target_amount_results[rand_num]) == NULL)
+                if(strstr(finalResults, target_amount_results[rand_num]) == NULL)
                 {
-                    strcat (temp_target_amount_results, target_amount_results[rand_num]);
+                    ++finalResultsCounter;
+                    log_debug("rand_num[%d]=%d, target_amount_results[%d]=%s",  i, rand_num, rand_num, target_amount_results[rand_num]);
+                    strcat (finalResults, target_amount_results[rand_num]);                    
                 }
+
+                if (finalResultsCounter == resultLength )
+                    break;
             }
         }
+error:
+        //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
+        log_info("Send back target amount result...");
+        send(forClientSockfd, finalResults, sizeof(finalResults), 0);
+        
         log_info("free every target_amount_results array.");
         for(int i=0; i<=target_amount_result_index-1; i++)
         {
@@ -710,37 +715,32 @@ int main(int argc, char* argv[])
             free(target_amount_results);
 
         /* 獲取系統當前日期時間 */
-        memset(dateTime, 0, sizeof(dateTime));
-        GetDateTime(dateTime);
-        log_info("The Local date and time is %s", dateTime);
-error:
-        //send(forClientSockfd, "DATA,OK", sizeof("DATA,OK"), 0);
-        send(forClientSockfd, temp_target_amount_results, sizeof(temp_target_amount_results), 0);
-        log_info("send back LEN process done!");
-        
-        log_debug("Remove file %s", result_file);
+        //memset(dateTime, 0, sizeof(dateTime));
+        ///GetDateTime(dateTime);
+        //log_info("The Local date and time is %s", dateTime);
+
+        log_info("Remove temp result file...");
         fp = fopen(result_file, "r");
         if (fp) {
             // file exists
             remove(result_file);
             fclose(fp);
         }
-
         /*
         log_debug("Release json_obj pointer");
 	    json_object_put(json_obj);
         */
-        log_debug("Release totalBetsAmountVector pointer");
+        log_info("Release totalBetsAmountVector pointer");
         if(totalBetsAmountVector)
             free(totalBetsAmountVector);
         
-        log_debug("Release totalBetsAmountWithOddsVector pointer");
+        log_info("Release totalBetsAmountWithOddsVector pointer");
         if(totalBetsAmountWithOddsVector)
             free(totalBetsAmountWithOddsVector);
     
         for(int num=0; num<=USE_GPU_NUM - 1; num++)
         {
-            log_debug("Clean opencodeResultVector[%d] every elements to 0", num);
+            log_info("Clean opencodeResultVector[%d] every elements to 0", num);
             for(int i=0; i<= GPU_HANDEL_COUNT[num] - 1; i++ )
             {
                 opencodeResultVector[num][i] = 0.0f;
