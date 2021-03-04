@@ -228,8 +228,7 @@ int main(int argc, char* argv[])
     }
 
     int nDataLength = 0;   
-    int totalDataLength = 0;
-
+    uint32 totalDataLength = 0;
 
     while(true)
     {
@@ -238,20 +237,19 @@ int main(int argc, char* argv[])
 
         nDataLength = 0;   
         totalDataLength = 0;
-        recvRawData = (char*)malloc(sizeof(char) * (MAX_BUFFER_SIZE + 2));
 
-        memset(recvBuffer, '\0', sizeof(char) * (MAX_BUFFER_SIZE + 2));
-        memset(recvRawData, '\0', sizeof(char) * (MAX_BUFFER_SIZE + 2));
+        recvRawData = (char*)malloc(sizeof(char) * (MAX_BUFFER_SIZE + 1));
+        memset(recvRawData, '\0', sizeof(char) * MAX_BUFFER_SIZE);
 
-        while ((nDataLength = recv(forClientSockfd, recvBuffer,  sizeof(char) * MAX_BUFFER_SIZE, 0)) > 0) {
+        while (true) 
+        {
+            memset(recvBuffer, '\0', sizeof(char) * MAX_BUFFER_SIZE);
+            nDataLength = recv(forClientSockfd, recvBuffer,  sizeof(char) * MAX_BUFFER_SIZE, 0);
             totalDataLength += nDataLength;
-            //printf("===>%s, len:%d\n", recvBuffer, nDataLength);
+            log_trace("recv data nDataLength : %d)", nDataLength);     
 
-            //recvBufferStrip = (char*)malloc(sizeof(char) * totalDataLength);
-            
             if(strlen(recvRawData) == 0)
             {
-                //recvRawData = (char*)malloc(sizeof(char) * nDataLength);
                 strcpy(recvRawData, recvBuffer);
             }
             else
@@ -259,15 +257,23 @@ int main(int argc, char* argv[])
                 log_info("realloc recvRawData memory and initial. (size: %llu)", totalDataLength);
                 recvRawData = (char*)realloc(recvRawData, sizeof(char) * totalDataLength);
                 strcat(recvRawData, recvBuffer);
-            }           
-            memset(recvBuffer, '\0',  sizeof(char) * (MAX_BUFFER_SIZE + 2));
-            if(nDataLength < MAX_BUFFER_SIZE)
-                break;
-        }
-        //send(forClientSockfd, "123", sizeof(char) * strlen("123"), 0);
-        log_debug("recvRawData:%s, len:%d", recvRawData, strlen(recvRawData));
+            }
 
-         timeStart = clock();
+            if(strstr(recvBuffer,"!")) //分段傳輸資料，最後一個字源是'!' 則跳出迴圈
+            {
+                log_debug("recv data finished... (nDataLength : %d)", nDataLength);            
+                send(forClientSockfd, "done", sizeof("done"), 0);   
+                break;
+            }
+            else
+            {
+                //log_debug("recv data ok... (nDataLength : %d)", nDataLength);            
+                send(forClientSockfd, "ok", sizeof("ok"), 0);   
+            }
+        }
+        log_debug("recvRawData length : %d", strlen(recvRawData));
+
+        timeStart = clock();
 
         //把資料切分出行
         recvRowLength = count(recvRawData, '^') + 1;
@@ -714,6 +720,8 @@ error:
         if(target_amount_results)
             free(target_amount_results);
 
+        if(recvRawData)
+            free(recvRawData);
         /* 獲取系統當前日期時間 */
         //memset(dateTime, 0, sizeof(dateTime));
         ///GetDateTime(dateTime);

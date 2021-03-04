@@ -95,6 +95,11 @@ def home():
     return render_template(f'index.html', CPU=cpu_usage, MEM=mem_usage, SSD=ssd_usage, GPU0=gpu0_info, GPU1=gpu1_info, 
         logfilelength=10, logfiles = logfiles[:10], timestamp=timeStr)
 
+def chunks(s, n):
+    """Produce `n`-character chunks from `s`."""
+    for start in range(0, len(s), n):
+        yield s[start:start+n]
+
 @app.route("/bestopen", methods=['GET', 'POST'])
 def submit():
     title = '最佳化開獎策略'
@@ -207,7 +212,7 @@ def submit():
                 rows = [] 
                 return Response(json.dumps(response, cls=NumpyEncoder), mimetype='application/json')
          
-        #sendData = sendData[:len(sendData)-1]
+        sendData += "!"  # 分段傳輸資料，最後一個字元是'!' 
         print(f"{sendData}, len:{len(sendData)}")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client:
             if "11x5" in lotteryCode :
@@ -216,7 +221,12 @@ def submit():
                 client.connect(("127.0.0.1", 8701))
             elif "ssc" in lotteryCode :
                 client.connect(("127.0.0.1", 8702))
-            client.sendall(sendData.encode())
+            
+            for chunk  in chunks(sendData, 4096): # 分段傳輸資料，最後一個字元是'!' 
+                client.sendall(chunk.encode())
+                recv_msg = client.recv(32767).decode("UTF-8").replace('\0', '')
+                #logging.debug(f"Server:{recv_msg}")
+
             recv_msg = client.recv(32767).decode("UTF-8").replace('\0', '')
             logging.debug(f"Server:{recv_msg}")
 
