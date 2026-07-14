@@ -27,6 +27,10 @@
 
 *一個從零手刻的 GPU 高吞吐風險運算引擎 — 沒有框架、沒有黑盒，只有 C、OpenCL 與兩張顯卡。*
 
+<br>
+
+![架構圖](assets/architecture.png)
+
 </div>
 
 ---

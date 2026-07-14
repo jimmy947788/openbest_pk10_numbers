@@ -27,6 +27,10 @@
 
 *A hand-rolled, high-throughput GPU risk engine — no frameworks, no black boxes. Just C, OpenCL, and two graphics cards.*
 
+<br>
+
+![Architecture](assets/architecture.png)
+
 </div>
 
 ---
