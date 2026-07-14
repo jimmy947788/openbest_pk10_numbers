@@ -2,9 +2,13 @@
 
 # 🎲 openbest_pk10_numbers
 
-### ⚡ 雙 GPU 驅動的即時開獎風險運算引擎
+### ⚡ A Real-Time, Dual-GPU Lottery-Outcome Risk Engine
 
-**在 3 秒內，用 2× RTX 2080 枚舉「億級」開獎組合，算出每一種結果的莊家盈虧。**
+**In ~3 seconds, on 2× RTX 2080, enumerate 3.6 million draw permutations and compute the house's P&L for every single outcome.**
+
+<br>
+
+📖 **English** · [繁體中文](README_TW.md)
 
 <br>
 
@@ -17,84 +21,86 @@
 ![Version](https://img.shields.io/badge/version-2.30-blue?style=flat-square)
 ![GPU](https://img.shields.io/badge/GPU-parallel-green?style=flat-square)
 ![Latency](https://img.shields.io/badge/latency-~3s-orange?style=flat-square)
-![Throughput](https://img.shields.io/badge/combinations-100M%2B-red?style=flat-square)
+![Throughput](https://img.shields.io/badge/permutations-3.6M-red?style=flat-square)
 
 <br>
 
-*一個從零手刻的 GPU 高吞吐風險運算引擎 — 沒有框架、沒有黑盒，只有 C、OpenCL 與兩張顯卡。*
+*A hand-rolled, high-throughput GPU risk engine — no frameworks, no black boxes. Just C, OpenCL, and two graphics cards.*
 
 </div>
 
 ---
 
-## 🚀 30 秒看懂
+## 🚀 The 30-Second Pitch
 
-> 給定一整期的**所有投注**，這個引擎會平行枚舉**每一種可能的開獎結果**，
-> 即時算出「若開這個號，莊家會賺 / 賠多少」，並依設定的風險門檻挑出最佳結果。
+> Given **every wager** placed in a round, this engine enumerates **every possible draw outcome** in parallel,
+> instantly computes "if this number comes up, how much does the house win or lose", and picks the best result
+> against a configurable risk threshold.
 
 ```
-   全部注單  ───▶  [ 雙 GPU 平行運算 ]  ───▶  每個開獎號的莊家盈虧  ───▶  依門檻篩選
-                    ↑ 117 億格勝負表                 ↑ 億級候選同時算            ↑ 秒級回應
+   All wagers  ───▶  [ Dual-GPU parallel compute ]  ───▶  House P&L per draw  ───▶  Threshold filter
+                       ↑ 3.85B-cell win/loss table       ↑ 3.6M candidates at once     ↑ sub-second reply
 ```
 
-**這不是玩具。** 它是一套跑在生產環境、常駐監聽、以 socket 對外服務的 GPU 微服務。
+**This is not a toy.** It's a GPU microservice that ran in production — always-on, listening on a socket, serving upstream in real time.
 
 ---
 
-## ✨ 專案特色
+## ✨ Features
 
 <table>
 <tr>
 <td width="50%">
 
-### ⚡ 極致平行
-單條 GPU thread 負責一個候選開獎號，
-**億級組合同時開算**。2× RTX 2080
-在 **~3 秒** 內完成全量枚舉。
+### ⚡ Massively Parallel
+One GPU thread per candidate draw number —
+**3.6M permutations computed simultaneously**.
+2× RTX 2080 finishes a full sweep in **~3s**.
 
 </td>
 <td width="50%">
 
-### 🧮 Answer-Table 預算法
-把「注單 × 開獎號」的勝負結果
-**預先算成數十億格的巨型矩陣**，
-運算時只做查表 + reduction，零重複計算。
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 🔀 index 上下半 · 雙卡分治
-把 **360 萬種開獎排列**從中間切開，
-上半 index / 下半 index 各餵一顆 GPU，
-**兩卡同時算、運算時間直接砍半**。
-
-</td>
-<td width="50%">
-
-### 🎯 四種玩法通吃
-PK10 賽車、時時彩 SSC、11 選 5、快 3 —
-**一套引擎、一份 kernel**，
-靠 config 切換，不改一行程式碼。
+### 🧮 Answer-Table Precomputation
+The win/loss of every wager against every
+draw number is **precomputed into a
+multi-billion-cell matrix**. Runtime does
+only lookup + reduction — zero recomputation.
 
 </td>
 </tr>
 <tr>
 <td width="50%">
 
-### 🌐 常駐微服務
-`while(true)` 常駐監聽 TCP，
-分段收注單、算完即回，
-**上游 Flask 一呼即應**。
+### 🔀 Champion-Split · Dual-GPU Divide & Conquer
+Split the **3.6M permutation space** by the
+**1st-place ball** — halves fed to two GPUs.
+**Both compute at once, runtime halved.**
 
 </td>
 <td width="50%">
 
-### 🛠️ 100% 手刻
-無 CUDA library、無第三方運算框架。
-自寫 OpenCL kernel、自管記憶體、
-自建 socket 協定 — **每一行都懂**。
+### 🎯 Four Games, One Engine
+PK10 (racing), SSC (time lottery), 11-choose-5, K3 —
+**one engine, one kernel**, switched by config.
+Not a single line of code changes.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🌐 Always-On Microservice
+A `while(true)` loop listens on TCP,
+receives wagers in chunks, computes and replies.
+**Upstream Flask calls, it answers instantly.**
+
+</td>
+<td width="50%">
+
+### 🛠️ 100% Hand-Rolled
+No CUDA libraries, no third-party compute frameworks.
+Self-written OpenCL kernels, manual memory management,
+custom socket protocol — **every line understood.**
 
 </td>
 </tr>
@@ -102,25 +108,25 @@ PK10 賽車、時時彩 SSC、11 選 5、快 3 —
 
 ---
 
-## 📊 效能實測
+## 📊 Benchmark
 
-> 實測環境：2× NVIDIA RTX 2080 · Ubuntu (Linux 5.9.16) · OpenCL · 玩法：**PK10（賽車，計算量最大）**
+> Measured on: 2× NVIDIA RTX 2080 · Ubuntu (Linux 5.9.16) · OpenCL · Game: **PK10 (racing — the heaviest workload)**
 
-| 指標 | 數字 |
-|------|------|
-| 🎰 候選開獎號枚舉 | **3,628,800 種排列 (10!) / 單期** |
-| 🧮 勝負對照矩陣 | **≈ 38.5 億 格 (3,628,800 × 1,060 uchar)** |
-| ⚡ 全量運算延遲 | **≈ 3 秒** |
-| 🔀 GPU 平行度 | **排列 index 上下半切分，2 卡同時算** |
-| 🌐 服務型態 | **常駐 socket，秒級回應** |
+| Metric | Value |
+|--------|-------|
+| 🎰 Draw enumeration | **3,628,800 permutations (10!) / round** |
+| 🧮 Win/loss matrix | **≈ 3.85 billion cells (3,628,800 × 1,060 uchar)** |
+| ⚡ Full-sweep latency | **≈ 3 seconds** |
+| 🔀 GPU parallelism | **Champion-split, 2 cards compute in parallel** |
+| 🌐 Service model | **Persistent socket, sub-second reply** |
 
 ---
 
-## 🧠 它是怎麼運作的
+## 🧠 How It Works
 
-### ① Answer Table — 把勝負「預先算好」
+### ① Answer Table — Precompute Every Outcome
 
-一張巨大的二維矩陣，把每一種下注在每一種開獎號下的輸贏事先算好：
+A giant 2D matrix storing the win/loss of every wager against every draw number, computed ahead of time:
 
 ```
                     DWD1_1   TZF3_1-2-3   B1   ...   SUMB11
@@ -130,200 +136,198 @@ PK10 賽車、時時彩 SSC、11 選 5、快 3 —
    10-9-8-7-6-...      W         W         L    ...    W
 ```
 
-- **row（列）= 開獎號碼** — 每一種可能開出的號碼
-- **column（行）= 玩法 × 下注種類** — 例如 `DWD1_1`(第1名定位膽=1)、`TZF3_1-2-3`(前三名直選)、`B1`(第1名大)、`SUM7`(冠亞和=7)… 由 `createHeader()` 把每種玩法的每個投注選項展開成一欄
-- **格子 = 該注在該開獎號下的勝負**
+- **row = draw number** — every possible drawn permutation
+- **column = game × bet type** — e.g. `DWD1_1` (1st place fixed = 1), `TZF3_1-2-3` (top-3 exact), `B1` (1st place big), `SUM7` (champion+runner-up sum = 7)… `createHeader()` expands every betting option of every game into one column
+- **cell = the outcome of that wager under that draw number**
 
-**勝負值：贏 / 輸 / 和局 三態。**
+**Cell values: three states — Win / Tie / Loss.**
 
-| | 玩家贏 | 和局 | 莊家贏(玩家輸) |
+| | Player Wins | Tie | House Wins (Player Loses) |
 |---|:---:|:---:|:---:|
-| 設計語意（產生器輸出） | `+1` | `0` | `-1` |
-| 現行儲存格式（省空間、kernel 直讀） | `W` (Win) | `T` (Tie) | `L` (Loss) |
+| Design semantics (generator output) | `+1` | `0` | `-1` |
+| Current storage format (compact, kernel-direct) | `W` (Win) | `T` (Tie) | `L` (Loss) |
 
-> 絕大多數玩法只有輸/贏（`+1 / -1`）；**和局(`0`)出現在「冠亞和=11」的退水盤** —— `create_opencode_table_split.py` 的 `SUMB11 / SUMS11 / SUMO11 / SUME11` 在冠亞和剛好等於 11 時 `return 0`。
-> 儲存格式經歷演進：早期 kernel 直接比對數字 `+1 / 0 / -1`（ASCII `43 / 44 / 45`），後來（commit `85a3d62`「新增支援和局」、`3fbcd52`）改存單 byte 字元 `W / T / L`，讓 GPU 直接比字元、壓縮巨表體積。運算時只需查表 —— **免去每期重算勝負的成本**。
+> Most bet types are win/loss only (`+1 / -1`); **the tie (`0`) appears in the "sum = 11 rebate" bets** — `create_opencode_table_split.py`'s `SUMB11 / SUMS11 / SUMO11 / SUME11` return `0` when the champion+runner-up sum is exactly 11.
+> The storage format evolved: early kernels compared raw numbers `+1 / 0 / -1` (ASCII `43 / 44 / 45`); later (commits `85a3d62` "add tie support" and `3fbcd52`) it switched to single-byte chars `W / T / L`, so the GPU compares characters directly and the giant table is compressed. Runtime is a pure lookup — **no per-round recomputation of outcomes.**
 
-以 PK10（計算量最大的玩法）為例：開獎號 = 10 顆球全排列 **`3,628,800` 種** × 玩法×下注 `1,060` 欄
-= 一張 **≈ 38.5 億格** 的 uchar 巨表。要在秒級算完，關鍵在下面的雙卡分治 👇
+For PK10 (the heaviest game): draw numbers = all 10-ball permutations, **`3,628,800`** × **`1,060`** bet columns = a **≈ 3.85-billion-cell** uchar table. To finish that in seconds, the key is the dual-GPU split below 👇
 
-### ①-B 排列 index 分治 — 上下半切分，雙卡砍半 🔀
+### ①-B Champion-Split — Divide by 1st-Place Ball, Two Cards, Half the Time 🔀
 
-> 這是整個專案最關鍵的工程 insight。
+> This is the single most important engineering insight in the project.
 
-360 萬種開獎排列若排隊在單卡上算，時間拉長；PK10 的拆分**依冠軍(第1名)球號**把排列空間切兩半：
+Rather than queueing 3.6M permutations onto one card, PK10 splits the permutation space **by the champion (1st-place) ball**:
 
 ```
-   完整開獎排列空間 (10! = 3,628,800 種)
+   Full draw permutation space (10! = 3,628,800)
    ┌─────────────────────────────────┐
-   │  第1名球號 1 ── 10                │
+   │  1st-place ball  1 ── 10         │
    └─────────────────────────────────┘
-            ✂️  依冠軍大小切 (balls[0])
+            ✂️  split by champion (balls[0])
    ┌──────────────────┐   ┌──────────────────┐
-   │ 冠軍開 1~5        │   │ 冠軍開 6~10       │
-   │ = 1,814,400 排列  │   │ = 1,814,400 排列  │
-   │   → GPU 0 / 表1  │   │   → GPU 1 / 表2  │
+   │ champion 1~5      │   │ champion 6~10     │
+   │ = 1,814,400 perms │   │ = 1,814,400 perms │
+   │   → GPU 0 / table1│   │   → GPU 1 / table2│
    └──────────────────┘   └──────────────────┘
           │                        │
-          └──────── 同時運算 ───────┘
+          └──────── compute together ───────┘
                         ▼
-                 結果合併回傳
+                 merge & return
 ```
 
-`create_opencode_table_split.py` 的拆分規則就是 `if balls[0] <= 5 → 表1 else → 表2` —— 冠軍 5 種號 × 剩下 9! 排列，剛好各 181 萬、對半。
+The split rule in `create_opencode_table_split.py` is literally `if balls[0] <= 5 → table1 else → table2` — 5 champion values × the remaining 9! permutations = exactly 1.81M each, a clean half.
 
-**一石二鳥：**
-1. **時間** — 兩顆 GPU 各扛一半排列、同時開算同時回收，**運算時間直接砍半**。
-2. **空間** — 每半表只需半數 VRAM。同一套切分機制，讓更大的表（如 SSC 拆分後仍達單檔 ~17.7GB）也能**跨卡分攤**跑起原本單卡放不下的規模。
+**Two birds, one stone:**
+1. **Time** — each GPU carries half the permutations, computing and returning at once → **runtime halved.**
+2. **Space** — each half needs only half the VRAM. The same split mechanism lets even larger tables (e.g. SSC, still ~17.7GB *per half* after splitting) be **spread across cards**, running scales a single card can't hold.
 
-`configs/*.json` 的 `OPENCODE_ANSWER_TABLE_PATH` 就是兩個檔（`_table_1` / `_table_2`），
-`USE_GPU_NUM=2` 把兩半分派給兩張卡 —— **PK10 的 360 萬開獎號正是需要拆分的動機來源；SSC 開獎號只有 10 萬，順便一起算、更快回收。**
+The two files in `configs/*.json`'s `OPENCODE_ANSWER_TABLE_PATH` (`_table_1` / `_table_2`) and `USE_GPU_NUM=2` dispatch the two halves to two cards — **PK10's 3.6M draw numbers are exactly what motivates the split; SSC has only 100K draw numbers, so it rides along and returns even faster.**
 
-### ② GPU Kernels — 兩顆核心，火力全開
+### ② GPU Kernels — Two Cores, Full Throttle
 
-| Kernel | 職責 |
-|--------|------|
-| `sum_beton_total_amount` | 把所有注單依下注類型加總（本金 / 本金×賠率）|
-| `calc_numbers_risk` | **主引擎**：每條 thread 算一個開獎號 → 遍歷注單查表 → `W` 加賠付、`L` 扣本金、`T` 歸零 → 得到該號的莊家盈虧 |
+| Kernel | Job |
+|--------|-----|
+| `sum_beton_total_amount` | Aggregate all wagers by bet type (stake / stake×odds) |
+| `calc_numbers_risk` | **Main engine**: one thread per draw number → sweep all wagers, look up the table → `W` add payout, `L` subtract stake, `T` zero → yields the house P&L for that number |
 
-### ③ 即時篩選 — 依風險門檻挑結果
+### ③ Real-Time Filtering — Pick by Risk Threshold
 
 ```c
-targetAmount = 總下注額 × 風險門檻(killRate)
-方向 = +1 → 篩「盈虧 ≥ 門檻」的開獎號
-方向 = -1 → 篩「盈虧 ≤ 門檻」的開獎號
-無達標 → 自動退回極值結果
-最後亂數挑 N 個回傳
+targetAmount = totalWagered × killRate     // risk threshold
+direction = +1 → keep draws with P&L ≥ threshold
+direction = -1 → keep draws with P&L ≤ threshold
+none qualify   → fall back to the extreme-value result
+finally pick N results at random and return
 ```
 
 ---
 
-## 🗺️ 系統架構
+## 🗺️ System Architecture
 
 ```
- ┌──────────────┐   投注資料(HTTP)   ┌────────────────────┐
- │  投注前端 /   │ ─────────────────▶ │  Flask Web 服務      │
- │  上游盤口     │                    │  tools/web_*.py      │
- └──────────────┘                    │  (格式轉換 + 白名單) │
-                                     └─────────┬──────────┘
-                            TCP socket · 分段傳輸 · 以 '!' 結尾
-                            8700=11x5 · 8701=k3 · 8702=ssc
+ ┌──────────────┐   wager data (HTTP)  ┌────────────────────┐
+ │  betting      │ ─────────────────▶ │  Flask web service  │
+ │  frontend /   │                     │  tools/web_*.py     │
+ │  upstream     │                     │ (format + allowlist)│
+ └──────────────┘                     └─────────┬──────────┘
+                          TCP socket · chunked · terminated by '!'
+                          8700=11x5 · 8701=k3 · 8702=ssc
                                                │
                                                ▼
                               ┌────────────────────────────────┐
-                              │   ⚡ optimize_opencode (C核心)   │
+                              │   ⚡ optimize_opencode (C core) │
                               │                                  │
-                              │   注單 → one-hot 金額向量         │
-                              │   雙 GPU 枚舉開獎號 × 查勝負表    │
-                              │   → 每個號的莊家盈虧              │
-                              │   → 依門檻篩選 → 回傳             │
+                              │   wagers → one-hot amount vector │
+                              │   dual-GPU enumerate × table LUT │
+                              │   → house P&L per draw number    │
+                              │   → threshold filter → return    │
                               └────────────────┬─────────────────┘
                                                │
                                                ▼
-                                  {開獎號},{盈虧金額} × N
+                                  {draw number},{P&L amount} × N
 ```
 
 ---
 
-## ⚙️ 技術棧
+## ⚙️ Tech Stack
 
-| 層 | 技術 |
-|----|------|
-| 運算核心 | **C99 + OpenCL**（雙 NVIDIA GPU）|
-| 記憶體策略 | Answer-table 分片 · `CL_MEM_USE_HOST_PTR` · one-hot 向量化 |
-| 對外服務 | 原生 **BSD socket**，自訂分段傳輸協定 |
-| 設定管理 | `json-c` 讀取各玩法 config |
-| 上游工具鏈 | **Python 3 · Flask · pandas · pyopencl** |
-| 依賴管理 | `json-c` · `ocl-icd` · `opencl-headers` |
-| 部署環境 | Ubuntu · Linux kernel **5.9.16** · nvidia-driver-455 |
+| Layer | Technology |
+|-------|------------|
+| Compute core | **C99 + OpenCL** (dual NVIDIA GPU) |
+| Memory strategy | Answer-table sharding · `CL_MEM_USE_HOST_PTR` · one-hot vectorization |
+| Networking | Native **BSD sockets**, custom chunked protocol |
+| Config | `json-c` reads per-game config |
+| Upstream toolchain | **Python 3 · Flask · pandas · pyopencl** |
+| Dependencies | `json-c` · `ocl-icd` · `opencl-headers` |
+| Deployment | Ubuntu · Linux kernel **5.9.16** · nvidia-driver-455 |
 
 ---
 
-## 📂 專案結構
+## 📂 Project Structure
 
 ```
 .
-├── src/                     ⚙️ C 主程式
-│   ├── main.c               ← 常駐主迴圈 · OpenCL 排程 · 篩選邏輯
-│   ├── network.c            socket 收送
-│   ├── loadData.c           載入注單 / 開獎號 / 勝負表
-│   ├── argument.c           參數解析 + config 讀取
+├── src/                     ⚙️ C main program
+│   ├── main.c               ← main loop · OpenCL scheduling · filter logic
+│   ├── network.c            socket recv/send
+│   ├── loadData.c           load wagers / draw numbers / answer table
+│   ├── argument.c           arg parsing + config loading
 │   └── logger.c mystring.c utility.c hashmap.c myfile.c dateTime.c
-├── header/                  📑 標頭檔（common.h 定義全域參數 / VERSION）
+├── header/                  📑 headers (common.h defines globals / VERSION)
 ├── kernels/
-│   └── kernel_program.cl    🔥 兩個 OpenCL kernel — 運算心臟
-├── configs/                 🎛️ 各玩法設定（埠號 / 路徑）
+│   └── kernel_program.cl    🔥 two OpenCL kernels — the compute heart
+├── configs/                 🎛️ per-game config (ports / paths)
 │   ├── ssc_config.json      SSC  → 8702
 │   ├── 11x5_config.json     11x5 → 8700
 │   └── k3_config.json       K3   → 8701
-├── data/                    📊 注單 / 開獎號 / 勝負表 / 測資
-├── tools/                   🐍 Python 上游工具鏈（Flask 服務 + 資料產生器）
-├── kernel-5.9.16/           🐧 指定 kernel .deb（相容 nvidia-driver）
-├── Makefile                 🔨 產出 bin/optimize_opencode
-├── inti-system.sh           📦 一鍵安裝依賴
-└── run_{ssc,k3,11x5}.bash   🛡️ 守護啟動 + GPU 溫度看門狗
+├── data/                    📊 wagers / draw numbers / answer tables / test data
+├── tools/                   🐍 Python upstream toolchain (Flask + table generators)
+├── kernel-5.9.16/           🐧 pinned kernel .deb (nvidia-driver compatible)
+├── Makefile                 🔨 builds bin/optimize_opencode
+├── inti-system.sh           📦 one-shot dependency installer
+└── run_{ssc,k3,11x5}.bash   🛡️ daemon launcher + GPU temperature watchdog
 ```
 
 ---
 
-## 🏁 快速開始
+## 🏁 Quick Start
 
 ```bash
-# 1. 安裝依賴（OpenCL / json-c / Python 工具鏈）
+# 1. Install dependencies (OpenCL / json-c / Python toolchain)
 sudo bash inti-system.sh
 
-# 2. 編譯
-make                 # 產出 bin/optimize_opencode
-make ver=debug       # 除錯版（輸出詳細中間向量）
+# 2. Build
+make                 # produces bin/optimize_opencode
+make ver=debug       # debug build (dumps detailed intermediate vectors)
 
-# 3. 啟動引擎（-k 指定玩法：ssc / k3 / 11x5 / pk10）
+# 3. Launch the engine (-k selects the game: ssc / k3 / 11x5 / pk10)
 ./bin/optimize_opencode -k ssc
 
-# 或用守護腳本（含 GPU 溫度看門狗）
+# or use the daemon script (with GPU temperature watchdog)
 bash run_ssc.bash
 ```
 
-啟動後常駐監聽對應埠，等待上游送入注單，秒級回傳運算結果。
+Once started it listens on the corresponding port, waits for upstream wagers, and returns results in sub-second time.
 
 ---
 
-## 📡 Socket 通訊協定
+## 📡 Socket Protocol
 
 ```
-第 1 行(參數): wagerLength,expectId,direction,killRate,resultLength
-第 2 行起(注單): 每行一筆
-行分隔: '^'    ·    整段結束: '!'（分段傳輸，逐段回 ok，收到 ! 回 done）
-回傳: {開獎號},{盈虧金額}\n × N
+Line 1 (params): wagerLength,expectId,direction,killRate,resultLength
+Line 2+ (wagers): one wager per line
+Row separator: '^'   ·   End of stream: '!' (chunked; each chunk acked "ok", final "done")
+Reply: {draw number},{P&L amount}\n × N
 ```
 
-| 參數 | 意義 |
-|------|------|
-| `expectId` | 期號 |
-| `wagerLength` | 本期注單筆數 |
-| `direction` | +1 / -1 篩選方向 |
-| `killRate` | 風險門檻比例 |
-| `resultLength` | 回傳結果數量 |
+| Param | Meaning |
+|-------|---------|
+| `expectId` | Round ID |
+| `wagerLength` | Number of wagers this round |
+| `direction` | +1 / -1 filter direction |
+| `killRate` | Risk threshold ratio |
+| `resultLength` | Number of results to return |
 
 ---
 
-## 💡 為什麼值得看
+## 💡 Why It's Worth a Look
 
-- **從零手刻的 GPU 高吞吐系統** — 沒有藏在框架後面，每一行 kernel、每一次記憶體配置都攤在陽光下，是學 OpenCL 實戰的活教材。
-- **真實的工程取捨** — answer-table 空間換時間、雙卡分片、host-ptr 零拷貝、socket 分段傳輸，全是生產環境打磨出來的決策。
-- **一個人 × 兩張顯卡 × 5 年前的想法** — 在沒有現成方案的情況下，自己想出「預算勝負表 + GPU 平行枚舉」這條路。
+- **A GPU high-throughput system built from scratch** — nothing hidden behind a framework. Every kernel line and every allocation is out in the open — a living OpenCL case study.
+- **Real engineering trade-offs** — answer-table space-for-time, dual-GPU sharding, host-ptr zero-copy, chunked socket transfer — all decisions forged in production.
+- **One person × two GPUs × an idea from 5 years ago** — with no off-the-shelf solution, independently arriving at "precompute the win/loss table + GPU-parallel enumeration".
 
-> 📌 純技術專案，用於展示 GPU 平行運算、OpenCL kernel 設計與高吞吐系統工程。
+> 📌 A pure technical project, showcasing GPU parallel computing, OpenCL kernel design, and high-throughput system engineering.
 
 ---
 
-## 📜 授權
+## 📜 License
 
-未指定 —— 目前專案內未附 LICENSE。
+Unspecified — no LICENSE file is currently included in the project.
 
 <div align="center">
 
 <br>
 
-**如果這個專案讓你對 GPU 平行運算有一點心動，給顆 ⭐ 吧！**
+**If this project sparked even a little excitement about GPU parallel computing, drop a ⭐!**
 
 </div>
