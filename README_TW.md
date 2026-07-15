@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎲 openbest_pk10_numbers
+# 🎲 gpu-outcome-risk-engine
 
 ### ⚡ 雙 GPU 驅動的即時開獎風險運算引擎
 

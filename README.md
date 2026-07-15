@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎲 openbest_pk10_numbers
+# 🎲 gpu-outcome-risk-engine
 
 ### ⚡ A Real-Time, Dual-GPU Lottery-Outcome Risk Engine
 
