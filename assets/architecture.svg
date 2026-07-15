@@ -34,7 +34,7 @@
   <rect width="1280" height="760" fill="url(#bg)"/>
 
   <!-- Title -->
-  <text x="640" y="52" fill="#e6edf3" font-size="30" font-weight="bold" text-anchor="middle">openbest_pk10_numbers</text>
+  <text x="640" y="52" fill="#e6edf3" font-size="30" font-weight="bold" text-anchor="middle">gpu-outcome-risk-engine</text>
   <text x="640" y="82" fill="#bc8cff" font-size="16" text-anchor="middle">Dual-GPU OpenCL Lottery-Outcome Risk Engine · 3.6M permutations in ~3s</text>
   <line x1="360" y1="98" x2="920" y2="98" stroke="#30363d" stroke-width="1"/>
 
